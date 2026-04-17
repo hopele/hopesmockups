@@ -887,64 +887,17 @@ const SCENARIOS = [
 ];
 
 function App() {
-  const [activeTab, setActiveTab] = useState('payment');
-  const [scenarioId, setScenarioId] = useState('cash-auto');
-  const [scenario, setScenario] = useState(SCENARIOS[0]);
-
-  function selectScenario(s) {
-    setScenarioId(s.id);
-    setScenario(s);
-  }
+  const scenario = SCENARIOS[0];
 
   return (
     <div style={{height:'100vh', display:'flex', flexDirection:'column'}}>
-      {/* Scenario switcher */}
-      <div className="scenario-bar">
-        <strong>Scenario:</strong>
-        {SCENARIOS.map((s, i) => (
-          <React.Fragment key={s.id}>
-            {i > 0 && <span className="sep">|</span>}
-            <button
-              className={`scenario-btn${scenarioId === s.id ? ' active' : ''}`}
-              onClick={() => selectScenario(s)}
-            >
-              {s.label}
-            </button>
-          </React.Fragment>
-        ))}
-        <span className="sep" style={{marginLeft:8}}>Total: $23.35</span>
-        <span className="sep">→</span>
-        <span>Rounded: $23.25</span>
-      </div>
-
-      {/* View tabs */}
-      <div className="mockup-tabs">
-        <button
-          className={`mockup-tab${activeTab === 'payment' ? ' active' : ''}`}
-          onClick={() => setActiveTab('payment')}
-        >
-          Payment Screen
-        </button>
-        <button
-          className={`mockup-tab${activeTab === 'config' ? ' active' : ''}`}
-          onClick={() => setActiveTab('config')}
-        >
-          Config Page
-        </button>
-      </div>
-
-      {/* Main chrome */}
       <div className="app" style={{height:'auto', flex:1}}>
         <div className="topbar">
           <span className="back">‹</span>
           <span className="receipt-id">RECEIPT # D2CQGR</span>
           <span className="drawer-label">CASH DRAWER — Kyler Test Drawer</span>
         </div>
-
-        {activeTab === 'payment'
-          ? <PaymentScreen key={scenarioId} scenario={scenario} />
-          : <ConfigPage scenario={scenario} onScenarioChange={setScenario} />
-        }
+        <PaymentScreen scenario={scenario} />
       </div>
     </div>
   );
