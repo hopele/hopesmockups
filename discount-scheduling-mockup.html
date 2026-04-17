@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Discount Scheduling — Redesign Mockup</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 24px 16px 80px;
+    }
+
+    .page-wrap { max-width: 680px; margin: 0 auto; }
+
+    /* ── Demo nav ── */
+    .demo-nav {
+      display: flex; align-items: center;
+      gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .demo-nav-label {
+      font-size: 11.5px; font-weight: 600; color: #888;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .demo-pill {
+      padding: 4px 12px; border-radius: 20px;
+      border: 1.5px solid #d0d0d0; background: #fff;
+      font-size: 12px; color: #555; cursor: pointer; transition: all 0.12s;
+    }
+    .demo-pill:hover  { border-color: #8BC34A; color: #558B2F; }
+    .demo-pill.active { background: #8BC34A; border-color: #8BC34A; color: #fff; }
+    .mockup-badge {
+      margin-left: auto; font-size: 10.5px; font-weight: 700; letter-spacing: 0.4px;
+      color: #E65100; background: #FFF3E0; border: 1px solid #FFCC80;
+      border-radius: 4px; padding: 3px 8px;
+    }
+
+    /* ── Main card ── */
+    .card {
+      background: #fff; border-radius: 16px;
+      border: 1px solid #e8e8e8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07); overflow: hidden;
+    }
+
+    /* ── Panel header ── */
+    .panel-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; padding: 24px 24px 0;
+    }
+    .panel-title   { font-size: 17px; font-weight: 700; color: #111; }
+    .panel-subtitle {
+      margin-top: 6px; font-size: 13px; color: #666;
+      line-height: 1.55; max-width: 480px;
+    }
+    .toggle-row {
+      display: flex; align-items: center; gap: 9px;
+      flex-shrink: 0; margin-left: 16px;
+    }
+    .toggle-label { font-size: 13.5px; font-weight: 500; color: #333; }
+    .toggle-track {
+      width: 44px; height: 24px; border-radius: 12px;
+      background: #8BC34A; position: relative; cursor: pointer;
+      transition: background 0.2s; flex-shrink: 0;
+    }
+    .toggle-track.off { background: #ccc; }
+    .toggle-knob {
+      position: absolute; top: 2px; left: 22px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: left 0.2s;
+    }
+    .toggle-track.off .toggle-knob { left: 2px; }
+
+    /* ── Card body ── */
+    .card-body { padding: 20px 24px 0; }
+
+    /* ── Auto-deactivate ── */
+    .auto-deact-row {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 22px;
+    }
+    .green-check {
+      width: 22px; height: 22px; border-radius: 50%; background: #8BC34A;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; cursor: pointer;
+    }
+    .green-check svg { width: 12px; height: 12px; }
+    .green-check.unchecked { background: #e0e0e0; }
+    .auto-deact-text { font-size: 14px; color: #222; }
+    .info-icon {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 1.5px solid #999;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #777; cursor: default; flex-shrink: 0;
+    }
+
+    /* ── Section heading ── */
+    .section-heading {
+      font-size: 22px; font-weight: 700; color: #111;
+      display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    }
+    .section-desc { font-size: 13px; color: #666; line-height: 1.55; margin-bottom: 16px; }
+
+    /* ── Input fields ── */
+    .pickers-row { display: flex; gap: 14px; margin-bottom: 12px; }
+    .pickers-row > * { flex: 1; }
+
+    .input-field {
+      background: #f5f5f5; border-radius: 10px;
+      border: none; padding: 0; position: relative; transition: box-shadow 0.15s;
+    }
+    .input-field:focus-within { box-shadow: 0 0 0 2px #8BC34A; }
+    .input-field-label {
+      font-size: 11px; color: #888; padding: 10px 14px 0;
+      font-weight: 500; display: block;
+    }
+    .input-field input[type="date"],
+    .input-field input[type="time"] {
+      width: 100%; border: none; background: transparent;
+      font-size: 15px; color: #111; padding: 2px 14px 10px; outline: none; font-weight: 400;
+    }
+    .input-field-icon {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%); color: #888; pointer-events: none;
+    }
+    .input-select {
+      background: #f5f5f5; border-radius: 10px;
+      border: 2px solid transparent; position: relative; transition: border-color 0.15s;
+    }
+    .input-select:focus-within { border-color: #111; }
+    .input-select-label {
+      font-size: 11px; color: #888; padding: 10px 14px 0; font-weight: 500; display: block;
+    }
+    .input-select select {
+      width: 100%; border: none; background: transparent;
+      font-size: 15px; color: #111; padding: 2px 38px 10px 14px;
+      outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+    }
+    .input-select select.placeholder { color: #999; font-size: 14px; }
+    .input-select-arrow {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%); color: #555; pointer-events: none; font-size: 13px;
+    }
+
+    /* ── Checkbox ── */
+    .check-row {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; margin-bottom: 4px;
+    }
+    .check-row .check-label { font-size: 14px; color: #222; font-weight: 400; }
+
+    /* ── Divider ── */
+    .divider { height: 1px; background: #ebebeb; margin: 20px 0; }
+
+    /* ── Day chips ── */
+    .day-chips-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .day-chip {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 1.5px solid #d0d0d0; background: #fff;
+      font-size: 12px; font-weight: 500; color: #555; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.12s;
+    }
+    .day-chip:hover  { border-color: #8BC34A; color: #558B2F; }
+    .day-chip.selected { background: #8BC34A; border-color: #8BC34A; color: #fff; font-weight: 600; }
+    .day-chips-helper { font-size: 12.5px; color: #777; margin-top: 8px; line-height: 1.5; }
+
+    /* ── Radio group ── */
+    .radio-row {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; padding: 6px 0;
+    }
+    .radio-circle {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid #d0d0d0; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: border-color 0.12s;
+    }
+    .radio-circle.checked { border-color: #8BC34A; }
+    .radio-dot { width: 10px; height: 10px; border-radius: 50%; background: #8BC34A; }
+    .radio-label { font-size: 14px; color: #222; }
+
+    /* ── Warn banner ── */
+    .warn-banner {
+      background: #FFFDE7; border: 1px solid #F9A825;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 12.5px; color: #795548; line-height: 1.5;
+    }
+
+    /* ── Bottom bar ── */
+    .bottom-bar {
+      display: flex; justify-content: flex-end; align-items: center;
+      gap: 20px; padding: 16px 24px;
+      border-top: 1px solid #ebebeb; margin-top: 0;
+    }
+    .btn-done { font-size: 14px; font-weight: 500; color: #333; background: none; border: none; cursor: pointer; }
+    .btn-next {
+      padding: 10px 28px; border-radius: 22px; background: #8BC34A;
+      color: #fff; font-size: 14px; font-weight: 600; border: none; cursor: pointer;
+    }
+    .btn-next:hover { background: #7CB342; }
+
+    .field-helper { font-size: 11.5px; color: #999; margin-top: 5px; }
+
+    /* ── Fade in ── */
+    .fade-in { animation: fadeIn 0.18s ease; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ════════════════════════════════════
+       CALENDAR PREVIEW
+    ════════════════════════════════════ */
+    .cal-section {
+      margin-top: 0;
+      background: #FAFAFA;
+      border-top: 1px solid #ebebeb;
+      padding-top: 24px;
+      padding: 20px 24px 24px;
+    }
+    .cal-header-row {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 14px;
+    }
+    .cal-title {
+      font-size: 13px; font-weight: 700;
+      color: #333; text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cal-title-icon {
+      width: 18px; height: 18px; color: #8BC34A;
+    }
+    .cal-nav {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cal-nav-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 1.5px solid #e0e0e0; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 13px; color: #555; transition: all 0.12s;
+    }
+    .cal-nav-btn:hover { border-color: #8BC34A; color: #558B2F; }
+    .cal-month-label { font-size: 14px; font-weight: 600; color: #111; min-width: 120px; text-align: center; }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-dow {
+      font-size: 11px; font-weight: 600;
+      color: #aaa; text-align: center;
+      padding: 4px 0 6px; text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .cal-day-cell {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; font-size: 13px;
+      font-weight: 400; color: #333; position: relative;
+      cursor: default; transition: all 0.1s;
+    }
+    .cal-day-cell.outside-month { color: #d0d0d0; }
+    .cal-day-cell.today {
+      border: 2px solid #8BC34A;
+      color: #558B2F; font-weight: 600;
+    }
+    .cal-day-cell.active {
+      background: #8BC34A;
+      color: #fff; font-weight: 600;
+    }
+    .cal-day-cell.active.today {
+      border: 2px solid #558B2F;
+      box-shadow: 0 0 0 2px #C5E1A5;
+    }
+    .cal-day-cell.active-range {
+      background: #DCEDC8;
+      border-radius: 0;
+      color: #33691E;
+    }
+    .cal-day-cell.active-range-start {
+      background: #8BC34A; color: #fff;
+      border-radius: 50% 0 0 50%; font-weight: 600;
+    }
+    .cal-day-cell.active-range-end {
+      background: #8BC34A; color: #fff;
+      border-radius: 0 50% 50% 0; font-weight: 600;
+    }
+    .cal-day-cell.active-range-single {
+      background: #8BC34A; color: #fff;
+      border-radius: 50%; font-weight: 600;
+    }
+
+    .cal-legend {
+      display: flex; align-items: center; gap: 16px;
+      margin-top: 14px; flex-wrap: wrap;
+    }
+    .cal-legend-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11.5px; color: #666;
+    }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    }
+    .legend-dot.active     { background: #8BC34A; }
+    .legend-dot.range      { background: #DCEDC8; border: 1px solid #AED581; }
+    .legend-dot.today-dot  { border: 2px solid #8BC34A; }
+
+    .cal-empty {
+      text-align: center; padding: 24px 0;
+      font-size: 13px; color: #aaa; font-style: italic;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const DAYS_SHORT = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const DOW_HEADER = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+const MONTH_NAMES = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+
+function ordinalSuffix(n) {
+  if (n === 1 || n === 21 || n === 31) return `${n}st`;
+  if (n === 2 || n === 22)             return `${n}nd`;
+  if (n === 3 || n === 23)             return `${n}rd`;
+  return `${n}th`;
+}
+function getWeekDay(dateStr) {
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' });
+}
+function getWeekNumberStr(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const dow = d.getDay();
+  let count = 0;
+  for (let i = 1; i <= d.getDate(); i++) {
+    if (new Date(d.getFullYear(), d.getMonth(), i).getDay() === dow) count++;
+  }
+  return ['first','second','third','fourth','fifth'][count - 1] || 'last';
+}
+function getDayOfMonth(dateStr) {
+  return ordinalSuffix(new Date(dateStr + 'T12:00:00').getDate());
+}
+function getDayOfYear(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return `${d.toLocaleDateString('en-US', { month: 'long' })} ${ordinalSuffix(d.getDate())}`;
+}
+function getRepeatOptions(startDate) {
+  const v = startDate && new Date(startDate + 'T12:00:00').toString() !== 'Invalid Date';
+  return [
+    { value: '',         label: 'Select repeat pattern', disabled: true },
+    { value: 'none',     label: 'Does not repeat' },
+    { value: 'daily',    label: 'Daily' },
+    { value: 'weekly',   label: v ? `Weekly on ${getWeekDay(startDate)}`                                     : 'Weekly' },
+    { value: 'monthly',  label: v ? `Monthly on ${getWeekNumberStr(startDate)} ${getWeekDay(startDate)}`     : 'Monthly on same day of week' },
+    { value: 'monthday', label: v ? `Monthly on ${getDayOfMonth(startDate)}`                                 : 'Monthly on same date' },
+    { value: 'annually', label: v ? `Annually on ${getDayOfYear(startDate)}`                                 : 'Annually' },
+    { value: 'weekdays', label: 'Every Weekday' },
+    { value: 'custom',   label: 'Custom' },
+  ];
+}
+
+const CUSTOM_EVERY = [
+  { value: 'day',   label: 'Day' },
+  { value: 'week',  label: 'Week' },
+  { value: 'month', label: 'Month' },
+  { value: 'year',  label: 'Year' },
+];
+
+function ds(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function noon(dateStr) {
+  return new Date(dateStr + 'T12:00:00');
+}
+
+function computeActiveDates(state, viewYear, viewMonth) {
+  const { startDate, repeat, endDate, allDay,
+          selectedDays, stopType, stopDate, stopCount,
+          customInterval, customEvery, customDays } = state;
+
+  const result    = new Set();
+  const rangeMap  = new Map();
+
+  if (!startDate || !repeat) return { result, rangeMap };
+
+  const start       = noon(startDate);
+  const mStart      = new Date(viewYear, viewMonth, 1);
+  const mEnd        = new Date(viewYear, viewMonth + 1, 0, 23, 59, 59);
+
+  let hardEnd = null;
+  if (stopType === 'on_date' && stopDate) hardEnd = noon(stopDate);
+
+  if (repeat === 'none') {
+    const endD = endDate ? noon(endDate) : start;
+    const lo = new Date(Math.max(start.getTime(), mStart.getTime()));
+    lo.setHours(12);
+    const hi = new Date(Math.min(endD.getTime(), mEnd.getTime()));
+    hi.setHours(12);
+
+    if (lo > hi) return { result, rangeMap };
+
+    const isSingle = ds(start) === ds(endD);
+    for (let d = new Date(lo); d <= hi; d.setDate(d.getDate() + 1)) {
+      const key = ds(new Date(d));
+      result.add(key);
+      const isFirst = ds(new Date(d)) === ds(start) || ds(new Date(d)) === ds(lo);
+      const isLast  = ds(new Date(d)) === ds(endD)  || ds(new Date(d)) === ds(hi);
+      if (isSingle || (isFirst && isLast)) rangeMap.set(key, 'single');
+      else if (isFirst)  rangeMap.set(key, 'start');
+      else if (isLast)   rangeMap.set(key, 'end');
+      else               rangeMap.set(key, 'middle');
+    }
+    return { result, rangeMap };
+  }
+
+  if (stopType === 'after_count' && stopCount > 0) {
+    let count = 0;
+    const max = parseInt(stopCount, 10) || 0;
+    const limit = new Date(mEnd.getTime() + 366 * 86400000);
+    for (let d = new Date(start); d <= limit && count < max; d.setDate(d.getDate() + 1)) {
+      d.setHours(12);
+      if (isOccurrenceDay(d, repeat, start, selectedDays, customInterval, customEvery, customDays)) {
+        count++;
+        if (d >= mStart && d <= mEnd) result.add(ds(new Date(d)));
+      }
+    }
+    return { result, rangeMap };
+  }
+
+  const checkEnd = hardEnd
+    ? new Date(Math.min(hardEnd.getTime(), mEnd.getTime()))
+    : mEnd;
+  const checkStart = new Date(Math.max(start.getTime(), mStart.getTime()));
+  checkStart.setHours(12);
+
+  for (let d = new Date(checkStart); d <= checkEnd; d.setDate(d.getDate() + 1)) {
+    d.setHours(12);
+    if (isOccurrenceDay(d, repeat, start, selectedDays, customInterval, customEvery, customDays)) {
+      result.add(ds(new Date(d)));
+    }
+  }
+  return { result, rangeMap };
+}
+
+function isOccurrenceDay(d, repeat, start, selectedDays, customInterval, customEvery, customDays) {
+  const dow = d.getDay();
+  const dowName = DAYS_SHORT[dow];
+
+  if (repeat === 'daily')    return true;
+  if (repeat === 'weekdays') return dow >= 1 && dow <= 5;
+  if (repeat === 'weekly')   return d.getDay() === start.getDay();
+  if (repeat === 'monthly') {
+    const startWom = Math.ceil(start.getDate() / 7);
+    const dWom     = Math.ceil(d.getDate() / 7);
+    return d.getDay() === start.getDay() && dWom === startWom;
+  }
+  if (repeat === 'monthday') return d.getDate() === start.getDate();
+  if (repeat === 'annually') return d.getMonth() === start.getMonth() && d.getDate() === start.getDate();
+  if (repeat === 'custom') {
+    if (customEvery === 'day') {
+      const diff = Math.round((d.getTime() - start.getTime()) / 86400000);
+      return diff >= 0 && diff % (parseInt(customInterval, 10) || 1) === 0;
+    }
+    if (customEvery === 'week') {
+      if (!customDays.includes(dowName)) return false;
+      const diffWeeks = Math.floor((d.getTime() - start.getTime()) / (7 * 86400000));
+      return diffWeeks >= 0 && diffWeeks % (parseInt(customInterval, 10) || 1) === 0;
+    }
+    if (customEvery === 'month') {
+      if (d.getDate() !== start.getDate()) return false;
+      const mDiff = (d.getFullYear() - start.getFullYear()) * 12 + (d.getMonth() - start.getMonth());
+      return mDiff >= 0 && mDiff % (parseInt(customInterval, 10) || 1) === 0;
+    }
+    if (customEvery === 'year') {
+      if (d.getMonth() !== start.getMonth() || d.getDate() !== start.getDate()) return false;
+      const yDiff = d.getFullYear() - start.getFullYear();
+      return yDiff >= 0 && yDiff % (parseInt(customInterval, 10) || 1) === 0;
+    }
+  }
+  return false;
+}
+
+function CalIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+      <rect x="3" y="4" width="18" height="18" rx="2"/>
+      <line x1="3" y1="9" x2="21" y2="9"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+    </svg>
+  );
+}
+
+function Checkmark({ checked, onClick }) {
+  return (
+    <div className={`green-check${checked ? '' : ' unchecked'}`} onClick={onClick}>
+      {checked && (
+        <svg viewBox="0 0 12 12" fill="none" stroke="#fff" strokeWidth="2.2">
+          <polyline points="1.5,6 5,9.5 10.5,2.5"/>
+        </svg>
+      )}
+    </div>
+  );
+}
+
+function RadioCircle({ checked }) {
+  return (
+    <div className={`radio-circle${checked ? ' checked' : ''}`}>
+      {checked && <div className="radio-dot" />}
+    </div>
+  );
+}
+
+function CalendarPreview({ formState }) {
+  const { startDate } = formState;
+  const defaultDate = startDate ? new Date(startDate + 'T12:00:00') : new Date();
+  const [viewYear,  setViewYear]  = useState(defaultDate.getFullYear());
+  const [viewMonth, setViewMonth] = useState(defaultDate.getMonth());
+
+  React.useEffect(() => {
+    if (startDate) {
+      const d = new Date(startDate + 'T12:00:00');
+      setViewYear(d.getFullYear());
+      setViewMonth(d.getMonth());
+    }
+  }, [startDate]);
+
+  function prevMonth() {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  }
+  function nextMonth() {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  }
+
+  const { result: activeDates, rangeMap } = useMemo(
+    () => computeActiveDates(formState, viewYear, viewMonth),
+    [formState, viewYear, viewMonth]
+  );
+
+  const todayStr = ds(new Date());
+  const firstDow    = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const prevMonthDays = new Date(viewYear, viewMonth, 0).getDate();
+  const cells = [];
+  for (let i = firstDow - 1; i >= 0; i--) {
+    cells.push({ day: prevMonthDays - i, outside: true, key: `p-${i}` });
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    cells.push({ day: d, outside: false, dateStr, key: `c-${d}` });
+  }
+  const remaining = (7 - (cells.length % 7)) % 7;
+  for (let d = 1; d <= remaining; d++) {
+    cells.push({ day: d, outside: true, key: `n-${d}` });
+  }
+
+  const hasActiveDates = activeDates.size > 0;
+  const isNonRecurringRange = formState.repeat === 'none' && formState.endDate;
+
+  return (
+    <div className="cal-section fade-in">
+      <div className="cal-header-row">
+        <div className="cal-title">
+          <CalIcon className="cal-title-icon" />
+          Schedule Preview
+        </div>
+        <div className="cal-nav">
+          <button className="cal-nav-btn" onClick={prevMonth}>‹</button>
+          <span className="cal-month-label">{MONTH_NAMES[viewMonth]} {viewYear}</span>
+          <button className="cal-nav-btn" onClick={nextMonth}>›</button>
+        </div>
+      </div>
+
+      {!formState.repeat ? (
+        <div className="cal-empty">Select a repeat pattern to preview the schedule.</div>
+      ) : (
+        <>
+          <div className="cal-grid">
+            {DOW_HEADER.map(h => (
+              <div key={h} className="cal-dow">{h}</div>
+            ))}
+            {cells.map(cell => {
+              if (cell.outside) {
+                return <div key={cell.key} className="cal-day-cell outside-month">{cell.day}</div>;
+              }
+              const isActive  = activeDates.has(cell.dateStr);
+              const isToday   = cell.dateStr === todayStr;
+              const rangeRole = rangeMap.get(cell.dateStr);
+
+              let cls = 'cal-day-cell';
+              if (isToday && !isActive) cls += ' today';
+
+              if (isActive) {
+                if (rangeRole === 'single') cls += ' active-range-single';
+                else if (rangeRole === 'start')  cls += ' active-range-start';
+                else if (rangeRole === 'end')    cls += ' active-range-end';
+                else if (rangeRole === 'middle') cls += ' active-range';
+                else cls += ' active';
+                if (isToday) cls += ' today';
+              }
+
+              return (
+                <div key={cell.key} className={cls}>{cell.day}</div>
+              );
+            })}
+          </div>
+
+          <div className="cal-legend">
+            {isNonRecurringRange ? (
+              <>
+                <div className="cal-legend-item">
+                  <div className="legend-dot active" />
+                  <span>Start / end date</span>
+                </div>
+                <div className="cal-legend-item">
+                  <div className="legend-dot range" />
+                  <span>Active range</span>
+                </div>
+              </>
+            ) : (
+              <div className="cal-legend-item">
+                <div className="legend-dot active" />
+                <span>Discount active</span>
+              </div>
+            )}
+            <div className="cal-legend-item">
+              <div className="legend-dot today-dot" />
+              <span>Today</span>
+            </div>
+            {!hasActiveDates && (
+              <span style={{fontSize:'11.5px',color:'#f57c00',marginLeft:'4px'}}>
+                ⚠ No active dates in this month
+              </span>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function App() {
+  const [scheduleOn,    setScheduleOn]    = useState(true);
+  const [autoDeact,     setAutoDeact]     = useState(true);
+  const [allDay,        setAllDay]        = useState(true);
+  const [startDate,     setStartDate]     = useState('2026-03-09');
+  const [startTime,     setStartTime]     = useState('09:00');
+  const [endTime,       setEndTime]       = useState('17:00');
+  const [repeat,        setRepeat]        = useState('');
+  const [endDate,       setEndDate]       = useState('');
+  const [selectedDays,  setSelectedDays]  = useState(['MON']);
+  const [stopType,      setStopType]      = useState('on_date');
+  const [stopDate,      setStopDate]      = useState('2026-03-30');
+  const [stopCount,     setStopCount]     = useState(4);
+  const [customInterval,setCustomInterval]= useState(1);
+  const [customEvery,   setCustomEvery]   = useState('week');
+  const [customDays,    setCustomDays]    = useState(['MON']);
+  const [activePreset,  setActivePreset]  = useState(null);
+
+  const isRecurring = repeat && repeat !== 'none';
+
+  function toggleDay(day) {
+    setSelectedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
+  }
+  function toggleCustomDay(day) {
+    setCustomDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
+  }
+
+  function loadPreset(key) {
+    setActivePreset(key);
+    if (key === 'nonrecurring') {
+      setRepeat('none'); setEndDate('2026-03-12');
+      setAllDay(true); setStartDate('2026-03-09');
+    } else if (key === 'weekly') {
+      setRepeat('weekly'); setSelectedDays(['MON']);
+      setAllDay(true); setStartDate('2026-03-09');
+      setStopType('on_date'); setStopDate('2026-03-30');
+    } else if (key === 'daily-timed') {
+      setRepeat('daily'); setAllDay(false);
+      setStartTime('17:00'); setEndTime('19:00');
+      setStartDate('2026-03-09'); setStopType('never');
+    } else if (key === 'custom') {
+      setRepeat('custom'); setAllDay(true);
+      setCustomInterval(2); setCustomEvery('week');
+      setCustomDays(['MON','WED','FRI']);
+      setStopType('after_count'); setStopCount(8);
+      setStartDate('2026-03-09');
+    }
+  }
+
+  const formState = {
+    startDate, allDay, startTime, endTime, repeat,
+    endDate, selectedDays, stopType, stopDate, stopCount,
+    customInterval, customEvery, customDays
+  };
+
+  return (
+    <div className="page-wrap">
+
+      <div className="demo-nav">
+        <span className="demo-nav-label">Load example:</span>
+        {[
+          ['nonrecurring', 'Non-recurring'],
+          ['weekly',       'Weekly recurring'],
+          ['daily-timed',  'Daily happy hour'],
+          ['custom',       'Custom interval'],
+        ].map(([key, label]) => (
+          <button key={key}
+            className={`demo-pill${activePreset === key ? ' active' : ''}`}
+            onClick={() => loadPreset(key)}
+          >{label}</button>
+        ))}
+        <span className="mockup-badge">REDESIGN MOCKUP</span>
+      </div>
+
+      <div className="card">
+
+        <div className="panel-header">
+          <div style={{flex:1}}>
+            <div className="panel-title">Schedule Discount</div>
+            <div className="panel-subtitle">
+              Schedule discounts like recurring meetings. Set dates and times in your store's local
+              timezone. Discounts without a set schedule will be in effect once saved and will
+              continue indefinitely.
+            </div>
+          </div>
+          <div className="toggle-row">
+            <div className={`toggle-track${scheduleOn ? '' : ' off'}`}
+                 onClick={() => setScheduleOn(v => !v)}>
+              <div className="toggle-knob" />
+            </div>
+            <span className="toggle-label">Add Schedule</span>
+          </div>
+        </div>
+
+        {scheduleOn && (
+          <>
+            <div className="card-body">
+
+              <div className="auto-deact-row">
+                <Checkmark checked={autoDeact} onClick={() => setAutoDeact(v => !v)} />
+                <span className="auto-deact-text">Auto-deactivate after schedule ends</span>
+                <div className="info-icon">i</div>
+              </div>
+
+              <div className="section-heading">
+                Start Date <div className="info-icon">i</div>
+              </div>
+              <div className="section-desc">When does this discount first become active?</div>
+
+              <div className="pickers-row">
+                <div className="input-field">
+                  <span className="input-field-label">Start Date *</span>
+                  <input type="date" value={startDate}
+                    onChange={e => setStartDate(e.target.value)} />
+                  <span className="input-field-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" strokeWidth="1.7">
+                      <rect x="3" y="4" width="18" height="18" rx="2"/>
+                      <line x1="3" y1="9" x2="21" y2="9"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                    </svg>
+                  </span>
+                </div>
+                {!allDay && (
+                  <div className="input-field fade-in">
+                    <span className="input-field-label">Start Time *</span>
+                    <input type="time" value={startTime}
+                      onChange={e => setStartTime(e.target.value)} />
+                  </div>
+                )}
+              </div>
+
+              <label className="check-row" style={{marginBottom:'20px'}}>
+                <Checkmark checked={allDay} onClick={() => setAllDay(v => !v)} />
+                <span className="check-label">All Day</span>
+              </label>
+
+              <div className="divider" />
+
+              <div className="section-heading">Repeat</div>
+              <div className="section-desc">
+                Choose how often this discount recurs. For one-time promotions, select "Does not repeat."
+              </div>
+
+              <div className="input-select">
+                <span className="input-select-label">Repeat</span>
+                <select className={repeat === '' ? 'placeholder' : ''}
+                  value={repeat} onChange={e => setRepeat(e.target.value)}>
+                  {getRepeatOptions(startDate).map(o => (
+                    <option key={o.value} value={o.value} disabled={o.disabled}>{o.label}</option>
+                  ))}
+                </select>
+                <span className="input-select-arrow">▾</span>
+              </div>
+
+              {repeat === 'none' && (
+                <div className="fade-in" style={{marginTop:'20px'}}>
+                  <div className="pickers-row">
+                    <div className="input-field">
+                      <span className="input-field-label">End Date</span>
+                      <input type="date" value={endDate}
+                        onChange={e => setEndDate(e.target.value)} />
+                      <span className="input-field-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" strokeWidth="1.7">
+                          <rect x="3" y="4" width="18" height="18" rx="2"/>
+                          <line x1="3" y1="9" x2="21" y2="9"/>
+                          <line x1="8" y1="2" x2="8" y2="6"/>
+                          <line x1="16" y1="2" x2="16" y2="6"/>
+                        </svg>
+                      </span>
+                    </div>
+                    {!allDay && (
+                      <div className="input-field fade-in">
+                        <span className="input-field-label">End Time *</span>
+                        <input type="time" value={endTime}
+                          onChange={e => setEndTime(e.target.value)} />
+                      </div>
+                    )}
+                  </div>
+                  <p className="field-helper">Leave End Date blank for an open-ended promotion.</p>
+                </div>
+              )}
+
+              {isRecurring && (
+                <div className="fade-in">
+
+                  {!allDay && (
+                    <div style={{marginTop:'16px'}} className="fade-in">
+                      <div className="input-field">
+                        <span className="input-field-label">End Time (per occurrence) *</span>
+                        <input type="time" value={endTime}
+                          onChange={e => setEndTime(e.target.value)} />
+                      </div>
+                      <p className="field-helper">Discount ends at this time on each active day.</p>
+                    </div>
+                  )}
+
+                  {repeat === 'custom' && (
+                    <div style={{marginTop:'20px'}} className="fade-in">
+                      <div className="section-heading" style={{fontSize:'16px',marginBottom:'10px'}}>
+                        Repeat at Interval
+                      </div>
+                      <div className="pickers-row">
+                        <div className="input-field">
+                          <span className="input-field-label"># of *</span>
+                          <input type="number" min="1" value={customInterval}
+                            onChange={e => setCustomInterval(e.target.value)}
+                            style={{border:'none',background:'transparent',fontSize:'15px',
+                                    padding:'2px 14px 10px',outline:'none',width:'100%'}} />
+                        </div>
+                        <div className="input-select">
+                          <span className="input-select-label">Recurrence Type *</span>
+                          <select value={customEvery} onChange={e => setCustomEvery(e.target.value)}>
+                            {CUSTOM_EVERY.map(o => (
+                              <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                          </select>
+                          <span className="input-select-arrow">▾</span>
+                        </div>
+                      </div>
+                      {customEvery === 'week' && (
+                        <div style={{marginTop:'12px'}} className="fade-in">
+                          <div style={{fontSize:'14px',fontWeight:'600',marginBottom:'8px',color:'#333'}}>
+                            Days Of Week
+                          </div>
+                          <div className="day-chips-row">
+                            {DAYS_SHORT.map(d => (
+                              <button key={d} type="button"
+                                className={`day-chip${customDays.includes(d) ? ' selected' : ''}`}
+                                onClick={() => toggleCustomDay(d)}>{d}</button>
+                            ))}
+                          </div>
+                          <p className="day-chips-helper">
+                            Selected days decide when the discount starts again.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="divider" />
+
+                  <div className="section-heading" style={{fontSize:'16px',marginBottom:'10px'}}>
+                    Stop Repeating
+                  </div>
+                  <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 14px',alignItems:'center'}}>
+                      <div className="radio-row" onClick={() => setStopType('never')}>
+                        <RadioCircle checked={stopType === 'never'} />
+                        <span className="radio-label">Never</span>
+                      </div>
+                      <div />
+                    </div>
+
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 14px',alignItems:'center'}}>
+                      <div className="radio-row" onClick={() => setStopType('on_date')}>
+                        <RadioCircle checked={stopType === 'on_date'} />
+                        <span className="radio-label">On (Date)</span>
+                      </div>
+                      <div className="input-field"
+                           style={{opacity: stopType === 'on_date' ? 1 : 0.35,
+                                   pointerEvents: stopType === 'on_date' ? 'auto' : 'none'}}>
+                        <span className="input-field-label">Occurrences End Date</span>
+                        <input type="date" value={stopDate}
+                          onChange={e => setStopDate(e.target.value)} />
+                        <span className="input-field-icon">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                               stroke="currentColor" strokeWidth="1.7">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <line x1="3" y1="9" x2="21" y2="9"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 14px',alignItems:'center'}}>
+                      <div className="radio-row" onClick={() => setStopType('after_count')}>
+                        <RadioCircle checked={stopType === 'after_count'} />
+                        <span className="radio-label">After (# of Occurrences)</span>
+                      </div>
+                      <div className="input-field"
+                           style={{opacity: stopType === 'after_count' ? 1 : 0.35,
+                                   pointerEvents: stopType === 'after_count' ? 'auto' : 'none'}}>
+                        <span className="input-field-label"># of Occurrences</span>
+                        <input type="number" min="1" value={stopCount}
+                          onChange={e => setStopCount(e.target.value)}
+                          style={{border:'none',background:'transparent',fontSize:'15px',
+                                  padding:'2px 14px 10px',outline:'none',width:'100%'}} />
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {stopType === 'never' && (
+                    <div className="warn-banner fade-in" style={{marginTop:'14px'}}>
+                      ⚠️ This discount will repeat indefinitely until manually deactivated.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div style={{marginTop: '24px'}}>
+              <CalendarPreview formState={formState} />
+            </div>
+          </>
+        )}
+
+        <div className="bottom-bar">
+          <button className="btn-done">Done Editing</button>
+          <button className="btn-next">Next</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rounding — Payment UI Mockup</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+      font-size: 13px;
+    }
+
+    /* ── Scenario switcher bar ── */
+    .scenario-bar {
+      background: #1a1a2e;
+      color: #ccc;
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .scenario-bar strong { color: #fff; margin-right: 4px; }
+    .scenario-btn {
+      padding: 4px 12px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: transparent;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 11px;
+      transition: all 0.12s;
+    }
+    .scenario-btn.active { background: #8BC34A; border-color: #8BC34A; color: #fff; }
+    .scenario-bar .sep { color: #555; margin: 0 4px; }
+
+    /* ── App chrome ── */
+    .app { display: flex; flex-direction: column; height: calc(100vh - 38px); }
+
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: 48px;
+      flex-shrink: 0;
+    }
+    .topbar .back { font-size: 20px; color: #777; cursor: pointer; }
+    .receipt-id { font-weight: 700; font-size: 15px; letter-spacing: 0.02em; }
+    .drawer-label {
+      font-size: 12px;
+      color: #666;
+      background: #f0f0f0;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .topbar-right { margin-left: auto; display: flex; gap: 8px; }
+    .btn-outline {
+      padding: 5px 14px;
+      border: 1.5px solid #8BC34A;
+      border-radius: 5px;
+      background: transparent;
+      color: #558B2F;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-green {
+      padding: 5px 14px;
+      border: none;
+      border-radius: 5px;
+      background: #8BC34A;
+      color: #fff;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* ── Main layout ── */
+    .main { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Left panel ── */
+    .left-panel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      background: #fff;
+      border-right: 1px solid #e0e0e0;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+      margin-top: 16px;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    /* Cash preset buttons */
+    .cash-presets {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .preset-btn {
+      padding: 14px 8px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.1s;
+      color: #1a1a1a;
+    }
+    .preset-btn:hover { border-color: #8BC34A; color: #558B2F; background: #F1F8E9; }
+    .preset-btn.exact {
+      border-color: #8BC34A;
+      color: #558B2F;
+      background: #F1F8E9;
+    }
+    .preset-btn.custom { color: #555; font-weight: 500; }
+
+    /* Rounding note under presets */
+    .rounding-note {
+      font-size: 11px;
+      color: #8BC34A;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .rounding-note .icon { font-size: 12px; }
+
+    /* Payment method buttons */
+    .payment-btn {
+      width: 100%;
+      padding: 13px 16px;
+      margin-bottom: 8px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.1s;
+      color: #1a1a1a;
+    }
+    .payment-btn:hover { border-color: #8BC34A; color: #558B2F; background: #F1F8E9; }
+    .payment-btn.cashless { border-color: #8BC34A; }
+
+    /* Reward dollars row */
+    .reward-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 0;
+      border-top: 1px solid #f0f0f0;
+      margin-top: 8px;
+    }
+    .reward-field { display: flex; flex-direction: column; gap: 2px; }
+    .reward-field label { font-size: 10px; color: #999; }
+    .reward-field .val { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+    .reward-target { margin-left: auto; }
+    .reward-target-btn {
+      padding: 6px 14px;
+      border: 1.5px solid #ccc;
+      border-radius: 5px;
+      background: #fff;
+      font-size: 12px;
+      color: #777;
+      cursor: pointer;
+    }
+
+    /* Split payment warning */
+    .split-warning {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: #FFF8E1;
+      border: 1px solid #FFD54F;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #795548;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .split-warning .warn-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Right panel ── */
+    .right-panel {
+      width: 300px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+    }
+
+    /* Numpad */
+    .numpad-area {
+      border-bottom: 1px solid #e8e8e8;
+      padding: 10px;
+    }
+    .numpad-display {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 300;
+      color: #bbb;
+      border-bottom: 1px solid #e8e8e8;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      min-height: 36px;
+    }
+    .numpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: #e8e8e8;
+    }
+    .num-key {
+      background: #fff;
+      border: none;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 400;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.08s;
+      color: #1a1a1a;
+    }
+    .num-key:hover { background: #f5f5f5; }
+    .num-key.backspace { color: #999; }
+
+    /* Order summary */
+    .order-summary {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 3px 0;
+      font-size: 13px;
+      color: #333;
+    }
+    .summary-row.indent { padding-left: 12px; color: #666; font-size: 12px; }
+    .summary-row.total-row {
+      font-weight: 600;
+      font-size: 14px;
+      color: #1a1a1a;
+      padding-top: 5px;
+      padding-bottom: 2px;
+    }
+
+    /* Cash total row — new feature */
+    .cash-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 3px 0 6px;
+      font-size: 12px;
+      color: #558B2F;
+    }
+    .cash-total-label { font-weight: 500; }
+    .cash-total-val { display: flex; align-items: baseline; gap: 5px; }
+    .cash-total-amount { font-weight: 700; font-size: 13px; }
+    .rounding-delta {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 1px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+    .rounding-delta.positive { color: #2E7D32; background: #E8F5E9; }
+    .rounding-delta.negative { color: #C62828; background: #FFEBEE; }
+
+    .divider { border: none; border-top: 1px solid #e8e8e8; margin: 6px 0; }
+
+    .balance-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0 4px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .balance-amount { font-size: 20px; font-weight: 700; color: #1a1a1a; }
+
+    .save-btn {
+      width: 100%;
+      padding: 11px;
+      background: #8BC34A;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.12s;
+    }
+    .save-btn:hover { background: #7CB342; }
+    .save-btn:disabled { background: #ccc; cursor: default; }
+
+    .charge-btn {
+      width: 100%;
+      padding: 13px;
+      background: #8BC34A;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.12s;
+      letter-spacing: 0.03em;
+    }
+    .charge-btn:hover { background: #7CB342; }
+    .charge-btn:disabled { background: #ccc; cursor: default; }
+
+    /* ── Modal overlay ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal {
+      background: #fff;
+      border-radius: 10px;
+      width: 420px;
+      max-width: 95vw;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title { font-size: 15px; font-weight: 700; }
+    .modal-close {
+      font-size: 20px;
+      color: #999;
+      cursor: pointer;
+      line-height: 1;
+      background: none;
+      border: none;
+    }
+    .modal-body { padding: 20px; }
+    .modal-summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 13px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .modal-summary-row:last-child { border-bottom: none; }
+    .modal-summary-row.highlighted {
+      background: #F1F8E9;
+      margin: 0 -20px;
+      padding: 7px 20px;
+      color: #558B2F;
+      font-weight: 700;
+    }
+    .modal-footer {
+      padding: 12px 20px 16px;
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid #e8e8e8;
+    }
+    .modal-footer button { flex: 1; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .modal-cancel { background: #fff; border: 1.5px solid #ccc; color: #555; }
+    .modal-confirm { background: #8BC34A; border: none; color: #fff; }
+
+    /* ── Config page tab ── */
+    .config-page { padding: 24px; overflow-y: auto; background: #f5f5f5; flex: 1; }
+    .config-card {
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .config-card-header {
+      padding: 14px 20px;
+      background: #FAFAFA;
+      border-bottom: 1px solid #e8e8e8;
+      font-size: 14px;
+      font-weight: 700;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .config-card-header .new-badge {
+      font-size: 10px;
+      background: #8BC34A;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .config-card-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+    .config-field { display: flex; flex-direction: column; gap: 4px; }
+    .config-label { font-size: 12px; font-weight: 600; color: #555; }
+    .config-select {
+      padding: 8px 10px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      font-size: 13px;
+      background: #fff;
+      color: #1a1a1a;
+      cursor: pointer;
+      width: 320px;
+      max-width: 100%;
+    }
+    .config-select:focus { outline: none; border-color: #8BC34A; }
+    .config-hint { font-size: 11px; color: #999; margin-top: 2px; }
+    .config-inline-warn {
+      font-size: 11px;
+      color: #C62828;
+      background: #FFEBEE;
+      padding: 6px 10px;
+      border-radius: 5px;
+      border: 1px solid #EF9A9A;
+    }
+
+    /* Tabs for the mockup */
+    .mockup-tabs {
+      background: #fff;
+      border-bottom: 2px solid #e0e0e0;
+      display: flex;
+      padding: 0 20px;
+      gap: 0;
+    }
+    .mockup-tab {
+      padding: 11px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #888;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.12s;
+    }
+    .mockup-tab.active { color: #558B2F; border-bottom-color: #8BC34A; font-weight: 700; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState } = React;
+
+// ── Constants ──────────────────────────────────────────────────────────────
+const SUBTOTAL = 22.00;
+const TAXES = 1.35;
+const TOTAL = 23.35;
+const ROUNDED_CASH = 23.25;
+const ROUNDING_DELTA = ROUNDED_CASH - TOTAL; // -0.10
+
+function fmtDelta(d) {
+  const sign = d >= 0 ? '+' : '−';
+  return `${sign}$${Math.abs(d).toFixed(2)}`;
+}
+
+function generatePresets(base) {
+  // base is the exact (possibly rounded) amount
+  const ceil1 = Math.ceil(base);
+  const presets = [base];
+  for (let v = ceil1; presets.length < 4; v++) {
+    if (v !== base) presets.push(v);
+  }
+  // round to nearest 5 / 10 for bigger denomination
+  const next5 = Math.ceil(base / 5) * 5;
+  const next10 = Math.ceil(base / 10) * 10;
+  if (!presets.includes(next5)) presets.push(next5);
+  if (!presets.includes(next10)) presets.push(next10);
+  return presets.slice(0, 4);
+}
+
+// ── Cashless ATM Modal ─────────────────────────────────────────────────────
+function CashlessModal({ rounded, onClose, roundingApplies }) {
+  const showRounded = roundingApplies === 'cash';
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <span className="modal-title">Cashless ATM Payment Summary</span>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="modal-summary-row">
+            <span>Subtotal</span><span>$22.00</span>
+          </div>
+          <div className="modal-summary-row">
+            <span>Total Discounts</span><span style={{color:'#C62828'}}>−$3.00</span>
+          </div>
+          <div className="modal-summary-row">
+            <span>Taxes</span><span>$1.35</span>
+          </div>
+          <div className="modal-summary-row" style={{fontWeight:600}}>
+            <span>Total</span><span>$23.35</span>
+          </div>
+          {showRounded && (
+            <div className="modal-summary-row highlighted">
+              <span>Rounded Balance (incl. Tax)</span>
+              <span>${rounded.toFixed(2)}</span>
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button className="modal-cancel" onClick={onClose}>Cancel</button>
+          <button className="modal-confirm">Initiate Cashless ATM</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Payment Screen ─────────────────────────────────────────────────────────
+function PaymentScreen({ scenario }) {
+  const [showCashless, setShowCashless] = useState(false);
+  const [splitApplied, setSplitApplied] = useState(false);
+  const [customCashActive, setCustomCashActive] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+
+  // Determine feature state from scenario
+  const roundingApplies = scenario.roundingApplies;   // 'all' | 'cash'
+  const roundingMode    = scenario.roundingMode;       // 'auto' | 'manual'
+  const roundingDelta   = scenario.roundingDelta;      // true | false (non-zero)
+
+  const cashRoundingActive =
+    roundingApplies === 'cash' &&
+    roundingMode === 'auto' &&
+    roundingDelta &&
+    !splitApplied;
+
+  const presetBase = cashRoundingActive ? ROUNDED_CASH : TOTAL;
+  const presets = generatePresets(presetBase);
+
+  return (
+    <div className="main">
+      {showCashless && (
+        <CashlessModal
+          rounded={ROUNDED_CASH}
+          onClose={() => setShowCashless(false)}
+          roundingApplies={roundingApplies}
+        />
+      )}
+
+      {/* Left panel */}
+      <div className="left-panel">
+        <div className="section-label">Cash</div>
+
+        <div className="cash-presets">
+          {presets.map((amt, i) => (
+            <button key={amt} className={`preset-btn${i === 0 ? ' exact' : ''}`}>
+              ${typeof amt === 'number' && amt % 1 === 0 ? amt.toFixed(2) : amt.toFixed(2)}
+            </button>
+          ))}
+          <button
+            className={`preset-btn custom${customCashActive ? ' exact' : ''}`}
+            onClick={() => { setCustomCashActive(true); setPinInput(''); }}
+          >Custom</button>
+        </div>
+
+        {cashRoundingActive && (
+          <div className="rounding-note">
+            <span className="icon">●</span>
+            Preset amounts based on rounded cash total (${ROUNDED_CASH.toFixed(2)})
+          </div>
+        )}
+
+        {/* Integrated Payments */}
+        <div className="section-label" style={{marginTop:18}}>Integrated Payments</div>
+        <button
+          className="payment-btn cashless"
+          onClick={() => setShowCashless(true)}
+        >
+          Cashless ATM
+        </button>
+
+        {/* Others */}
+        <div className="section-label">Others</div>
+        <button
+          className="payment-btn"
+          onClick={() => { if (cashRoundingActive) setSplitApplied(true); }}
+        >
+          Charge Check
+        </button>
+        <button
+          className="payment-btn"
+          onClick={() => { if (cashRoundingActive) setSplitApplied(true); }}
+        >
+          Charge Credit Card
+        </button>
+        <button
+          className="payment-btn"
+          onClick={() => { if (cashRoundingActive) setSplitApplied(true); }}
+        >
+          Charge Debit Card
+        </button>
+
+        {splitApplied && cashRoundingActive && (
+          <div className="split-warning">
+            <span className="warn-icon">⚠</span>
+            <span>
+              <strong>Rounding removed.</strong> Cash rounding only applies when the entire balance is paid in Cash or Cashless ATM.
+              <button
+                style={{marginLeft:8,background:'none',border:'none',color:'#558B2F',cursor:'pointer',fontSize:11,fontWeight:700}}
+                onClick={() => setSplitApplied(false)}
+              >Undo</button>
+            </span>
+          </div>
+        )}
+
+        {/* Manual rounding button — only for "all payment methods" mode */}
+        {roundingApplies === 'all' && roundingMode === 'manual' && (
+          <div style={{marginTop:16}}>
+            <button className="btn-outline" style={{fontSize:12}}>
+              ⊕ Apply Rounding
+            </button>
+          </div>
+        )}
+
+        {/* Reward Dollars */}
+        <div className="section-label" style={{marginTop:18}}>Reward Dollars</div>
+        <div className="reward-row">
+          <div className="reward-field">
+            <label>Amount Applied</label>
+            <span className="val">$0.00</span>
+          </div>
+          <div className="reward-field">
+            <label>Remaining Balance</label>
+            <span className="val">$0.00</span>
+          </div>
+          <div className="reward-target">
+            <button className="reward-target-btn">Target Total</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Right panel */}
+      <div className="right-panel">
+        {/* Numpad */}
+        <div className="numpad-area">
+          {/* Cash rounding hint — only when custom cash entry is active */}
+          {cashRoundingActive && customCashActive && (
+            <div style={{
+              fontSize: 11,
+              color: '#558B2F',
+              background: '#F1F8E9',
+              border: '1px solid #C5E1A5',
+              borderRadius: 5,
+              padding: '5px 10px',
+              marginBottom: 6,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <span>Cash total (rounded)</span>
+              <strong>${ROUNDED_CASH.toFixed(2)}</strong>
+            </div>
+          )}
+          <div className="numpad-display">
+            {pinInput ? `$${(parseInt(pinInput, 10) / 100).toFixed(2)}` : '0.00'}
+          </div>
+          <div className="numpad-grid">
+            {['7','8','9','4','5','6','1','2','3','⌫','0',''].map((k, i) => (
+              <button
+                key={i}
+                className={`num-key${k === '⌫' ? ' backspace' : ''}`}
+                onClick={() => {
+                  if (!customCashActive) return;
+                  if (k === '⌫') setPinInput(p => p.slice(0, -1));
+                  else if (k) setPinInput(p => (p + k).replace(/^0+/, '') || '0');
+                }}
+              >{k}</button>
+            ))}
+          </div>
+          <button className="charge-btn" disabled={!pinInput}>
+            Charge
+          </button>
+        </div>
+
+        {/* Order summary */}
+        <div className="order-summary">
+          <div className="summary-row">
+            <span>Total Discounts</span><span style={{color:'#C62828'}}>−$3.00</span>
+          </div>
+          <div className="summary-row indent">
+            <span>Reward Dollars</span><span>0.00</span>
+          </div>
+          <div className="summary-row">
+            <span>Subtotal</span><span>$22.00</span>
+          </div>
+          <div className="summary-row">
+            <span>Taxes</span><span>$1.35</span>
+          </div>
+
+          <div className="summary-row total-row">
+            <span>Total</span><span>$23.35</span>
+          </div>
+
+          {/* ── Cash Total row (new) ── */}
+          {cashRoundingActive && !splitApplied && (
+            <div className="cash-total-row">
+              <span className="cash-total-label">
+                Cash Total
+                <span style={{display:'block', fontSize:10, color:'#888', fontWeight:400}}>
+                  cash rounding applied
+                </span>
+              </span>
+              <span className="cash-total-val">
+                <span className={`rounding-delta ${ROUNDING_DELTA >= 0 ? 'positive' : 'negative'}`}>
+                  {fmtDelta(ROUNDING_DELTA)}
+                </span>
+                <span className="cash-total-amount">${ROUNDED_CASH.toFixed(2)}</span>
+              </span>
+            </div>
+          )}
+
+          {/* Manual rounding applied state */}
+          {roundingApplies === 'all' && roundingMode === 'manual' && (
+            <div className="cash-total-row" style={{color:'#888'}}>
+              <span>Rounding</span>
+              <span style={{fontSize:12}}>—</span>
+            </div>
+          )}
+
+          <hr className="divider" />
+
+          <div className="balance-row">
+            <span>Balance:</span>
+            <span className="balance-amount">${TOTAL.toFixed(2)}</span>
+          </div>
+
+          <button className="save-btn">Save Sale</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Config Page excerpt ────────────────────────────────────────────────────
+function ConfigPage({ scenario, onScenarioChange }) {
+  const [appliesTo, setAppliesTo] = useState(scenario.roundingApplies === 'cash' ? 'cash' : 'all');
+  const [mode, setMode] = useState(scenario.roundingMode);
+
+  function handleAppliesToChange(e) {
+    const val = e.target.value;
+    setAppliesTo(val);
+    const newMode = val === 'cash' ? 'auto' : mode;
+    onScenarioChange({ ...scenario, roundingApplies: val, roundingMode: newMode });
+    if (val === 'cash') setMode('auto');
+  }
+
+  function handleModeChange(e) {
+    const val = e.target.value;
+    setMode(val);
+    onScenarioChange({ ...scenario, roundingMode: val });
+  }
+
+  return (
+    <div className="config-page">
+
+      {/* Existing POS section placeholder */}
+      <div className="config-card" style={{opacity:0.5}}>
+        <div className="config-card-header">Point of Sale</div>
+        <div className="config-card-body" style={{color:'#999', fontSize:12, fontStyle:'italic'}}>
+          … existing Point of Sale settings …
+        </div>
+      </div>
+
+      {/* New Rounding Configuration section */}
+      <div className="config-card">
+        <div className="config-card-header">
+          Rounding Configuration
+          <span className="new-badge">NEW</span>
+        </div>
+        <div className="config-card-body">
+
+          <div className="config-field">
+            <label className="config-label">Rounding Mode</label>
+            <select
+              className="config-select"
+              value={mode}
+              onChange={handleModeChange}
+              disabled={appliesTo === 'cash'}
+            >
+              <option value="auto">Auto</option>
+              <option value="manual">Manual</option>
+            </select>
+            {appliesTo === 'cash' && (
+              <div className="config-inline-warn">
+                Manual rounding is not supported when Rounding Applies To is set to Cash and Integrated Cashless ATM only. Switch to Auto to save.
+              </div>
+            )}
+          </div>
+
+          <div className="config-field">
+            <label className="config-label">Rounding Denomination</label>
+            <select className="config-select">
+              <option>$0.05</option>
+              <option>$0.10</option>
+              <option>$0.25</option>
+            </select>
+          </div>
+
+          <div className="config-field">
+            <label className="config-label">Rounding Applies To</label>
+            <select className="config-select" value={appliesTo} onChange={handleAppliesToChange}>
+              <option value="all">All Payment Methods</option>
+              <option value="cash">Cash and Integrated Cashless ATM only</option>
+            </select>
+            <div className="config-hint">
+              {appliesTo === 'cash'
+                ? 'Rounding will only apply when the full balance is paid by Cash or Cashless ATM. Manual rounding mode is disabled.'
+                : 'Rounding applies to all transactions regardless of payment method.'}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+// ── App ────────────────────────────────────────────────────────────────────
+const SCENARIOS = [
+  {
+    id: 'cash-auto',
+    label: 'Cash only · Auto rounding',
+    roundingApplies: 'cash',
+    roundingMode: 'auto',
+    roundingDelta: true,
+  },
+  {
+    id: 'all-auto',
+    label: 'All methods · Auto rounding',
+    roundingApplies: 'all',
+    roundingMode: 'auto',
+    roundingDelta: true,
+  },
+  {
+    id: 'all-manual',
+    label: 'All methods · Manual rounding',
+    roundingApplies: 'all',
+    roundingMode: 'manual',
+    roundingDelta: false,
+  },
+  {
+    id: 'cash-nodelta',
+    label: 'Cash only · delta = 0',
+    roundingApplies: 'cash',
+    roundingMode: 'auto',
+    roundingDelta: false,
+  },
+];
+
+function App() {
+  const [activeTab, setActiveTab] = useState('payment');
+  const [scenarioId, setScenarioId] = useState('cash-auto');
+  const [scenario, setScenario] = useState(SCENARIOS[0]);
+
+  function selectScenario(s) {
+    setScenarioId(s.id);
+    setScenario(s);
+  }
+
+  return (
+    <div style={{height:'100vh', display:'flex', flexDirection:'column'}}>
+      {/* Scenario switcher */}
+      <div className="scenario-bar">
+        <strong>Scenario:</strong>
+        {SCENARIOS.map((s, i) => (
+          <React.Fragment key={s.id}>
+            {i > 0 && <span className="sep">|</span>}
+            <button
+              className={`scenario-btn${scenarioId === s.id ? ' active' : ''}`}
+              onClick={() => selectScenario(s)}
+            >
+              {s.label}
+            </button>
+          </React.Fragment>
+        ))}
+        <span className="sep" style={{marginLeft:8}}>Total: $23.35</span>
+        <span className="sep">→</span>
+        <span>Rounded: $23.25</span>
+      </div>
+
+      {/* View tabs */}
+      <div className="mockup-tabs">
+        <button
+          className={`mockup-tab${activeTab === 'payment' ? ' active' : ''}`}
+          onClick={() => setActiveTab('payment')}
+        >
+          Payment Screen
+        </button>
+        <button
+          className={`mockup-tab${activeTab === 'config' ? ' active' : ''}`}
+          onClick={() => setActiveTab('config')}
+        >
+          Config Page
+        </button>
+      </div>
+
+      {/* Main chrome */}
+      <div className="app" style={{height:'auto', flex:1}}>
+        <div className="topbar">
+          <span className="back">‹</span>
+          <span className="receipt-id">RECEIPT # D2CQGR</span>
+          <span className="drawer-label">CASH DRAWER — Kyler Test Drawer</span>
+        </div>
+
+        {activeTab === 'payment'
+          ? <PaymentScreen key={scenarioId} scenario={scenario} />
+          : <ConfigPage scenario={scenario} onScenarioChange={setScenario} />
+        }
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
