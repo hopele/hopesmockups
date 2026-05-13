@@ -233,6 +233,25 @@
     .drag-handle:hover { color: #8BC34A; }
     .drag-handle:active { cursor: grabbing; }
 
+    /* position number input */
+    .pos-input {
+      width: 46px;
+      padding: 3px 6px;
+      border: 1.5px solid #d8d8d8;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.12s, box-shadow 0.12s;
+      /* hide spinner arrows */
+      -moz-appearance: textfield;
+    }
+    .pos-input::-webkit-inner-spin-button,
+    .pos-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .pos-input:focus { border-color: #8BC34A; box-shadow: 0 0 0 2px #F1F8E9; }
+
     /* status */
     .status-active {
       display: inline-flex;
@@ -343,6 +362,12 @@ function byDisplayOrder(list) {
   return [...list].sort((a, b) => a.display_order - b.display_order);
 }
 
+function buildInputVals(list) {
+  const vals = {};
+  list.forEach((d, i) => { vals[d.id] = String(i + 1); });
+  return vals;
+}
+
 function DragHandleIcon() {
   return (
     <svg width="14" height="20" viewBox="0 0 14 20" fill="none">
@@ -365,6 +390,7 @@ function App() {
   const [discounts,   setDiscounts]   = useState(() => byDisplayOrder(RAW_DISCOUNTS));
   const [editMode,    setEditMode]    = useState(false);
   const [editList,    setEditList]    = useState([]);
+  const [inputVals,   setInputVals]   = useState({});
   const [dragIdx,     setDragIdx]     = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
   const [toast,       setToast]       = useState(null);
@@ -377,26 +403,50 @@ function App() {
   }
 
   function enterEditMode() {
-    setEditList([...discounts]);
+    const list = [...discounts];
+    setEditList(list);
+    setInputVals(buildInputVals(list));
     setEditMode(true);
   }
 
   function cancelEdit() {
     setEditMode(false);
     setEditList([]);
+    setInputVals({});
     setDragIdx(null);
     setDragOverIdx(null);
   }
 
   function saveOrder() {
-    // Normalize position to 1..n and persist as display_order
     const updated = editList.map((d, i) => ({ ...d, display_order: i + 1 }));
     setDiscounts(updated);
     setEditMode(false);
     setEditList([]);
+    setInputVals({});
     setDragIdx(null);
     setDragOverIdx(null);
     showToast('Display order saved');
+  }
+
+  function onPositionChange(id, val) {
+    setInputVals(prev => ({ ...prev, [id]: val }));
+  }
+
+  function onPositionBlur(id, val) {
+    const n = parseInt(val, 10);
+    const total = editList.length;
+    const fromIdx = editList.findIndex(d => d.id === id);
+    if (isNaN(n) || n < 1 || n > total) {
+      setInputVals(prev => ({ ...prev, [id]: String(fromIdx + 1) }));
+      return;
+    }
+    const toIdx = n - 1;
+    if (fromIdx === toIdx) return;
+    const list = [...editList];
+    const [moved] = list.splice(fromIdx, 1);
+    list.splice(toIdx, 0, moved);
+    setEditList(list);
+    setInputVals(buildInputVals(list));
   }
 
   function onDragStart(e, idx) {
@@ -415,6 +465,7 @@ function App() {
     const [moved] = list.splice(dragIdx, 1);
     list.splice(idx, 0, moved);
     setEditList(list);
+    setInputVals(buildInputVals(list));
     setDragIdx(null);
     setDragOverIdx(null);
   }
@@ -493,7 +544,7 @@ function App() {
             <polyline points="4,5.5 7.5,2 11,5.5"/>
             <polyline points="4,9.5 7.5,13 11,9.5"/>
           </svg>
-          Drag rows to set the eCommerce display order. Click <strong style={{margin:'0 3px'}}>Save Order</strong> to apply changes.
+          Drag rows or type a position number to reorder. Click <strong style={{margin:'0 3px'}}>Save Order</strong> to apply changes.
         </div>
       )}
 
@@ -504,7 +555,7 @@ function App() {
           <table>
             <thead>
               <tr>
-                {editMode && <th style={{width:'40px'}} />}
+                {editMode && <th style={{width:'88px'}} />}
                 <th>Name</th>
                 <th>Method</th>
                 <th>Amount</th>
@@ -533,8 +584,20 @@ function App() {
                     ].join(' ')}
                   >
                     {editMode && (
-                      <td style={{width:'40px', paddingRight:0}}>
-                        <span className="drag-handle"><DragHandleIcon /></span>
+                      <td style={{width:'88px', paddingRight:0}}>
+                        <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                          <span className="drag-handle"><DragHandleIcon /></span>
+                          <input
+                            className="pos-input"
+                            type="number"
+                            min="1"
+                            max={editList.length}
+                            value={inputVals[row.id] ?? String(idx + 1)}
+                            onChange={e => onPositionChange(row.id, e.target.value)}
+                            onBlur={e => onPositionBlur(row.id, e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); }}
+                          />
+                        </div>
                       </td>
                     )}
                     <td className="name-cell">{row.name}</td>
