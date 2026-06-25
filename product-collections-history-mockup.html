@@ -320,6 +320,25 @@
       color: #555;
     }
 
+    /* Expand toggle for manual exclusions */
+    .tl-expand-toggle {
+      background: none;
+      border: none;
+      font-size: 12.5px;
+      color: #558B2F;
+      cursor: pointer;
+      padding: 2px 0;
+      font-family: inherit;
+      display: block;
+      margin-top: 2px;
+    }
+    .tl-expand-toggle:hover { text-decoration: underline; }
+    .tl-expand-list {
+      display: none;
+      margin-top: 2px;
+    }
+    .tl-expand-list.open { display: block; }
+
     .drawer-footer {
       padding: 14px 20px;
       border-top: 1px solid #e8e8e8;
@@ -470,7 +489,7 @@
       <div class="drawer-body">
         <div class="timeline">
 
-          <!-- Entry 1 -->
+          <!-- Entry 1: Inclusion rule values added -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
@@ -481,94 +500,69 @@
               <div class="tl-event">
                 <div class="tl-event-title">Weekend Specials updated</div>
                 <ul>
-                  <li>3 products were added</li>
-                  <li>Blue Dream 1g Pre-Roll was added</li>
-                  <li>Sour Diesel Cart 500mg was added</li>
-                  <li>Watermelon Gummies 100mg was added</li>
+                  <li>Price $40.00 was added</li>
+                  <li>Price range $20.00–$35.00 was added</li>
+                  <li>SKU Name "Fire Ballz" was added</li>
                 </ul>
               </div>
             </div>
           </div>
 
-          <!-- Entry 2 -->
+          <!-- Entry 2: Exclusion rule added -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
               <div class="tl-line"></div>
             </div>
             <div class="tl-content">
-              <div class="tl-meta">24 June 2026, 02:15 PM &nbsp;·&nbsp; Derek T.</div>
+              <div class="tl-meta">24 June 2026, 02:05 PM &nbsp;·&nbsp; Megan R.</div>
               <div class="tl-event">
-                <div class="tl-event-title">Flash Sale — June updated</div>
+                <div class="tl-event-title">Weekend Specials updated</div>
                 <ul>
-                  <li>Status was set to Published</li>
+                  <li>Exclusion rule SKU Type PROMO was added</li>
+                  <li>Exclusion rule SKU Type SAMPLE was added</li>
                 </ul>
               </div>
             </div>
           </div>
 
-          <!-- Entry 3 -->
+          <!-- Entry 3: Manual exclusions — collapsed with expand toggle -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
               <div class="tl-line"></div>
             </div>
             <div class="tl-content">
-              <div class="tl-meta">24 June 2026, 11:08 AM &nbsp;·&nbsp; Megan R.</div>
+              <div class="tl-meta">23 June 2026, 04:50 PM &nbsp;·&nbsp; Derek T.</div>
               <div class="tl-event">
-                <div class="tl-event-title">Top Shelf Flower updated</div>
+                <div class="tl-event-title">Weekend Specials updated</div>
                 <ul>
-                  <li>Price filter was set to $30+</li>
-                  <li>THC filter was set to 25%+</li>
-                  <li>Auto-populate rules were updated</li>
+                  <li>
+                    14 products added to manual exclusions
+                    <button class="tl-expand-toggle" onclick="toggleExpand(this)">Show 14 products ▾</button>
+                    <ul class="tl-expand-list">
+                      <li>Blue Dream 1g Pre-Roll</li>
+                      <li>Sour Diesel Cart 500mg</li>
+                      <li>Watermelon Gummies 100mg</li>
+                      <li>OG Kush 3.5g</li>
+                      <li>Zkittlez Live Resin</li>
+                      <li>Mango Tango Gummies 200mg</li>
+                      <li>Blueberry Haze Cart 1g</li>
+                      <li>Wedding Cake Pre-Roll 2pk</li>
+                      <li>Purple Punch Flower 7g</li>
+                      <li>Durban Poison Distillate</li>
+                      <li>Grape Ape Flower 1g</li>
+                      <li>Lemon Haze Tincture 300mg</li>
+                      <li>Gelato 33 Pre-Roll</li>
+                      <li>Pineapple Express Vape</li>
+                    </ul>
+                  </li>
                 </ul>
               </div>
             </div>
           </div>
 
-          <!-- Entry 4 -->
-          <div class="tl-entry">
-            <div class="tl-dot-col">
-              <div class="tl-dot"></div>
-              <div class="tl-line"></div>
-            </div>
-            <div class="tl-content">
-              <div class="tl-meta">23 June 2026, 05:52 PM &nbsp;·&nbsp; Alex J.</div>
-              <div class="tl-event">
-                <div class="tl-event-title">Summer Edibles updated</div>
-                <ul>
-                  <li>Name was set to Summer Edibles</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- Entry 5 -->
-          <div class="tl-entry">
-            <div class="tl-dot-col">
-              <div class="tl-dot"></div>
-              <div class="tl-line"></div>
-            </div>
-            <div class="tl-content">
-              <div class="tl-meta">23 June 2026, 04:17 PM &nbsp;·&nbsp; Sam W.</div>
-              <div class="tl-event">
-                <div class="tl-event-title">Flash Sale — June collection created</div>
-                <ul>
-                  <li>Status was set to Draft</li>
-                  <li>7 products were added</li>
-                  <li>OG Kush 3.5g was added</li>
-                  <li>Zkittlez Live Resin was added</li>
-                  <li>Mango Tango Gummies 200mg was added</li>
-                  <li>Blueberry Haze Cart 1g was added</li>
-                  <li>Wedding Cake Pre-Roll 2pk was added</li>
-                  <li>Purple Punch Flower 7g was added</li>
-                  <li>Durban Poison Distillate was added</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- Entry 6 -->
+          <!-- Entry 4: Manual exclusion — single product (no toggle) -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
@@ -579,74 +573,73 @@
               <div class="tl-event">
                 <div class="tl-event-title">Weekend Specials updated</div>
                 <ul>
-                  <li>2 products were removed</li>
-                  <li>Grape Ape Flower 1g was removed</li>
-                  <li>Lemon Haze Tincture 300mg was removed</li>
+                  <li>Grape Ape Flower 1g was removed from manual exclusions</li>
                 </ul>
               </div>
             </div>
           </div>
 
-          <!-- Entry 7 -->
+          <!-- Entry 5: Category updated -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
               <div class="tl-line"></div>
             </div>
             <div class="tl-content">
-              <div class="tl-meta">22 June 2026, 10:05 AM &nbsp;·&nbsp; Derek T.</div>
+              <div class="tl-meta">22 June 2026, 11:20 AM &nbsp;·&nbsp; Alex J.</div>
               <div class="tl-event">
-                <div class="tl-event-title">Staff Picks — May updated</div>
+                <div class="tl-event-title">Weekend Specials updated</div>
                 <ul>
-                  <li>Status was set to Unpublished</li>
+                  <li>Category was changed from Flower to Flower, Vape</li>
                 </ul>
               </div>
             </div>
           </div>
 
-          <!-- Entry 8 -->
+          <!-- Entry 6: Inclusion rule value removed -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
               <div class="tl-line"></div>
             </div>
             <div class="tl-content">
-              <div class="tl-meta">21 June 2026, 03:00 PM &nbsp;·&nbsp; Jordan K.</div>
+              <div class="tl-meta">21 June 2026, 03:15 PM &nbsp;·&nbsp; Megan R.</div>
               <div class="tl-event">
-                <div class="tl-event-title">Top Shelf Flower updated</div>
+                <div class="tl-event-title">Weekend Specials updated</div>
                 <ul>
-                  <li>Display name was set to Top Shelf Flower</li>
-                  <li>Description was updated</li>
+                  <li>Brand HOPE was added</li>
+                  <li>Brand STELLAR was removed</li>
+                  <li>Price tier Weekend Deal was added</li>
                 </ul>
               </div>
             </div>
           </div>
 
-          <!-- Entry 9 -->
+          <!-- Entry 7: Collection copied -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
               <div class="tl-line"></div>
             </div>
             <div class="tl-content">
-              <div class="tl-meta">20 June 2026, 09:47 AM &nbsp;·&nbsp; Sam W.</div>
+              <div class="tl-meta">20 June 2026, 09:00 AM &nbsp;·&nbsp; Sam W.</div>
               <div class="tl-event">
-                <div class="tl-event-title">Spring Clearance updated</div>
+                <div class="tl-event-title">Weekend Specials updated</div>
                 <ul>
-                  <li>Status was set to Archived</li>
+                  <li>Collection was copied from Weekday Specials</li>
                 </ul>
               </div>
             </div>
           </div>
 
-          <!-- Entry 10 — Recording Started -->
+          <!-- Entry 8: Recording Started -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
             </div>
             <div class="tl-content">
               <div class="tl-meta">1 June 2026, 12:00 AM</div>
-              <div class="tl-recording-started">Collection History Recording Started</div>
+              <div class="tl-recording-started">Product Collection History Recording Started</div>
             </div>
           </div>
 
@@ -660,5 +653,13 @@
 
   </div>
 
+<script>
+function toggleExpand(btn) {
+  const list = btn.nextElementSibling;
+  const open = list.classList.toggle('open');
+  const count = list.querySelectorAll('li').length;
+  btn.textContent = open ? 'Hide ▴' : 'Show ' + count + ' products ▾';
+}
+</script>
 </body>
 </html>
