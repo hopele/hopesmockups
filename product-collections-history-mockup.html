@@ -240,6 +240,32 @@
     }
     .drawer-close:hover { color: #333; }
 
+    /* Example switcher */
+    .example-switcher {
+      display: flex;
+      gap: 0;
+      border: 1.5px solid #d8d8d8;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 12px 20px;
+      flex-shrink: 0;
+    }
+    .example-btn {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #666;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.1s;
+    }
+    .example-btn + .example-btn { border-left: 1.5px solid #d8d8d8; }
+    .example-btn.active { background: #F1F8E9; color: #558B2F; font-weight: 600; }
+    .example-btn:hover:not(.active) { background: #fafafa; }
+
     .drawer-body {
       flex: 1;
       overflow-y: auto;
@@ -480,12 +506,17 @@
     <!-- History Log Drawer -->
     <div class="drawer">
       <div class="drawer-header">
-        <span class="drawer-title">Collection History Log</span>
+        <span class="drawer-title">Collection History Log — Weekend Specials</span>
         <button class="drawer-close">✕</button>
       </div>
 
+      <div class="example-switcher">
+        <button class="example-btn active" onclick="switchExample('automated', this)">Automated Collection</button>
+        <button class="example-btn" onclick="switchExample('manual', this)">Manual Collection</button>
+      </div>
+
       <div class="drawer-body">
-        <div class="timeline">
+        <div id="timeline-automated" class="timeline">
 
           <!-- Entry 1: Inclusion rule values added -->
           <div class="tl-entry">
@@ -659,6 +690,126 @@
           </div>
 
         </div>
+
+        <!-- Manual collection timeline (hidden by default) -->
+        <div id="timeline-manual" class="timeline" style="display:none">
+
+          <!-- M Entry 1: Multiple products added — collapsed -->
+          <div class="tl-entry">
+            <div class="tl-dot-col">
+              <div class="tl-dot"></div>
+              <div class="tl-line"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-meta">24 June 2026, 02:30 PM &nbsp;·&nbsp; Derek T.</div>
+              <div class="tl-event">
+                <div class="tl-event-title">Staff Picks — June updated</div>
+                <ul>
+                  <li>
+                    5 products added
+                    <button class="tl-expand-toggle" onclick="toggleExpand(this)">Show 5 products ▾</button>
+                    <ul class="tl-expand-list">
+                      <li>Gelato 33 Pre-Roll</li>
+                      <li>Pineapple Express Vape</li>
+                      <li>Strawberry Banana Wax</li>
+                      <li>Cherry Pie Flower 3.5g</li>
+                      <li>CBD Relief Tincture 600mg</li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- M Entry 2: Single product removed — no toggle -->
+          <div class="tl-entry">
+            <div class="tl-dot-col">
+              <div class="tl-dot"></div>
+              <div class="tl-line"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-meta">23 June 2026, 11:15 AM &nbsp;·&nbsp; Megan R.</div>
+              <div class="tl-event">
+                <div class="tl-event-title">Staff Picks — June updated</div>
+                <ul>
+                  <li>Blue Dream 1g Pre-Roll was removed</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- M Entry 3: Multiple products removed — collapsed -->
+          <div class="tl-entry">
+            <div class="tl-dot-col">
+              <div class="tl-dot"></div>
+              <div class="tl-line"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-meta">22 June 2026, 03:45 PM &nbsp;·&nbsp; Derek T.</div>
+              <div class="tl-event">
+                <div class="tl-event-title">Staff Picks — June updated</div>
+                <ul>
+                  <li>
+                    3 products removed
+                    <button class="tl-expand-toggle" onclick="toggleExpand(this)">Show 3 products ▾</button>
+                    <ul class="tl-expand-list">
+                      <li>OG Kush 3.5g</li>
+                      <li>Durban Poison Distillate</li>
+                      <li>Grape Ape Flower 1g</li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- M Entry 4: Name change -->
+          <div class="tl-entry">
+            <div class="tl-dot-col">
+              <div class="tl-dot"></div>
+              <div class="tl-line"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-meta">21 June 2026, 10:00 AM &nbsp;·&nbsp; Alex J.</div>
+              <div class="tl-event">
+                <div class="tl-event-title">Staff Picks — June updated</div>
+                <ul>
+                  <li>Name was changed from June Staff Picks to Staff Picks — June</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- M Entry 5: Single product added — no toggle -->
+          <div class="tl-entry">
+            <div class="tl-dot-col">
+              <div class="tl-dot"></div>
+              <div class="tl-line"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-meta">20 June 2026, 09:20 AM &nbsp;·&nbsp; Megan R.</div>
+              <div class="tl-event">
+                <div class="tl-event-title">Staff Picks — June updated</div>
+                <ul>
+                  <li>Zkittlez Live Resin was added</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- M Entry 6: Recording Started -->
+          <div class="tl-entry">
+            <div class="tl-dot-col">
+              <div class="tl-dot"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-meta">18 June 2026, 11:15 AM &nbsp;·&nbsp; Derek T.</div>
+              <div class="tl-recording-started">Product Collection History Recording Started</div>
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
       <div class="drawer-footer">
@@ -674,6 +825,16 @@ function toggleExpand(btn) {
   const open = list.classList.toggle('open');
   const count = list.querySelectorAll('li').length;
   btn.textContent = open ? 'Hide ▴' : 'Show ' + count + ' products ▾';
+}
+
+function switchExample(type, btn) {
+  document.querySelectorAll('.example-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('timeline-automated').style.display = type === 'automated' ? '' : 'none';
+  document.getElementById('timeline-manual').style.display = type === 'manual' ? '' : 'none';
+  document.querySelector('.drawer-title').textContent = type === 'automated'
+    ? 'Collection History Log — Weekend Specials'
+    : 'Collection History Log — Staff Picks — June';
 }
 </script>
 </body>
