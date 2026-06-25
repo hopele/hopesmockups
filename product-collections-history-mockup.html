@@ -177,8 +177,6 @@
       font-weight: 500;
     }
     .status-active { background: #E8F5E9; color: #2E7D32; }
-    .status-draft   { background: #F5F5F5; color: #777; }
-    .status-archived{ background: #FFF8E1; color: #F57F17; }
 
     /* Pagination */
     .table-footer {
@@ -444,7 +442,7 @@
               <td><strong>Staff Picks — June</strong></td>
               <td>8</td>
               <td>Storefront</td>
-              <td><span class="status-pill status-draft">Draft</span></td>
+              <td><span class="status-pill status-active">Active</span></td>
               <td>Jun 19, 2026</td>
             </tr>
             <tr>
@@ -452,7 +450,7 @@
               <td><strong>Staff Picks — May</strong></td>
               <td>6</td>
               <td>Storefront</td>
-              <td><span class="status-pill status-draft">Unpublished</span></td>
+              <td><span class="status-pill status-active">Active</span></td>
               <td>Jun 22, 2026</td>
             </tr>
             <tr>
@@ -460,7 +458,7 @@
               <td><strong>Spring Clearance</strong></td>
               <td>21</td>
               <td>Storefront, POS</td>
-              <td><span class="status-pill status-archived">Archived</span></td>
+              <td><span class="status-pill status-active">Active</span></td>
               <td>Jun 20, 2026</td>
             </tr>
           </tbody>
@@ -508,7 +506,7 @@
             </div>
           </div>
 
-          <!-- Entry 2: Exclusion rule added -->
+          <!-- Entry 2: Exclusion rules added -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
@@ -526,7 +524,7 @@
             </div>
           </div>
 
-          <!-- Entry 3: Manual exclusions — collapsed with expand toggle -->
+          <!-- Entry 3: Manually excluded products — collapsed with expand toggle -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
@@ -562,7 +560,7 @@
             </div>
           </div>
 
-          <!-- Entry 4: Manual exclusion — single product (no toggle) -->
+          <!-- Entry 4: Manually excluded — single product, no toggle -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
@@ -579,7 +577,24 @@
             </div>
           </div>
 
-          <!-- Entry 5: Category updated -->
+          <!-- Entry 5: Name change -->
+          <div class="tl-entry">
+            <div class="tl-dot-col">
+              <div class="tl-dot"></div>
+              <div class="tl-line"></div>
+            </div>
+            <div class="tl-content">
+              <div class="tl-meta">22 June 2026, 02:10 PM &nbsp;·&nbsp; Alex J.</div>
+              <div class="tl-event">
+                <div class="tl-event-title">Weekend Specials updated</div>
+                <ul>
+                  <li>Name was changed from Weekend Deals to Weekend Specials</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Entry 6: Category updated -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
@@ -596,7 +611,7 @@
             </div>
           </div>
 
-          <!-- Entry 6: Inclusion rule value removed -->
+          <!-- Entry 7: Inclusion rule values added/removed -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
@@ -615,7 +630,7 @@
             </div>
           </div>
 
-          <!-- Entry 7: Collection copied -->
+          <!-- Entry 8: Collection copied -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
@@ -624,7 +639,7 @@
             <div class="tl-content">
               <div class="tl-meta">20 June 2026, 09:00 AM &nbsp;·&nbsp; Sam W.</div>
               <div class="tl-event">
-                <div class="tl-event-title">Weekend Specials updated</div>
+                <div class="tl-event-title">Weekend Specials created</div>
                 <ul>
                   <li>Collection was copied from Weekday Specials</li>
                 </ul>
@@ -632,13 +647,13 @@
             </div>
           </div>
 
-          <!-- Entry 8: Recording Started -->
+          <!-- Entry 9: Recording Started -->
           <div class="tl-entry">
             <div class="tl-dot-col">
               <div class="tl-dot"></div>
             </div>
             <div class="tl-content">
-              <div class="tl-meta">1 June 2026, 12:00 AM</div>
+              <div class="tl-meta">1 June 2026, 12:00 AM &nbsp;·&nbsp; Sam W.</div>
               <div class="tl-recording-started">Product Collection History Recording Started</div>
             </div>
           </div>
