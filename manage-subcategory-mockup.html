@@ -25,6 +25,8 @@
     --blue-light: #E3F2FD;
     --red: #D32F2F;
     --red-light: #FFEBEE;
+    --amber: #F57C00;
+    --amber-light: #FFF3E0;
     --ink: #263238;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
@@ -346,12 +348,14 @@
     border: 1px solid #E1BEE7;
     white-space: nowrap;
   }
-  .custom-row-edit, .custom-row-delete {
+  /* ── Kebab menu ── */
+  .kebab-wrap { position: relative; flex-shrink: 0; }
+  .kebab-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     border-radius: 6px;
     border: none;
     background: transparent;
@@ -359,11 +363,57 @@
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.15s, background 0.15s, color 0.15s;
+    font-size: 17px;
+    letter-spacing: 0;
+    line-height: 1;
   }
-  .custom-row:hover .custom-row-edit,
-  .custom-row:hover .custom-row-delete { opacity: 1; }
-  .custom-row-edit:hover { background: var(--green-light); color: var(--green-dark); }
-  .custom-row-delete:hover { background: var(--red-light); color: var(--red); }
+  .global-row:hover .kebab-btn,
+  .custom-row:hover .kebab-btn,
+  .kebab-btn.open { opacity: 1; background: var(--gray-100); color: var(--gray-700); }
+  .kebab-btn:hover { background: var(--gray-200) !important; }
+  .kebab-menu {
+    position: absolute;
+    right: 0;
+    top: 32px;
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    min-width: 160px;
+    z-index: 50;
+    overflow: hidden;
+    display: none;
+  }
+  .kebab-menu.open { display: block; }
+  .kebab-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    color: var(--gray-800);
+    cursor: pointer;
+    transition: background 0.1s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: var(--sans);
+  }
+  .kebab-menu-item:hover { background: var(--gray-50); }
+  .kebab-menu-item.danger { color: var(--red); }
+  .kebab-menu-item.danger:hover { background: var(--red-light); }
+  .kebab-menu-item.disabled { color: var(--gray-400); cursor: default; pointer-events: none; }
+  .kebab-divider { height: 1px; background: var(--gray-200); margin: 2px 0; }
+  .kebab-coming-soon {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--amber);
+    background: var(--amber-light);
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin-left: auto;
+  }
 
   /* ── Add custom inline form ── */
   .add-custom-form {
@@ -566,6 +616,27 @@
   </div><!-- /page -->
 </div><!-- /layout -->
 
+<!-- Reassign modal -->
+<div id="reassignOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:white;border-radius:20px;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,0.25);overflow:hidden;">
+    <div style="padding:24px 28px 0;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+        <div id="reassignTitle" style="font-size:20px;font-weight:700;color:var(--gray-900);letter-spacing:-0.01em;"></div>
+        <button onclick="closeReassign()" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:22px;line-height:1;margin-left:16px;">×</button>
+      </div>
+      <div id="reassignDesc" style="font-size:14px;color:var(--gray-700);margin-bottom:18px;"></div>
+      <select id="reassignSelect" style="width:100%;border:1px solid var(--gray-300);border-radius:12px;padding:13px 16px;font-size:14.5px;color:var(--gray-700);background:var(--gray-100);outline:none;appearance:none;font-family:var(--sans);margin-bottom:14px;">
+        <option value="">Reassign to</option>
+      </select>
+      <div style="font-size:13.5px;color:var(--red);margin-bottom:24px;font-weight:500;">This action cannot be undone.</div>
+    </div>
+    <div style="padding:16px 28px 24px;display:flex;justify-content:flex-end;gap:12px;">
+      <button onclick="closeReassign()" style="padding:0 24px;height:44px;border-radius:999px;border:2px solid var(--gray-800);background:white;font-size:14px;font-weight:700;cursor:pointer;color:var(--gray-900);font-family:var(--sans);">Cancel</button>
+      <button id="reassignConfirm" onclick="confirmReassign()" style="padding:0 24px;height:44px;border-radius:999px;border:none;background:var(--gray-300);color:var(--gray-500);font-size:14px;font-weight:700;cursor:default;font-family:var(--sans);">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast">
   <span class="toast-check">✓</span>
@@ -683,6 +754,16 @@
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1.5v8M1.5 5.5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
               Add Custom Subcategory
             </button>
+            <div class="kebab-wrap" id="kw-global-${esc(name)}">
+              <button class="kebab-btn" onclick="toggleKebab('global-${esc(name)}',event)" title="More options">⋮</button>
+              <div class="kebab-menu" id="km-global-${esc(name)}">
+                <button class="kebab-menu-item" onclick="openReassign('${esc(name)}','global');closeKebab()">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5h10M8 3l3.5 3.5L8 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Reassign Products
+                  <span class="kebab-coming-soon">SOON</span>
+                </button>
+              </div>
+            </div>
           </div>
           <div class="custom-rows">
             ${customs.map((c, ci) => {
@@ -700,12 +781,25 @@
                   ${esc(c)}
                   <span class="custom-badge">Custom</span>
                 </span>
-                <button class="custom-row-edit" onclick="startEdit('${esc(name)}',${ci})" title="Rename">
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 1.5l2.5 2.5L4 11.5H1.5V9L9 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
-                </button>
-                <button class="custom-row-delete" onclick="deleteCustom('${esc(name)}','${esc(c)}')" title="Remove">
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 3h8M5 3V2h3v1M3.5 3l.5 7h5l.5-7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
+                <div class="kebab-wrap" id="kw-custom-${esc(name)}-${ci}">
+                  <button class="kebab-btn" onclick="toggleKebab('custom-${esc(name)}-${ci}',event)" title="More options">⋮</button>
+                  <div class="kebab-menu" id="km-custom-${esc(name)}-${ci}">
+                    <button class="kebab-menu-item" onclick="startEdit('${esc(name)}',${ci});closeKebab()">
+                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 1.5l2.5 2.5L4 11.5H1.5V9L9 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+                      Edit Name
+                    </button>
+                    <button class="kebab-menu-item" onclick="openReassign('${esc(c)}','custom','${esc(name)}');closeKebab()">
+                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 6.5h10M8 3l3.5 3.5L8 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      Reassign Products
+                      <span class="kebab-coming-soon">SOON</span>
+                    </button>
+                    <div class="kebab-divider"></div>
+                    <button class="kebab-menu-item danger" onclick="deleteCustom('${esc(name)}','${esc(c)}');closeKebab()">
+                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 3h8M5 3V2h3v1M3.5 3l.5 7h5l.5-7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </div>`;
             }).join('')}
             ${isOpen ? `
@@ -786,6 +880,69 @@
     openAddForm = null;
     renderIncluded(cat);
     showToast('"' + val + '" added');
+  }
+
+  // ── Kebab ──
+  let openKebab = null;
+  function toggleKebab(id, e) {
+    e.stopPropagation();
+    const menu = document.getElementById('km-' + id);
+    const btn = menu.previousElementSibling;
+    if (openKebab && openKebab !== id) closeKebab();
+    const isOpen = menu.classList.contains('open');
+    menu.classList.toggle('open', !isOpen);
+    btn.classList.toggle('open', !isOpen);
+    openKebab = isOpen ? null : id;
+  }
+  function closeKebab() {
+    if (!openKebab) return;
+    const menu = document.getElementById('km-' + openKebab);
+    if (menu) { menu.classList.remove('open'); menu.previousElementSibling.classList.remove('open'); }
+    openKebab = null;
+  }
+  document.addEventListener('click', closeKebab);
+
+  // ── Reassign modal ──
+  function openReassign(subName, type, parentGlobal) {
+    const cat = getCat();
+    const overlay = document.getElementById('reassignOverlay');
+    document.getElementById('reassignTitle').textContent = 'Reassign ' + subName;
+    const prodCount = Math.floor(Math.random() * 18) + 1; // simulated count
+    document.getElementById('reassignDesc').textContent =
+      prodCount + ' product' + (prodCount === 1 ? '' : 's') + ' assigned to "' + subName + '" will be moved to the selected subcategory.';
+    // populate options: all included globals + their customs, excluding self
+    const sel = document.getElementById('reassignSelect');
+    sel.innerHTML = '<option value="">Reassign to</option>';
+    cat.included.forEach(g => {
+      if (type === 'global' && g === subName) return;
+      const opt = document.createElement('option');
+      opt.value = g; opt.textContent = g + ' (Global)';
+      sel.appendChild(opt);
+      (cat.customs[g] || []).forEach(c => {
+        if (type === 'custom' && c === subName) return;
+        const o = document.createElement('option');
+        o.value = c; o.textContent = '\u00a0\u00a0' + c + ' (Custom)';
+        sel.appendChild(o);
+      });
+    });
+    sel.onchange = () => {
+      const btn = document.getElementById('reassignConfirm');
+      if (sel.value) {
+        btn.style.background = 'var(--gray-900)'; btn.style.color = 'white'; btn.style.cursor = 'pointer';
+      } else {
+        btn.style.background = 'var(--gray-300)'; btn.style.color = 'var(--gray-500)'; btn.style.cursor = 'default';
+      }
+    };
+    overlay.style.display = 'flex';
+  }
+  function closeReassign() {
+    document.getElementById('reassignOverlay').style.display = 'none';
+  }
+  function confirmReassign() {
+    const sel = document.getElementById('reassignSelect');
+    if (!sel.value) return;
+    closeReassign();
+    showToast('Products reassigned to "' + sel.value + '"');
   }
 
   function startEdit(globalName, idx) {
