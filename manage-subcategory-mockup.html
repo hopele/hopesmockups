@@ -786,10 +786,16 @@
                       Reassign Products
                         </button>
                     <div class="kebab-divider"></div>
+                    ${(getCat().products[c] || 0) === 0 ? `
                     <button class="kebab-menu-item danger" onclick="deleteCustom('${esc(name)}','${esc(c)}');closeKebab()">
                       <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 3h8M5 3V2h3v1M3.5 3l.5 7h5l.5-7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                       Delete
-                    </button>
+                    </button>` : `
+                    <button class="kebab-menu-item disabled">
+                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 3h8M5 3V2h3v1M3.5 3l.5 7h5l.5-7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      Delete
+                      <span style="font-size:10.5px;margin-left:auto;color:var(--gray-400);">${getCat().products[c]} products</span>
+                    </button>`}
                   </div>
                 </div>
                 <span class="custom-row-name">
