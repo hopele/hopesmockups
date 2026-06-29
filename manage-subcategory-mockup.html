@@ -647,50 +647,50 @@
       label: 'Edible',
       excluded: ['Capsule', 'Chew', 'Chocolate', 'Cookie', 'Edible - General'],
       included: ['Baked Good', 'Butter'],
-      customs: {
-        'Baked Good': ['Brownie', 'Rice Crispy'],
-        'Butter': []
-      }
+      customs: { 'Baked Good': ['Brownie', 'Rice Crispy'], 'Butter': [] },
+      products: { 'Baked Good': 0, 'Butter': 7, 'Brownie': 14, 'Rice Crispy': 3 }
     },
     flower: {
       label: 'Flower',
       excluded: ['CBD Flower', 'Hemp Flower'],
       included: ['Indica', 'Sativa', 'Hybrid'],
-      customs: { 'Indica': [], 'Sativa': ['Daytime Sativa'], 'Hybrid': [] }
+      customs: { 'Indica': [], 'Sativa': ['Daytime Sativa'], 'Hybrid': [] },
+      products: { 'Indica': 22, 'Sativa': 0, 'Hybrid': 11, 'Daytime Sativa': 8 }
     },
     concentrate: {
       label: 'Concentrate',
       excluded: ['Wax', 'Shatter', 'Oil', 'Budder'],
       included: ['Diamonds', 'Live Resin', 'Rosin'],
-      customs: {
-        'Diamonds': ['Liquid Diamonds', 'Magma Diamonds', 'Confused Diamonds'],
-        'Live Resin': ['Terp Sauce'],
-        'Rosin': []
-      }
+      customs: { 'Diamonds': ['Liquid Diamonds', 'Magma Diamonds', 'Confused Diamonds'], 'Live Resin': ['Terp Sauce'], 'Rosin': [] },
+      products: { 'Diamonds': 0, 'Live Resin': 0, 'Rosin': 5, 'Liquid Diamonds': 9, 'Magma Diamonds': 4, 'Confused Diamonds': 6, 'Terp Sauce': 11 }
     },
     vape: {
       label: 'Vape',
       excluded: ['Disposable', 'Pod'],
       included: ['Cartridge'],
-      customs: { 'Cartridge': [] }
+      customs: { 'Cartridge': [] },
+      products: { 'Cartridge': 18 }
     },
     tincture: {
       label: 'Tincture',
       excluded: [],
       included: ['Tincture'],
-      customs: { 'Tincture': [] }
+      customs: { 'Tincture': [] },
+      products: { 'Tincture': 0 }
     },
     topical: {
       label: 'Topical',
       excluded: ['Patch'],
       included: ['Lotion', 'Balm'],
-      customs: { 'Lotion': [], 'Balm': [] }
+      customs: { 'Lotion': [], 'Balm': [] },
+      products: { 'Lotion': 3, 'Balm': 0 }
     },
     preroll: {
       label: 'Pre-Roll',
       excluded: ['Blunt'],
       included: ['Infused Pre-Roll', 'Pre-Roll'],
-      customs: { 'Infused Pre-Roll': [], 'Pre-Roll': [] }
+      customs: { 'Infused Pre-Roll': [], 'Pre-Roll': [] },
+      products: { 'Infused Pre-Roll': 7, 'Pre-Roll': 13 }
     }
   };
 
@@ -836,10 +836,18 @@
 
   function moveToExclude(name) {
     const cat = getCat();
-    const hasCustom = (cat.customs[name] || []).length > 0;
-    if (hasCustom) {
-      if (!confirm(name + ' has custom subcategories. Excluding it will hide them from the catalog. Continue?')) return;
+    // count products on this global + all its customs
+    const allNames = [name, ...(cat.customs[name] || [])];
+    const total = allNames.reduce((sum, n) => sum + (cat.products[n] || 0), 0);
+    if (total > 0) {
+      openReassign(name, 'global', null, { pendingExclude: name, total });
+      return;
     }
+    doExclude(name);
+  }
+
+  function doExclude(name) {
+    const cat = getCat();
     cat.included = cat.included.filter(n => n !== name);
     cat.excluded.push(name);
     cat.excluded.sort();
@@ -899,50 +907,80 @@
   document.addEventListener('click', closeKebab);
 
   // ── Reassign modal ──
-  function openReassign(subName, type, parentGlobal) {
+  let pendingExcludeName = null;
+
+  function openReassign(subName, type, parentGlobal, excludeCtx) {
     const cat = getCat();
-    const overlay = document.getElementById('reassignOverlay');
+    pendingExcludeName = excludeCtx ? excludeCtx.pendingExclude : null;
+    const isExcludeFlow = !!pendingExcludeName;
+
     document.getElementById('reassignTitle').textContent = 'Reassign ' + subName;
-    const prodCount = Math.floor(Math.random() * 18) + 1; // simulated count
-    document.getElementById('reassignDesc').textContent =
-      prodCount + ' product' + (prodCount === 1 ? '' : 's') + ' assigned to "' + subName + '" will be moved to the selected subcategory.';
-    // populate options: custom subcategories (excluding self) + globals only if they have no customs
+
+    const total = excludeCtx ? excludeCtx.total : (cat.products[subName] || 0);
+    const allNames = isExcludeFlow ? [subName, ...(cat.customs[subName] || [])] : [subName];
+    const breakdown = allNames.filter(n => (cat.products[n] || 0) > 0)
+      .map(n => `${cat.products[n]} ${n !== subName ? '"' + n + '"' : ''}`.trim()).join(', ');
+
+    let desc = total + ' product' + (total === 1 ? '' : 's');
+    if (isExcludeFlow) {
+      desc += ' are assigned to "' + subName + '" or its custom subcategories. Reassign them before excluding.';
+    } else {
+      desc += ' assigned to "' + subName + '" will be moved to the selected subcategory.';
+    }
+    document.getElementById('reassignDesc').textContent = desc;
+
+    const confirmBtn = document.getElementById('reassignConfirm');
+    confirmBtn.textContent = isExcludeFlow ? 'Reassign & Exclude' : 'Confirm';
+
+    // populate options: exclude the global being excluded (and its customs) from targets
+    const excludedGlobal = isExcludeFlow ? subName : (type === 'global' ? subName : null);
+    const excludedCustomSelf = type === 'custom' ? subName : null;
+
     const sel = document.getElementById('reassignSelect');
     sel.innerHTML = '<option value="">Reassign to</option>';
     cat.included.forEach(g => {
-      const gCustoms = (cat.customs[g] || []).filter(c => !(type === 'custom' && c === subName));
-      // add custom subcategories under this global (excluding self)
+      if (g === excludedGlobal) return; // can't reassign to a global being excluded
+      const gCustoms = (cat.customs[g] || []).filter(c => c !== excludedCustomSelf);
       gCustoms.forEach(c => {
         const o = document.createElement('option');
         o.value = c; o.textContent = c;
         sel.appendChild(o);
       });
-      // add global itself only if it has no customs (after excluding self)
-      const isGlobalSelf = type === 'global' && g === subName;
-      if (!isGlobalSelf && gCustoms.length === 0) {
+      if (gCustoms.length === 0) {
         const opt = document.createElement('option');
         opt.value = g; opt.textContent = g;
         sel.appendChild(opt);
       }
     });
+
+    // reset confirm button state
+    confirmBtn.style.background = 'var(--gray-300)';
+    confirmBtn.style.color = 'var(--gray-500)';
+    confirmBtn.style.cursor = 'default';
     sel.onchange = () => {
-      const btn = document.getElementById('reassignConfirm');
       if (sel.value) {
-        btn.style.background = 'var(--gray-900)'; btn.style.color = 'white'; btn.style.cursor = 'pointer';
+        confirmBtn.style.background = 'var(--gray-900)'; confirmBtn.style.color = 'white'; confirmBtn.style.cursor = 'pointer';
       } else {
-        btn.style.background = 'var(--gray-300)'; btn.style.color = 'var(--gray-500)'; btn.style.cursor = 'default';
+        confirmBtn.style.background = 'var(--gray-300)'; confirmBtn.style.color = 'var(--gray-500)'; confirmBtn.style.cursor = 'default';
       }
     };
-    overlay.style.display = 'flex';
+
+    document.getElementById('reassignOverlay').style.display = 'flex';
   }
+
   function closeReassign() {
+    pendingExcludeName = null;
     document.getElementById('reassignOverlay').style.display = 'none';
   }
+
   function confirmReassign() {
     const sel = document.getElementById('reassignSelect');
     if (!sel.value) return;
+    const target = sel.value;
+    const toExclude = pendingExcludeName;
     closeReassign();
-    showToast('Products reassigned to "' + sel.value + '"');
+    showToast('Products reassigned to "' + target + '"');
+    if (toExclude) doExclude(toExclude);
   }
 
   function startEdit(globalName, idx) {
