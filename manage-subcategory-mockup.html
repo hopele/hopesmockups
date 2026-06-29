@@ -643,16 +643,18 @@
     document.getElementById('excludeCount').textContent = cat.excluded.length + ' subcategor' + (cat.excluded.length === 1 ? 'y' : 'ies');
     document.getElementById('includeCount').textContent = cat.included.length + ' subcategor' + (cat.included.length === 1 ? 'y' : 'ies');
 
+    const globalPill = `<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:#1565C0;background:#E3F2FD;border:1px solid #BBDEFB;border-radius:999px;padding:1px 6px;margin-left:7px;flex-shrink:0;">Global</span>`;
+
     exList.innerHTML = cat.excluded.map(name => `
       <div class="transfer-item" onclick="moveToInclude('${esc(name)}')" title="Click to include">
-        <span>${esc(name)}</span>
+        <span style="display:flex;align-items:center;">${esc(name)}${globalPill}</span>
         <span class="ti-action">Include →</span>
       </div>
     `).join('') || '<div style="padding:20px 16px;color:var(--gray-400);font-size:13px;">All subcategories included</div>';
 
     inList.innerHTML = cat.included.map(name => `
       <div class="transfer-item" onclick="moveToExclude('${esc(name)}')" title="Click to exclude">
-        <span>${esc(name)}</span>
+        <span style="display:flex;align-items:center;">${esc(name)}${globalPill}</span>
         <span class="ti-action">← Exclude</span>
       </div>
     `).join('') || '<div style="padding:20px 16px;color:var(--gray-400);font-size:13px;">No subcategories included</div>';
@@ -671,17 +673,12 @@
       return `
         <div class="global-group" id="group-${esc(name)}">
           <div class="global-row">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="color:var(--gray-300);flex-shrink:0;">
-              <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2"/>
-              <path d="M7 4v6M4 7h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.4"/>
-            </svg>
-            <span class="global-row-name">${esc(name)}</span>
-            <span class="global-badge">
+            <span class="global-row-name">${esc(name)}</span><span class="global-badge" style="margin-left:8px;">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M3 5l1.5 1.5L7 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Global
             </span>
             ${hasCustoms ? `
-            <span class="not-in-dropdown-note">Not shown in product dropdown</span>` : ''}
+            <span class="not-in-dropdown-note" style="margin-left:8px;">Not shown in product dropdown</span>` : ''}
             <button class="add-custom-btn" onclick="toggleAddForm('${esc(name)}')">
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1.5v8M1.5 5.5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
               Add Custom Subcategory
