@@ -346,7 +346,7 @@
     border: 1px solid #E1BEE7;
     white-space: nowrap;
   }
-  .custom-row-delete {
+  .custom-row-edit, .custom-row-delete {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -360,7 +360,9 @@
     opacity: 0;
     transition: opacity 0.15s, background 0.15s, color 0.15s;
   }
+  .custom-row:hover .custom-row-edit,
   .custom-row:hover .custom-row-delete { opacity: 1; }
+  .custom-row-edit:hover { background: var(--green-light); color: var(--green-dark); }
   .custom-row-delete:hover { background: var(--red-light); color: var(--red); }
 
   /* ── Add custom inline form ── */
@@ -625,8 +627,8 @@
   };
 
   let current = 'edible';
-  // track which global has the inline add form open
-  let openAddForm = null;
+  let openAddForm = null;   // global name with add form open
+  let editingCustom = null; // { global, index } of custom being edited
 
   function getCat() { return catalog[current]; }
 
@@ -683,18 +685,29 @@
             </button>
           </div>
           <div class="custom-rows">
-            ${customs.map(c => `
+            ${customs.map((c, ci) => {
+              const isEditing = editingCustom && editingCustom.global === name && editingCustom.index === ci;
+              return isEditing ? `
+              <div class="add-custom-form" id="edit-form-${esc(name)}-${ci}">
+                <svg class="custom-row-indent" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4v6h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <input class="add-custom-input" id="edit-input-${esc(name)}-${ci}" type="text" value="${esc(c)}" onkeydown="onEditKey(event,'${esc(name)}',${ci})">
+                <button class="btn btn-primary" onclick="saveEdit('${esc(name)}',${ci})">Save</button>
+                <button class="btn btn-ghost" onclick="cancelEdit()">Cancel</button>
+              </div>` : `
               <div class="custom-row">
                 <svg class="custom-row-indent" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4v6h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <span class="custom-row-name">
                   ${esc(c)}
                   <span class="custom-badge">Custom</span>
                 </span>
-                <button class="custom-row-delete" onclick="deleteCustom('${esc(name)}','${esc(c)}')" title="Remove custom subcategory">
+                <button class="custom-row-edit" onclick="startEdit('${esc(name)}',${ci})" title="Rename">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 1.5l2.5 2.5L4 11.5H1.5V9L9 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+                </button>
+                <button class="custom-row-delete" onclick="deleteCustom('${esc(name)}','${esc(c)}')" title="Remove">
                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 3h8M5 3V2h3v1M3.5 3l.5 7h5l.5-7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
-              </div>
-            `).join('')}
+              </div>`;
+            }).join('')}
             ${isOpen ? `
               <div class="add-custom-form" id="form-${esc(name)}">
                 <svg class="custom-row-indent" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4v6h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -747,6 +760,7 @@
 
   function toggleAddForm(globalName) {
     openAddForm = openAddForm === globalName ? null : globalName;
+    editingCustom = null;
     renderIncluded(getCat());
     if (openAddForm) {
       const el = document.getElementById('input-' + globalName);
@@ -772,6 +786,38 @@
     openAddForm = null;
     renderIncluded(cat);
     showToast('"' + val + '" added');
+  }
+
+  function startEdit(globalName, idx) {
+    editingCustom = { global: globalName, index: idx };
+    openAddForm = null;
+    renderIncluded(getCat());
+    const el = document.getElementById('edit-input-' + globalName + '-' + idx);
+    if (el) { el.focus(); el.select(); }
+  }
+
+  function cancelEdit() {
+    editingCustom = null;
+    renderIncluded(getCat());
+  }
+
+  function saveEdit(globalName, idx) {
+    const el = document.getElementById('edit-input-' + globalName + '-' + idx);
+    const val = el ? el.value.trim() : '';
+    if (!val) { el && el.focus(); return; }
+    const cat = getCat();
+    if (cat.customs[globalName].includes(val) && cat.customs[globalName][idx] !== val) {
+      showToast('That name already exists'); return;
+    }
+    cat.customs[globalName][idx] = val;
+    editingCustom = null;
+    renderIncluded(cat);
+    showToast('"' + val + '" saved');
+  }
+
+  function onEditKey(e, globalName, idx) {
+    if (e.key === 'Enter') saveEdit(globalName, idx);
+    if (e.key === 'Escape') cancelEdit();
   }
 
   function deleteCustom(globalName, customName) {
