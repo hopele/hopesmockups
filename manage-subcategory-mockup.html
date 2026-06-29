@@ -518,7 +518,7 @@
           <!-- Exclude col -->
           <div class="transfer-col exclude">
             <div class="transfer-col-header">
-              Exclude
+              <span style="display:flex;align-items:center;gap:7px;">Exclude <span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:#1565C0;background:#E3F2FD;border:1px solid #BBDEFB;border-radius:999px;padding:1px 6px;text-transform:none;letter-spacing:0;">Global</span></span>
               <span class="count" id="excludeCount">5 subcategories</span>
             </div>
             <div class="transfer-list exclude-list" id="excludeList">
@@ -534,7 +534,7 @@
           <!-- Include col -->
           <div class="transfer-col include">
             <div class="transfer-col-header">
-              Include
+              <span style="display:flex;align-items:center;gap:7px;">Include <span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:#1565C0;background:#E3F2FD;border:1px solid #BBDEFB;border-radius:999px;padding:1px 6px;text-transform:none;letter-spacing:0;">Global</span></span>
               <span class="count" id="includeCount">2 subcategories</span>
             </div>
             <div class="transfer-list include-list" id="includeList">
@@ -643,18 +643,16 @@
     document.getElementById('excludeCount').textContent = cat.excluded.length + ' subcategor' + (cat.excluded.length === 1 ? 'y' : 'ies');
     document.getElementById('includeCount').textContent = cat.included.length + ' subcategor' + (cat.included.length === 1 ? 'y' : 'ies');
 
-    const globalPill = `<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:#1565C0;background:#E3F2FD;border:1px solid #BBDEFB;border-radius:999px;padding:1px 6px;margin-left:7px;flex-shrink:0;">Global</span>`;
-
     exList.innerHTML = cat.excluded.map(name => `
       <div class="transfer-item" onclick="moveToInclude('${esc(name)}')" title="Click to include">
-        <span style="display:flex;align-items:center;">${esc(name)}${globalPill}</span>
+        <span>${esc(name)}</span>
         <span class="ti-action">Include →</span>
       </div>
     `).join('') || '<div style="padding:20px 16px;color:var(--gray-400);font-size:13px;">All subcategories included</div>';
 
     inList.innerHTML = cat.included.map(name => `
       <div class="transfer-item" onclick="moveToExclude('${esc(name)}')" title="Click to exclude">
-        <span style="display:flex;align-items:center;">${esc(name)}${globalPill}</span>
+        <span>${esc(name)}</span>
         <span class="ti-action">← Exclude</span>
       </div>
     `).join('') || '<div style="padding:20px 16px;color:var(--gray-400);font-size:13px;">No subcategories included</div>';
@@ -673,7 +671,7 @@
       return `
         <div class="global-group" id="group-${esc(name)}">
           <div class="global-row">
-            <span class="global-row-name">${esc(name)}</span><span class="global-badge" style="margin-left:8px;">
+            <span class="global-row-name">${esc(name)}</span><span class="global-badge" style="margin-left:6px;">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M3 5l1.5 1.5L7 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Global
             </span>
