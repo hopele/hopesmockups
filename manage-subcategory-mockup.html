@@ -277,8 +277,23 @@
   }
   .add-custom-btn:hover { background: #DCEDC8; }
 
-  /* ── Hidden-in-dropdown note ── */
-  .hidden-note {
+  /* ── Canonical inheritance banner ── */
+  .canonical-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 9px 20px 9px 44px;
+    background: #EFF6FF;
+    border-top: 1px solid #DBEAFE;
+    border-bottom: 1px solid #DBEAFE;
+    font-size: 12.5px;
+    color: #1E40AF;
+    line-height: 1.5;
+  }
+  .canonical-banner svg { flex-shrink: 0; margin-top: 1px; }
+  .canonical-banner strong { font-weight: 700; }
+  /* pill shown on global row when customs exist */
+  .not-in-dropdown-note {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -290,11 +305,6 @@
     border-radius: 999px;
     padding: 2px 9px;
     white-space: nowrap;
-  }
-  .global-row-name.replaced {
-    color: var(--gray-500);
-    text-decoration: line-through;
-    text-decoration-color: var(--gray-400);
   }
 
   /* ── Custom subcategory rows ── */
@@ -665,22 +675,24 @@
               <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2"/>
               <path d="M7 4v6M4 7h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.4"/>
             </svg>
-            <span class="global-row-name${hasCustoms ? ' replaced' : ''}">${esc(name)}</span>
+            <span class="global-row-name">${esc(name)}</span>
             <span class="global-badge">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M3 5l1.5 1.5L7 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Global
             </span>
             ${hasCustoms ? `
-            <span class="hidden-note">
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1.5 5.5S3 2 5.5 2 9.5 5.5 9.5 5.5 8 9 5.5 9 1.5 5.5 1.5 5.5z" stroke="currentColor" stroke-width="1.1"/><line x1="2" y1="2" x2="9" y2="9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
-              Hidden in product dropdown — replaced by custom subcategories
-            </span>` : ''}
+            <span class="not-in-dropdown-note">Not shown in product dropdown</span>` : ''}
             <button class="add-custom-btn" onclick="toggleAddForm('${esc(name)}')">
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1.5v8M1.5 5.5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
               Add Custom Subcategory
             </button>
           </div>
           <div class="custom-rows">
+            ${hasCustoms ? `
+            <div class="canonical-banner">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#3B82F6" stroke-width="1.4"/><path d="M7 6.5v4M7 4.5v.5" stroke="#3B82F6" stroke-width="1.4" stroke-linecap="round"/></svg>
+              <span>Custom subcategories below are mapped to <strong>${esc(name)}</strong> as their canonical subcategory. They inherit its purchase limits, tax rules, and compliance requirements — including any state-level metrc reporting. The global subcategory remains the stable backend value used by Sell Treez and all downstream services.</span>
+            </div>` : ''}
             ${customs.map(c => `
               <div class="custom-row">
                 <svg class="custom-row-indent" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4v6h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
