@@ -750,11 +750,7 @@
                 </button>
               </div>
             </div>
-            <span class="global-row-name">${esc(name)}</span>
-            <span class="global-badge">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M3 5l1.5 1.5L7 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Global
-            </span>
+            <span style="display:flex;align-items:center;gap:6px;"><span class="global-row-name">${esc(name)}</span><span class="global-badge">Global</span></span>
             <span style="flex:1;"></span>
             ${hasCustoms ? `<span class="not-in-dropdown-note">Not shown in product dropdown</span>` : ''}
             <button class="add-custom-btn" onclick="toggleAddForm('${esc(name)}')">
