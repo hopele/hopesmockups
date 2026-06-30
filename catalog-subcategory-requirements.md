@@ -190,13 +190,15 @@ Feature flag: **`Catalog Management - Custom Subcategory Management`** (managed 
 - Org-initiated creation, editing, and deletion of custom subcategories
 - Product assignment to a custom subcategory via the UI/API
 
-**Not gated — runs for all orgs:**
+**Not gated — runs for all orgs (MVP):**
 - The `customSubCategory` table and `customSubCategoryId` FK on product (schema is global)
-- Reconciliation: Class 1 canonical renames, Class 2 seeded default customs, Class 3 missing canonical seeds
-- PMRS fan-out for display name edits on seeded defaults
 - `ProductCore v1x3x0` additive event fields
 
-Orgs without the flag still receive seeded defaults and reconciliation output — they just cannot create new custom subcategories or manage include/exclude until the flag is enabled.
+**Not gated — runs for all orgs (fast follow, when reconciliation ships):**
+- Class 1 canonical renames, Class 2 seeded default customs, Class 3 missing canonical seeds
+- PMRS fan-out for display name edits on seeded defaults
+
+Orgs without the flag still get the schema changes and event field updates in MVP. Seeded defaults reach all orgs when the reconciliation fast follow ships — not at MVP launch.
 
 ---
 
