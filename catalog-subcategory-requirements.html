@@ -713,7 +713,7 @@
       </div>
 
       <h3>Collections</h3>
-      <p>Collection rules store custom subcategory UUIDs where they exist, enabling operators to build collections using the same subcategory names they see in their catalog. Where no custom exists under a global, rules store the canonical subcategory UUID. This has two consequences in MVP.</p>
+      <p>Collection rules store subcategory UUIDs — custom or canonical — depending on what the operator targets. Products can be assigned to a custom UUID, to an included global's canonical UUID (when customs exist but haven't been reassigned yet), or to an excluded global's canonical UUID (exclusion does not migrate existing assignments). Operators may need to select both a global and its customs to build a complete collection rule.</p>
 
       <div class="workflow-block">
         <div class="workflow-block-header">No Rule Impact from Include/Exclude or Custom Subcategory Creation</div>
@@ -740,7 +740,7 @@
         <div class="workflow-block-header">Collection Rule Builder</div>
         <div class="workflow-block-body">
           <ul>
-            <li>The collection rule builder must show custom subcategory names for orgs that have them, so operators can build rules using the names they recognize. The MFE update to show custom names and filter to org-included subcategories ships as fast follow.</li>
+            <li>The rule builder must expose custom subcategory names, included globals with customs (products may still be assigned there), and excluded globals (products may still be assigned there too). Showing the full option set with custom names ships as fast follow.</li>
           </ul>
         </div>
       </div>
@@ -843,14 +843,15 @@
       <h2>Collections Impact</h2>
 
       <h3>How Collection Rules Store Subcategories</h3>
-      <p>Automated collections store filter rules as a JSONB object on the collection record. The subcategory filter uses the key <code>subCategory</code> and stores an array of subcategory UUIDs. When an org has custom subcategories, operators build rules using custom subcategory names — rules store <strong>custom subcategory UUIDs</strong> for those entries. Where no custom exists under a global, rules store the canonical subcategory UUID.</p>
+      <p>Automated collections store filter rules as a JSONB object on the collection record. The subcategory filter uses the key <code>subCategory</code> and stores an array of subcategory UUIDs — custom subcategory UUIDs or canonical subcategory UUIDs, depending on what the operator selects.</p>
 
       <pre><code>{
   "category": ["&lt;categoryId&gt;"],
   "subCategory": ["&lt;customSubCategoryId-A&gt;", "&lt;canonicalSubCategoryId-B&gt;"]
 }</code></pre>
 
-      <p>This allows operators to express collection logic in the same terms they use in their catalog. Because rules store IDs (not display names), renaming a custom subcategory has no effect on rule validity. Reassigning products (which changes their <code>customSubCategoryId</code>) does change which products match a collection's rule.</p>
+      <p>Product assignment is not always clean-cut. Products can be assigned to a custom subcategory UUID, to an included global's canonical UUID (when customs exist but the product hasn't been reassigned yet), or to an excluded global's canonical UUID (exclusion does not migrate existing assignments). Because of this, the rule builder must expose all three as selectable options. An operator targeting all products in a given subcategory family may need to select both the global and its customs to get full coverage.</p>
+      <p>Because rules store IDs (not display names), renaming a custom subcategory has no effect on rule validity. Reassigning products (which changes their subcategory ID) does change which products match a collection's rule.</p>
 
       <h3>Impact Matrix</h3>
       <table class="impact-table">

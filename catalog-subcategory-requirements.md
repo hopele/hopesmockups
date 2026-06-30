@@ -103,19 +103,19 @@ Custom subcategory display names surface in three Sell Treez areas at MVP. Categ
 
 ### 4. Collections
 
-Collection rules store custom subcategory UUIDs where they exist, enabling operators to build collections using the same subcategory names they see in their catalog. Where no custom exists under a global, rules store the canonical subcategory UUID.
+Collection rules store subcategory UUIDs — custom subcategory UUIDs or canonical subcategory UUIDs depending on what the operator targets. Products can simultaneously exist in three states: assigned to a custom UUID, assigned to an included global's canonical UUID (when customs exist but the product hasn't been reassigned yet), or assigned to an excluded global's canonical UUID (exclusion does not migrate existing assignments). Operators may need to select both a global and its customs to build a complete collection rule.
 
 **No rule impact from include/exclude or custom subcategory creation**
 - Excluding, including, or creating a custom subcategory does not affect existing collection rules. Rules remain syntactically valid and collection membership is unchanged.
-- Deleting a custom subcategory with zero products assigned leaves any referencing rule entry inert (the deleted custom UUID returns no products) but does not break the collection. Users can clean up stale rule entries manually.
+- Deleting a custom subcategory with zero products assigned leaves any referencing rule entry inert (the deleted UUID returns no products) but does not break the collection. Users can clean up stale rule entries manually.
 
 **API reassignment changes collection membership**
-- Product reassignment is available via the catalog API in MVP. Reassigning a product changes its `customSubCategoryId`, which directly changes which automated collections it belongs to — products leave collections whose rule references the old custom subcategory UUID and enter collections whose rule references the new one.
-- Collection rules are **not** auto-rewritten in MVP. If products are reassigned from custom A to custom B, any collection rule referencing custom A will silently lose those products. Auto-rewrite of collection rules ships as fast follow.
+- Product reassignment is available via the catalog API in MVP. Reassigning a product changes its subcategory ID, which directly changes which automated collections it belongs to.
+- Collection rules are **not** auto-rewritten in MVP. Any collection rule referencing the source subcategory UUID will silently lose those products after reassignment. Auto-rewrite of collection rules ships as fast follow.
 - Orgs using the API reassignment path in MVP should audit their automated collections manually after reassigning.
 
 **Collection rule builder**
-- The collection rule builder must show custom subcategory names for orgs that have them, so operators can build rules using the names they recognize. The MFE update to show custom names and filter to org-included subcategories ships as fast follow.
+- The rule builder must expose custom subcategory names, included globals (even those with customs, since products may still be assigned there), and excluded globals (since products may still be assigned there too). Showing the full option set with custom names ships as fast follow.
 
 ---
 
@@ -178,7 +178,7 @@ _Reassign Products (custom subcategory kebab):_
 
 ### How Collection Rules Store Subcategories
 
-Automated collections store filter rules as a JSONB object on the collection record. The subcategory filter uses the key `subCategory` and stores an array of subcategory UUIDs. When an org has custom subcategories, operators build rules using custom subcategory names — rules store **custom subcategory UUIDs** for those entries. Where no custom exists under a global, rules store the canonical subcategory UUID.
+Automated collections store filter rules as a JSONB object on the collection record. The subcategory filter uses the key `subCategory` and stores an array of subcategory UUIDs — either custom subcategory UUIDs or canonical subcategory UUIDs, depending on what the operator selects.
 
 ```json
 {
@@ -187,7 +187,13 @@ Automated collections store filter rules as a JSONB object on the collection rec
 }
 ```
 
-This allows operators to express collection logic in the same terms they use in their catalog. Because rules store IDs (not display names), renaming a custom subcategory has no effect on rule validity. Reassigning products (which changes their `customSubCategoryId`) does change which products match a collection's rule.
+Product assignment is not always clean-cut. Products can be assigned to:
+- A **custom subcategory UUID** — when the org has customs and the product was explicitly assigned to one
+- A **canonical (global) UUID** — for products on an included global that has customs but hasn't been reassigned yet, or for products on an excluded global (exclusion does not migrate existing assignments)
+
+Because of this, the rule builder must expose all three: custom subcategory options, included globals with customs (since products may still live there), and excluded globals (since products may still be assigned there too). An operator targeting all products in a given subcategory family may need to select both the global and its customs to get full coverage.
+
+Because rules store IDs (not display names), renaming a custom subcategory has no effect on rule validity. Reassigning products (which changes their `customSubCategoryId`) does change which products match a collection's rule.
 
 ### Impact Matrix
 
