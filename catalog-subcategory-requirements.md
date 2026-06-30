@@ -65,6 +65,7 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 - When at least one custom exists under a global, the global is hidden from the product create/edit dropdown — new products must be assigned to one of the customs. Existing products on the global remain there until explicitly reassigned (fast follow). The global still appears in the UI with a "Not shown in product dropdown" indicator — it remains the compliance anchor.
 - If no customs exist under a global, the global name appears directly in the product dropdown.
 - **Add:** Inline form under the global row. Name is required. Custom is added immediately — no prompts or modals in MVP.
+- **Edit Name:** Rename a custom subcategory. Name change only — canonical mapping does not change, no products move. ST reflects the new name after the existing rename event fan-out completes.
 - **Delete:** Only available when zero products are assigned. If products are assigned, Delete does not appear in the kebab.
 
 ### 2. Catalog — Product List & Product Card
@@ -130,17 +131,11 @@ Collection rules store subcategory UUIDs — custom or canonical — depending o
 
 ## Fast Follow
 
-The following capabilities ship after MVP, ordered by priority. Items 1–3 are tightly coupled — rename and reassignment share the same PMRS fan-out infrastructure and the collection warning/auto-rewrite depend on the same reassignment event. They are scoped and built together.
+The following capabilities ship after MVP, ordered by priority. Items 1–3 are tightly coupled — reassignment and the collection warning/auto-rewrite depend on the same reassignment event. They are scoped and built together.
 
-**1. Rename + Reassignment fan-out** _(highest priority — coupled infrastructure)_
+**1. Reassignment fan-out** _(highest priority — coupled infrastructure)_
 
-Rename and reassignment both use the same fan-out: PMS queries all affected products in the org and emits a `ProductCore v1x3x0` event per product with updated subcategory fields; PMRS updates `subtype` per product via existing event processing.
-
-_Rename (Edit Name):_
-- Edit Name added to the custom subcategory kebab menu.
-- Name change only — canonical mapping does not change, no products move.
-- On save: PMS fans out `ProductCore v1x3x0` events for all products with that `customSubCategoryId`, updating `customSubCategoryDisplayName`. PMRS updates `subtype` per product. ST (POS menu, reporting, filter options) reflects the new name after fan-out completes.
-- Rename does not ship without the fan-out — ST showing the old name is not acceptable.
+On reassignment confirmed, PMS queries all affected products in the org and emits a `ProductCore v1x3x0` event per product with updated subcategory fields; PMRS updates `subtype` per product via existing event processing.
 
 _Reassign Products (custom subcategory kebab):_
 - "Reassign Products" added to the custom subcategory kebab when products are assigned (Delete remains hidden in this state).
@@ -269,7 +264,7 @@ The Class 2 migration (seeding default customs and re-tagging existing products 
 - `toSubCategoryId` — UUID being reassigned to (custom subcategory UUID if one exists, otherwise canonical UUID)
 - `organizationId`
 
-**Note on rename:** No dedicated rename event is needed. When a custom subcategory is renamed, PMS fans out `ProductCore v1x3x0` events for all affected products (same mechanism as reassignment). PMRS updates `subtype` per product via existing event processing. Rename and reassignment share this fan-out infrastructure and are built together in the fast follow.
+**Note on rename:** Rename ships in MVP. The existing rename event handles fan-out — no new event infrastructure needed. PMRS updates `subtype` per product via existing event processing. Reassignment uses the same `ProductCore v1x3x0` fan-out pattern but ships as fast follow.
 
 ---
 
@@ -301,7 +296,7 @@ Orgs without the flag still get the schema changes and event field updates in MV
 - Manage > Subcategories page: include/exclude panel + custom subcategory CRUD (behind feature flag)
 - Excluding a subcategory is freely allowed — no block, no reassignment required. Existing product assignments are unaffected; the subcategory is simply removed from the product dropdown.
 - No delete option in kebab if products assigned to a custom subcategory
-- No rename option on custom subcategories (Edit Name is fast follow — requires PMRS fan-out)
+- Edit Name (rename) available on custom subcategories — existing rename event handles fan-out
 - No automatic collection rule rewrites
 - Catalog-to-ST reconciliation audit (understand scope of mismatches across all three classes)
 - Catalog: Product list grid displays custom subcategory display name
@@ -317,7 +312,7 @@ Orgs without the flag still get the schema changes and event field updates in MV
 
 ### Fast Follow
 Ordered by priority:
-1. **Rename + Reassignment fan-out** — coupled work; same PMRS `ProductCore` fan-out. Rename = Edit Name in kebab. Reassignment = modal (reassign + delete source custom).
+1. **Reassignment fan-out** — Reassignment = modal (reassign + delete source custom). PMRS `ProductCore` fan-out per affected product.
 2. **Collection count warning** — ships with reassignment, same modal surface.
 3. **Auto-rewrite collection rules** — consumes `SUBCATEGORY_REASSIGNED` event emitted by reassignment; ships with or immediately after #1.
 4. **First-custom reassign prompt** — small addition once reassignment exists.

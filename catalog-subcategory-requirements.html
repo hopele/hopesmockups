@@ -627,6 +627,7 @@
             <li>When at least one custom exists under a global, the global is hidden from the product create/edit dropdown — new products must be assigned to one of the customs. Existing products on the global remain there until explicitly reassigned (fast follow). The global still appears in the UI with a "Not shown in product dropdown" indicator — it remains the compliance anchor.</li>
             <li>If no customs exist under a global, the global name appears directly in the product dropdown.</li>
             <li><strong>Add:</strong> Inline form under the global row. Name is required. Custom is added immediately — no prompts or modals in MVP.</li>
+            <li><strong>Edit Name:</strong> Rename a custom subcategory. Name change only — canonical mapping does not change, no products move. ST reflects the new name after the existing rename event fan-out completes.</li>
             <li><strong>Delete:</strong> Only available when zero products are assigned. If products are assigned, Delete does not appear in the kebab.</li>
           </ul>
         </div>
@@ -781,16 +782,10 @@
       <p>The following capabilities ship after MVP, ordered by priority. Items 1–3 are tightly coupled — rename and reassignment share the same PMRS fan-out infrastructure, and the collection warning and auto-rewrite depend on the same reassignment event. They are scoped and built together.</p>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">1. Rename + Reassignment Fan-out <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Highest priority — coupled infrastructure</span></div>
+        <div class="workflow-block-header">1. Reassignment Fan-out <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Highest priority — coupled infrastructure</span></div>
         <div class="workflow-block-body">
-          <p style="font-size:13px;color:#555;margin-bottom:10px;">Rename and reassignment use the same fan-out: PMS queries all affected products and emits a <code>ProductCore v1x3x0</code> event per product; PMRS updates <code>subtype</code> per product. Built together.</p>
-          <p style="font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;">Rename (Edit Name)</p>
-          <ul>
-            <li>Edit Name added to the custom subcategory kebab.</li>
-            <li>Name change only — canonical mapping unchanged, no products move.</li>
-            <li>On save: PMS fans out <code>ProductCore v1x3x0</code> for all products with that <code>customSubCategoryId</code>. ST reflects the new name after fan-out completes. Rename does not ship without the fan-out.</li>
-          </ul>
-          <p style="font-size:12px;font-weight:600;color:#374151;margin:10px 0 4px;">Reassign Products (custom subcategory kebab)</p>
+          <p style="font-size:13px;color:#555;margin-bottom:10px;">On reassignment confirmed, PMS queries all affected products and emits a <code>ProductCore v1x3x0</code> event per product; PMRS updates <code>subtype</code> per product via existing event processing.</p>
+          <p style="font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;">Reassign Products (custom subcategory kebab)</p>
           <ul>
             <li>"Reassign Products" added to the kebab when products are assigned (Delete remains hidden in this state).</li>
             <li>Title: "Reassign [Custom Subcategory Name]" — Body: "{n} products will be reassigned and the subcategory will be deleted."</li>
@@ -1023,7 +1018,7 @@
         </div>
       </div>
 
-      <p style="margin-top:16px;color:#555;font-size:14px;"><strong>Note on rename:</strong> No dedicated rename event is needed. When a custom subcategory is renamed, PMS fans out <code>ProductCore v1x3x0</code> events for all affected products — the same mechanism as reassignment. PMRS updates <code>subtype</code> per product via existing event processing. Rename and reassignment share this infrastructure and are built together in the fast follow.</p>
+      <p style="margin-top:16px;color:#555;font-size:14px;"><strong>Note on rename:</strong> Rename ships in MVP. The existing rename event handles fan-out — no new event infrastructure needed. PMRS updates <code>subtype</code> per product via existing event processing. Reassignment uses the same <code>ProductCore v1x3x0</code> fan-out pattern but ships as fast follow.</p>
     </section>
 
     <!-- Feature Flag -->
@@ -1079,7 +1074,7 @@
               <li>Manage &gt; Subcategories page: include/exclude panel + custom subcategory CRUD <em>(behind feature flag)</em></li>
               <li>Excluding a subcategory is freely allowed — no block. Existing product assignments are unaffected; subcategory is removed from the product dropdown only.</li>
               <li>Delete option hidden in kebab when products are assigned to a custom</li>
-              <li>No rename option on custom subcategories (Edit Name is fast follow — requires PMRS fan-out)</li>
+              <li>Edit Name (rename) available on custom subcategories — existing rename event handles fan-out</li>
               <li>No automatic collection rule rewrites</li>
               <li>Catalog-to-ST reconciliation audit (understand scope of mismatches across all three classes)</li>
               <li>Catalog: Product list grid displays custom subcategory display name</li>
@@ -1104,7 +1099,7 @@
           <div class="phase-content">
             <h3>Fast Follow <span class="tag fast-follow">Next</span></h3>
             <ol>
-              <li><strong>Rename + Reassignment fan-out</strong> — coupled work, same PMRS <code>ProductCore</code> fan-out. Rename = Edit Name in kebab. Reassignment = modal (reassign + delete source custom).</li>
+              <li><strong>Reassignment fan-out</strong> — Reassignment modal (reassign + delete source custom). PMRS <code>ProductCore v1x3x0</code> fan-out per affected product.</li>
               <li><strong>Collection count warning</strong> — ships with #1, same modal surface.</li>
               <li><strong>Auto-rewrite collection rules</strong> — consumes <code>SUBCATEGORY_REASSIGNED</code> event from #1; ships with or immediately after.</li>
               <li><strong>First-custom reassign prompt</strong> — small addition once reassignment exists.</li>
