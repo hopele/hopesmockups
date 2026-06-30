@@ -25,7 +25,7 @@ Treez-owned subcategories. These drive:
 - Metrc compliance reporting
 - Sell Treez subtype resolution
 
-Global subcategories cannot have their display names changed directly. They are seeded and maintained by Treez.
+Global subcategories cannot be deleted or renamed. They are seeded and maintained by Treez. Orgs can only control whether a global subcategory is included or excluded from the product create/edit dropdown.
 
 ### Org-Specific Custom Subcategories
 A custom subcategory is a display alias created by an org, mapped 1:1 to a global canonical subcategory. Key rules:
