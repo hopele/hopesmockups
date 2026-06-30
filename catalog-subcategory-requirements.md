@@ -44,6 +44,8 @@ Orgs control which global subcategories are active for their catalog on a per-ca
 
 ## MVP Scope
 
+> **Feature flag:** `Catalog Management - Custom Subcategory Management` (managed in organization-management service). The management surface — Manage > Subcategories page, include/exclude, and custom subcategory CRUD — is gated behind this flag and enabled per org. Schema changes and `ProductCore v1x3x0` event fields ship to all orgs regardless of the flag.
+
 ### 1. Manage > Subcategories Page
 
 The starting point is a category selector. After choosing a category (e.g., Concentrate), the page shows two panels.

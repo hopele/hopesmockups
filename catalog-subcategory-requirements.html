@@ -590,6 +590,10 @@
     <section class="section" id="mvp">
       <h2>MVP Scope <span class="tag mvp">MVP</span></h2>
 
+      <div class="callout" style="background:#fefce8;border:1px solid #fde68a;border-left:4px solid #f59e0b;margin-bottom:24px;">
+        <strong>Feature flag:</strong> <code>Catalog Management - Custom Subcategory Management</code> (managed in organization-management service). The management surface — Manage &gt; Subcategories page, include/exclude, and custom subcategory CRUD — is gated behind this flag and enabled per org. Schema changes and <code>ProductCore v1x3x0</code> event fields ship to all orgs regardless of the flag.
+      </div>
+
       <h3>Manage &gt; Subcategories Page</h3>
       <p>The starting point is a category selector. After choosing a category, the page shows two panels.</p>
 
