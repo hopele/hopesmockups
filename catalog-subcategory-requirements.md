@@ -60,7 +60,7 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 - Kebab menu on custom rows: **Delete** — only shown when zero products are assigned to that custom subcategory.
 
 **Custom subcategory behavior**
-- When at least one custom subcategory exists under a global, the global name is hidden from the product assignment dropdown. Products are assigned to one of the custom names instead. The global still appears in the UI with a "Not shown in product dropdown" indicator — it remains the compliance anchor.
+- When at least one custom subcategory exists under a global, the global name is hidden from the product create/edit dropdown — new products must be assigned to one of the custom names. Existing products already assigned to the global remain there in MVP; explicit reassignment is a fast follow. The global still appears in the UI with a "Not shown in product dropdown" indicator — it remains the compliance anchor.
 - If no customs exist under a global, the global name appears directly in the product dropdown.
 
 **Add custom subcategory**
