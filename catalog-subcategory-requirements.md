@@ -79,8 +79,7 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 
 ### 3. Sell Treez
 
-Custom subcategory display names surface in three ST areas at MVP. Where no custom exists, the global name is used. Category icons are unaffected — they remain mapped to the global canonical category.
-
+Custom subcategory display names surface in three ST areas at MVP. Where no custom exists, the global name is used.
 **POS product menu — subcategory filter**
 - The subcategory filter shows custom subcategory names for orgs that have them.
 
