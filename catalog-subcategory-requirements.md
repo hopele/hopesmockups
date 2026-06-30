@@ -210,6 +210,7 @@ Orgs without the flag still receive seeded defaults and reconciliation output â€
 - Collection count warning in reassign modal
 - Auto-rewrite collection rules on `SUBCATEGORY_REASSIGNED` event
 - Collections MFE filters rule options to org-included subcategories
+- Import service: accept custom subcategory by display name or ID in file-based bulk imports (non-technical self-service path; bulk re-tagging via catalog API is available in MVP)
 
 ### Q3/Q4 â€” Custom Categories
 - Org-specific category display names (mapped to global canonical categories)
