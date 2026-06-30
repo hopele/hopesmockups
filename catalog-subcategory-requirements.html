@@ -669,6 +669,38 @@
         </div>
       </div>
 
+      <h3>Catalog — Product List &amp; Product Card</h3>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Product List Grid</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The subcategory column displays the custom subcategory display name for products assigned to a custom subcategory.</li>
+            <li>Products with no custom (assigned directly to a global) continue to display the global name.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Product Card — Create / Edit</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The subcategory dropdown shows custom subcategory names where they exist under an included global, and the global name directly where no customs exist.</li>
+            <li>Excluded subcategories do not appear in the dropdown.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Product List Filters</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Subcategory filter options in the catalog product list continue to display all subcategories (global and custom) in MVP — not yet restricted to the org's included set.</li>
+            <li>Filtering by included/excluded state will be revisited after the reassignment flow is in place, once it is safe to hide options without stranding products in unfiltered states.</li>
+          </ul>
+        </div>
+      </div>
+
       <h3>Sell Treez</h3>
       <p>Custom subcategory display names surface in three Sell Treez areas at MVP. Category icons in the cart and fulfillment dashboard are not affected — they remain mapped to the global canonical category.</p>
 
@@ -1004,6 +1036,9 @@
               <li>No rename option on custom subcategories (Edit Name is fast follow — requires PMRS fan-out)</li>
               <li>No automatic collection rule rewrites</li>
               <li>Catalog-to-ST reconciliation audit (understand scope of mismatches across all three classes)</li>
+              <li>Catalog: Product list grid displays custom subcategory display name</li>
+              <li>Catalog: Product card subcategory dropdown shows custom names; excluded subcategories hidden</li>
+              <li>Catalog: Product list filters show all subcategories in MVP — scoped to included only after reassign flow ships</li>
               <li>ST: POS product menu subcategory filter shows custom names</li>
               <li>ST: All receipts display custom subcategory display name</li>
               <li>ST: Product Groups subcategory filter supports custom names</li>

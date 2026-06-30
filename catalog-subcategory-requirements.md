@@ -81,7 +81,21 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 - Excluded subcategories do not appear in the subcategory dropdown on the product edit form.
 - Products already assigned to an excluded subcategory retain their assignment — no auto-migration in MVP. The subcategory is simply no longer selectable for new edits.
 
-### 2. Sell Treez
+### 2. Catalog — Product List & Product Card
+
+**Product list grid**
+- The subcategory column displays the custom subcategory display name for products assigned to a custom subcategory.
+- Products with no custom (assigned directly to a global) continue to display the global name.
+
+**Product card — create / edit**
+- The subcategory dropdown shows custom subcategory names where they exist under an included global, and the global name directly where no customs exist.
+- Excluded subcategories do not appear in the dropdown.
+
+**Product list filters**
+- Subcategory filter options in the catalog product list continue to display all subcategories (global and custom) in MVP — they are not yet restricted to the org's included set.
+- Filtering by included/excluded state will be revisited after the reassignment flow is in place, once it is safe to hide options without stranding products in unfiltered states.
+
+### 3. Sell Treez
 
 Custom subcategory display names surface in three Sell Treez areas at MVP. Category icons in the cart and fulfillment dashboard are not affected — they remain mapped to the global canonical category.
 
@@ -267,6 +281,9 @@ Orgs without the flag still get the schema changes and event field updates in MV
 - No rename option on custom subcategories (Edit Name is fast follow — requires PMRS fan-out)
 - No automatic collection rule rewrites
 - Catalog-to-ST reconciliation audit (understand scope of mismatches across all three classes)
+- Catalog: Product list grid displays custom subcategory display name
+- Catalog: Product card subcategory dropdown shows custom names; excluded subcategories hidden
+- Catalog: Product list filters show all subcategories in MVP — scoped to included only after reassign flow ships
 - ST: POS product menu subcategory filter shows custom names
 - ST: All receipts display custom subcategory display name
 - ST: Product Groups subcategory filter supports custom names
