@@ -81,6 +81,23 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 - Excluded subcategories do not appear in the subcategory dropdown on the product edit form.
 - Products already assigned to an excluded subcategory retain their assignment — no auto-migration in MVP. The subcategory is simply no longer selectable for new edits.
 
+### 2. Sell Treez
+
+Custom subcategory display names surface in three Sell Treez areas at MVP. Category icons in the cart and fulfillment dashboard are not affected — they remain mapped to the global canonical category.
+
+**POS product menu — subcategory filter**
+- The subcategory filter in the POS product menu shows custom subcategory names for orgs that have them.
+- If no customs exist under a global, the global name appears as before.
+- Excluded subcategories do not appear as filter options.
+
+**Receipts**
+- All receipt types (print, email, SMS) display the custom subcategory display name where subcategory is shown.
+- Falls back to the canonical global name if no custom subcategory exists for a product.
+
+**Product Groups (legacy ST discount management)**
+- The subcategory filter in Product Groups shows custom subcategory names for orgs that have them.
+- Rules can be built against any active subcategory — custom names where they exist, or the global name where no custom exists.
+
 ---
 
 ## Fast Follow
@@ -250,6 +267,9 @@ Orgs without the flag still get the schema changes and event field updates in MV
 - No rename option on custom subcategories (Edit Name is fast follow — requires PMRS fan-out)
 - No automatic collection rule rewrites
 - Catalog-to-ST reconciliation audit (understand scope of mismatches across all three classes)
+- ST: POS product menu subcategory filter shows custom names
+- ST: All receipts display custom subcategory display name
+- ST: Product Groups subcategory filter supports custom names
 
 ### Fast Follow
 Ordered by priority:

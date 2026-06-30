@@ -668,6 +668,40 @@
           </ul>
         </div>
       </div>
+
+      <h3>Sell Treez</h3>
+      <p>Custom subcategory display names surface in three Sell Treez areas at MVP. Category icons in the cart and fulfillment dashboard are not affected — they remain mapped to the global canonical category.</p>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">POS Product Menu — Subcategory Filter</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The subcategory filter in the POS product menu shows custom subcategory names for orgs that have them.</li>
+            <li>If no customs exist under a global, the global name appears as before.</li>
+            <li>Excluded subcategories do not appear as filter options.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Receipts</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>All receipt types (print, email, SMS) display the custom subcategory display name where subcategory is shown.</li>
+            <li>Falls back to the canonical global name if no custom subcategory exists for a product.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Product Groups (Legacy ST Discount Management)</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The subcategory filter in Product Groups shows custom subcategory names for orgs that have them.</li>
+            <li>Rules can be built against any active subcategory — custom names where they exist, or the global name where no custom exists.</li>
+          </ul>
+        </div>
+      </div>
     </section>
 
     <!-- Fast Follow -->
@@ -970,6 +1004,9 @@
               <li>No rename option on custom subcategories (Edit Name is fast follow — requires PMRS fan-out)</li>
               <li>No automatic collection rule rewrites</li>
               <li>Catalog-to-ST reconciliation audit (understand scope of mismatches across all three classes)</li>
+              <li>ST: POS product menu subcategory filter shows custom names</li>
+              <li>ST: All receipts display custom subcategory display name</li>
+              <li>ST: Product Groups subcategory filter supports custom names</li>
             </ul>
           </div>
         </div>
