@@ -993,24 +993,27 @@
 
   // ── Reassign modal ──
   let pendingExcludeName = null;
+  let pendingCustomDelete = null; // { customName, parentGlobal }
 
   function openReassign(subName, type, parentGlobal, excludeCtx) {
     const cat = getCat();
     pendingExcludeName = excludeCtx ? excludeCtx.pendingExclude : null;
     const isExcludeFlow = !!pendingExcludeName;
+    const isCustomDeleteFlow = type === 'custom' && !isExcludeFlow;
+    pendingCustomDelete = isCustomDeleteFlow ? { customName: subName, parentGlobal } : null;
 
     document.getElementById('reassignTitle').textContent = 'Reassign ' + subName;
 
     const total = excludeCtx ? excludeCtx.total : (cat.products[subName] || 0);
     const allNames = isExcludeFlow ? [subName, ...(cat.customs[subName] || [])] : [subName];
-    const breakdown = allNames.filter(n => (cat.products[n] || 0) > 0)
-      .map(n => `${cat.products[n]} ${n !== subName ? '"' + n + '"' : ''}`.trim()).join(', ');
 
-    let desc = total + ' product' + (total === 1 ? '' : 's');
-    if (isExcludeFlow) {
-      desc += ' are assigned to "' + subName + '" or its custom subcategories. Reassign them before excluding.';
+    let desc;
+    if (isCustomDeleteFlow) {
+      desc = total + ' product' + (total === 1 ? '' : 's') + ' will be reassigned and the subcategory will be deleted.';
+    } else if (isExcludeFlow) {
+      desc = total + ' product' + (total === 1 ? '' : 's') + ' are assigned to "' + subName + '" or its custom subcategories. Reassign them before excluding.';
     } else {
-      desc += ' assigned to "' + subName + '" will be moved to the selected subcategory.';
+      desc = total + ' product' + (total === 1 ? '' : 's') + ' assigned to "' + subName + '" will be moved to the selected subcategory.';
     }
     document.getElementById('reassignDesc').textContent = desc;
 
@@ -1055,6 +1058,7 @@
 
   function closeReassign() {
     pendingExcludeName = null;
+    pendingCustomDelete = null;
     document.getElementById('reassignOverlay').style.display = 'none';
   }
 
@@ -1063,7 +1067,23 @@
     if (!sel.value) return;
     const target = sel.value;
     const toExclude = pendingExcludeName;
+    const customToDelete = pendingCustomDelete;
     closeReassign();
+
+    if (customToDelete) {
+      const cat = getCat();
+      const count = cat.products[customToDelete.customName] || 0;
+      // move products to target
+      cat.products[target] = (cat.products[target] || 0) + count;
+      cat.products[customToDelete.customName] = 0;
+      // delete the custom subcategory
+      const customs = cat.customs[customToDelete.parentGlobal] || [];
+      cat.customs[customToDelete.parentGlobal] = customs.filter(c => c !== customToDelete.customName);
+      renderIncluded(cat);
+      showToast('"' + customToDelete.customName + '" deleted. ' + count + ' product' + (count === 1 ? '' : 's') + ' reassigned to "' + target + '"');
+      return;
+    }
+
     showToast('Products reassigned to "' + target + '"');
     if (toExclude) doExclude(toExclude);
   }

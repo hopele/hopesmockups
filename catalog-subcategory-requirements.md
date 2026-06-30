@@ -96,9 +96,24 @@ Rename and reassignment use the same underlying fan-out: PMS queries all product
 **Reassignment** is triggered when excluding a subcategory with products, or deleting a custom subcategory with products. A reassign modal is shown. The flow mirrors the existing brand reassignment UX.
 
 **Reassign modal**
-- Dropdown lists valid reassignment targets: other custom subcategories under included globals, or globals with no customs.
+The modal is triggered from two entry points, with slightly different behavior:
+
+_From "Reassign Products" on a custom subcategory (kebab):_
+- Title: "Reassign [Custom Subcategory Name]"
+- Body: "{n} products will be reassigned and the subcategory will be deleted."
+- "This action cannot be undone." warning shown in red.
+- Confirm is disabled until a target is selected.
+- On confirm: products are moved to the target, the source custom subcategory is deleted, a success toast is shown. The custom subcategory is gone — it does not remain as an empty shell.
+
+_From excluding a global subcategory with products (exclude flow):_
+- Title: "Reassign [Global Subcategory Name]"
+- Body: "{n} products are assigned to "[global]" or its custom subcategories. Reassign them before excluding."
+- Confirm button label: "Reassign & Exclude"
+- On confirm: products are moved to the target, exclusion proceeds.
+
+_Both flows:_
+- Dropdown lists valid reassignment targets: other custom subcategories under included globals, or globals with no customs. The source subcategory is excluded from the target list.
 - Reassignment is required — it cannot be skipped.
-- On confirm: products are moved to the new subcategory, exclusion/deletion proceeds, a success toast is shown.
 
 **Collection count warning**
 - When the reassign modal opens, a count of automated collections referencing the source subcategory is fetched from the product-collections service.
