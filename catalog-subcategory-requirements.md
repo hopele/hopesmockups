@@ -57,7 +57,7 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 **Included Subcategories panel**
 - Lists all included global subcategories for the selected category.
 - Each global row can have zero or more custom subcategories nested under it.
-- Kebab menu on each row (global and custom) offers: Edit Name, Delete, Reassign Products (fast follow — see below).
+- Kebab menu on each row (global and custom) offers: Delete, Reassign Products (fast follow — see below). Edit Name is not available in MVP — see below.
 
 **Custom subcategory behavior**
 - When at least one custom subcategory exists under a global, the global name is hidden from the product assignment dropdown. Products are assigned to one of the custom names instead. The global still appears in the UI with a "Not shown in product dropdown" indicator — it remains the compliance anchor.
@@ -67,9 +67,10 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 - Inline form under the global row. Name is required.
 - When creating the first custom under a global that has products assigned to it, a prompt is shown offering to reassign those products to the new custom now. This is optional — the user can skip and reassign later from the kebab menu. This prompt is a fast follow; MVP adds the custom without any prompt.
 
-**Edit custom subcategory name**
-- Inline edit. Name change only; the canonical mapping does not change.
-- MVP does not auto-reassign products in Sell Treez when a name is edited (fast follow).
+**Edit custom subcategory name (fast follow — not in MVP)**
+- Rename is not available in MVP. The kebab menu on custom subcategory rows does not include an Edit Name option.
+- Rationale: Sell Treez stores subcategory display name as a denormalized string (`subtype`) on each product row in the PMRS read model. Renaming a custom subcategory without triggering a fan-out over all assigned products would cause ST to show the old name — in the POS product menu, reporting, and distinct filter options — until each product is individually saved. This inconsistency is not acceptable.
+- Rename ships as a fast follow alongside the PMRS fan-out: on rename, a `CUSTOM_SUBCATEGORY_RENAMED` event is emitted; PMRS consumes it and bulk-updates `subtype` on all products assigned to that custom subcategory within the org. Name change only; the canonical mapping does not change.
 
 **Delete custom subcategory**
 - Only available when zero products are assigned to the custom subcategory. If products are assigned, the Delete option does not appear in the kebab.
@@ -120,7 +121,7 @@ Because rules store IDs, display name changes have no effect on rule validity. H
 
 | Operation | Collection rule breaks? | Collection membership changes? | Action required |
 |---|---|---|---|
-| Rename custom subcategory display name | No | No | None. ID unchanged. |
+| Rename custom subcategory display name | No | No | Collection rules unaffected (ID unchanged). However, PMRS must fan out the new name to all assigned products so ST stays in sync — rename is therefore a fast follow. |
 | Delete custom subcategory (0 products) | No | No | None. Canonical ID unchanged. |
 | Exclude a global subcategory | No — rule remains syntactically valid | No for existing products | The excluded subcategory should not appear as an option in the collection rule builder for this org. Collections MFE must filter rule options to the org's included subcategories. |
 | Include a global subcategory | No | No | Newly included subcategory becomes available in the rule builder. |
@@ -208,13 +209,14 @@ Orgs without the flag still get the schema changes and event field updates in MV
 - Manage > Subcategories page: include/exclude panel + custom subcategory CRUD (behind feature flag)
 - Block excluding a subcategory with products (no skip — user must reassign first)
 - No delete option in kebab if products assigned to a custom subcategory
-- Custom subcategory name edits do not auto-reassign products in ST
+- No rename option on custom subcategories (Edit Name is fast follow — requires PMRS fan-out)
 - No automatic collection rule rewrites
 - Catalog-to-ST reconciliation audit (understand scope of mismatches across all three classes)
 
 ### Fast Follow
 - Product reassignment flow from the Manage > Subcategories page
 - When creating the **first** custom subcategory under a global, optionally prompt the user to reassign products currently assigned to the bare global onto the new custom (only applicable on first custom creation, since subsequent customs don't change the existing assignment state)
+- **Rename custom subcategory** — Edit Name in kebab menu, with PMRS fan-out: on rename, emit `CUSTOM_SUBCATEGORY_RENAMED` event; PMRS consumes it and bulk-updates the `subtype` column on all products assigned to that custom in the org. Rename does not ship without the fan-out — showing the old name in ST (POS, reporting) is not acceptable.
 - Collection count warning in reassign modal
 - Auto-rewrite collection rules on `SUBCATEGORY_REASSIGNED` event
 - Collections MFE filters rule options to org-included subcategories

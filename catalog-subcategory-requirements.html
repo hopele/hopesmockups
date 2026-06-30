@@ -611,7 +611,7 @@
           <ul>
             <li>Lists all included global subcategories for the selected category.</li>
             <li>Each global row can have zero or more custom subcategories nested under it.</li>
-            <li>Kebab menu on each row (global and custom) offers: Edit Name, Delete, Reassign Products <span class="tag fast-follow">Fast Follow</span>.</li>
+            <li>Kebab menu on each row (global and custom) offers: Delete, Reassign Products <span class="tag fast-follow">Fast Follow</span>. Edit Name is not available in MVP — it ships as a fast follow alongside the PMRS fan-out.</li>
           </ul>
         </div>
       </div>
@@ -637,12 +637,13 @@
         </div>
       </div>
 
-      <div class="workflow-block">
-        <div class="workflow-block-header">Edit Custom Subcategory Name</div>
+      <div class="workflow-block" style="border-left-color:#f59e0b;">
+        <div class="workflow-block-header" style="background:#fffbeb;">Edit Custom Subcategory Name <span class="tag fast-follow">Fast Follow</span></div>
         <div class="workflow-block-body">
           <ul>
-            <li>Inline edit. Name change only; the canonical mapping does not change.</li>
-            <li>MVP does not auto-reassign products in Sell Treez when a name is edited — that is a fast follow.</li>
+            <li><strong>Not available in MVP.</strong> The kebab menu on custom subcategory rows does not include an Edit Name option.</li>
+            <li><strong>Why:</strong> Sell Treez stores the subcategory display name as a denormalized string (<code>subtype</code>) on each product row in the PMRS read model. Renaming without a fan-out would leave ST — including the POS product menu, reporting, and subcategory filter options — showing the old name until each product is individually saved. That inconsistency is not acceptable.</li>
+            <li><strong>Fast follow path:</strong> Rename ships alongside PMRS fan-out support. On rename, a <code>CUSTOM_SUBCATEGORY_RENAMED</code> event is emitted; PMRS consumes it and bulk-updates <code>subtype</code> on all products assigned to that custom in the org. Name change only — the canonical mapping does not change.</li>
           </ul>
         </div>
       </div>
@@ -737,7 +738,7 @@
             <td>Rename custom subcategory display name</td>
             <td><span class="pill safe">No</span></td>
             <td><span class="pill safe">No</span></td>
-            <td>None. ID unchanged.</td>
+            <td>Collection rules unaffected (ID unchanged). However, PMRS must fan out the new name to all assigned products so ST stays in sync — rename is therefore a fast follow, not MVP.</td>
           </tr>
           <tr>
             <td>Delete custom subcategory (0 products)</td>
@@ -911,7 +912,7 @@
               <li>Manage &gt; Subcategories page: include/exclude panel + custom subcategory CRUD <em>(behind feature flag)</em></li>
               <li>Block excluding a subcategory with products (no skip)</li>
               <li>Delete option hidden in kebab when products are assigned to a custom</li>
-              <li>Custom subcategory name edits do not auto-reassign products in ST</li>
+              <li>No rename option on custom subcategories (Edit Name is fast follow — requires PMRS fan-out)</li>
               <li>No automatic collection rule rewrites</li>
               <li>Catalog-to-ST reconciliation audit (understand scope of mismatches across all three classes)</li>
             </ul>
@@ -928,6 +929,7 @@
             <ul>
               <li>Product reassignment flow from the Manage &gt; Subcategories page</li>
               <li>When creating the <strong>first</strong> custom subcategory under a global, optionally prompt to reassign products currently assigned to the bare global onto the new custom (only triggered on first custom creation)</li>
+              <li><strong>Rename custom subcategory</strong> — Edit Name in kebab, with PMRS fan-out: emits <code>CUSTOM_SUBCATEGORY_RENAMED</code> event; PMRS bulk-updates <code>subtype</code> on all assigned products in the org. Rename does not ship without the fan-out.</li>
               <li>Collection count warning in reassign modal</li>
               <li>Auto-rewrite collection rules on <code>SUBCATEGORY_REASSIGNED</code> event</li>
               <li>Collections MFE filters rule options to org-included subcategories</li>
