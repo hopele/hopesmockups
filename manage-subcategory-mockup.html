@@ -546,7 +546,7 @@
             <option value="edible" selected>Edible</option>
             <option value="flower">Flower</option>
             <option value="concentrate">Concentrate</option>
-            <option value="vape">Vape</option>
+            <option value="vape">Cartridge</option>
             <option value="tincture">Tincture</option>
             <option value="topical">Topical</option>
             <option value="preroll">Pre-Roll</option>
@@ -560,7 +560,7 @@
       <!-- 2. Exclude / Include panel -->
       <div class="section" id="transferSection">
         <p style="font-size:13.5px;color:var(--gray-600);margin-bottom:12px;line-height:1.6;">
-          <strong style="color:var(--gray-800);">Included</strong> subcategories appear in the product dropdown. <strong style="color:var(--gray-800);">Excluding</strong> a subcategory removes it from the product dropdown — existing product assignments are unaffected. Click any subcategory to move it.
+          <strong style="color:var(--gray-800);">Included</strong> subcategories are active for your org. <strong style="color:var(--gray-800);">Excluding</strong> a subcategory removes it from use on new products. Click any subcategory to move it.
         </p>
         <div class="transfer-panel">
 
@@ -577,7 +577,7 @@
 
           <!-- Middle -->
           <div class="transfer-middle">
-            <div class="transfer-btn" title="Move selected" onclick="showToast('Click a subcategory to move it')">⇄</div>
+            <div class="transfer-btn" title="Click a subcategory to move it" style="pointer-events:none;opacity:0.4;">⇄</div>
           </div>
 
           <!-- Include col -->
@@ -691,7 +691,7 @@
       products: { 'Diamonds': 0, 'Live Resin': 0, 'Rosin': 5, 'Liquid Diamonds': 9, 'Magma Diamonds': 4, 'Confused Diamonds': 6, 'Terp Sauce': 11 }
     },
     vape: {
-      label: 'Vape',
+      label: 'Cartridge',
       excluded: ['Disposable', 'Pod'],
       included: ['Cartridge'],
       customs: { 'Cartridge': [] },
@@ -742,14 +742,12 @@
     exList.innerHTML = cat.excluded.map(name => `
       <div class="transfer-item" onclick="moveToInclude('${esc(name)}')" title="Click to include">
         <span>${esc(name)}</span>
-        <span class="ti-action">Include →</span>
       </div>
     `).join('') || '<div style="padding:20px 16px;color:var(--gray-400);font-size:13px;">All subcategories included</div>';
 
     inList.innerHTML = cat.included.map(name => `
       <div class="transfer-item" onclick="moveToExclude('${esc(name)}')" title="Click to exclude">
         <span>${esc(name)}</span>
-        <span class="ti-action">← Exclude</span>
       </div>
     `).join('') || '<div style="padding:20px 16px;color:var(--gray-400);font-size:13px;">No subcategories included</div>';
   }
@@ -760,8 +758,8 @@
       container.innerHTML = '<div class="empty-included"><p>No subcategories included. Move subcategories from the Exclude list above to get started.</p></div>';
       return;
     }
-    container.innerHTML = cat.included.map((name, i) => {
-      const customs = cat.customs[name] || [];
+    container.innerHTML = [...cat.included].sort((a, b) => a.localeCompare(b)).map((name, i) => {
+      const customs = [...(cat.customs[name] || [])].sort((a, b) => a.localeCompare(b));
       const hasCustoms = customs.length > 0;
       const isOpen = openAddForm === name;
       return `
@@ -960,7 +958,7 @@
 
   function doAddCustom(globalName, val, suppressToast) {
     const cat = getCat();
-    cat.customs[globalName].push(val);
+    cat.customs[globalName].unshift(val);
     openAddForm = null;
     renderIncluded(cat);
     if (!suppressToast) showToast('"' + val + '" added');
