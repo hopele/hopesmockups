@@ -643,7 +643,8 @@
           <ul>
             <li><strong>Not available in MVP.</strong> The kebab menu on custom subcategory rows does not include an Edit Name option.</li>
             <li><strong>Why:</strong> Sell Treez stores the subcategory display name as a denormalized string (<code>subtype</code>) on each product row in the PMRS read model. Renaming without a fan-out would leave ST — including the POS product menu, reporting, and subcategory filter options — showing the old name until each product is individually saved. That inconsistency is not acceptable.</li>
-            <li><strong>Fast follow path:</strong> Rename ships alongside PMRS fan-out support. On rename, a <code>CUSTOM_SUBCATEGORY_RENAMED</code> event is emitted; PMRS consumes it and bulk-updates <code>subtype</code> on all products assigned to that custom in the org. Name change only — the canonical mapping does not change.</li>
+            <li><strong>Fast follow path:</strong> Rename uses the same fan-out as product reassignment — PMS queries all products with that <code>customSubCategoryId</code> in the org and emits a <code>ProductCore v1x3x0</code> event per product with the updated <code>customSubCategoryDisplayName</code>. PMRS updates <code>subtype</code> per product via existing event processing. No dedicated rename event is needed. Name change only; canonical mapping does not change.</li>
+            <li><strong>Scoped together:</strong> Because rename and reassignment share the same fan-out infrastructure, they are built in the same fast follow. The delete-then-reassign workaround is not the intended path for typos.</li>
           </ul>
         </div>
       </div>
@@ -682,9 +683,13 @@
 
     <!-- Fast Follow -->
     <section class="section" id="fast-follow">
-      <h2>Fast Follow — Product Reassignment <span class="tag fast-follow">Fast Follow</span></h2>
+      <h2>Fast Follow — Rename &amp; Reassignment <span class="tag fast-follow">Fast Follow</span></h2>
 
-      <p>When excluding a subcategory with products, or deleting a custom subcategory with products, a reassign modal is shown. The flow mirrors the existing brand reassignment UX.</p>
+      <p>Rename and reassignment use the same underlying fan-out: PMS queries all products affected by the operation in the org and emits a <code>ProductCore v1x3x0</code> event per product with the updated subcategory fields. PMRS processes these events and updates the <code>subtype</code> column per product, keeping the ST read model in sync. They are scoped and built together.</p>
+
+      <p><strong>Rename</strong> is triggered by an Edit Name action on a custom subcategory. PMS updates the custom subcategory name, then fans out <code>ProductCore</code> events for all products with that <code>customSubCategoryId</code>. No product reassignment occurs — only the display name changes.</p>
+
+      <p><strong>Reassignment</strong> is triggered when excluding a subcategory with products, or deleting a custom subcategory with products. A reassign modal is shown. The flow mirrors the existing brand reassignment UX.</p>
 
       <div class="workflow-block">
         <div class="workflow-block-header">Reassign Modal</div>
@@ -857,6 +862,8 @@
           </div>
         </div>
       </div>
+
+      <p style="margin-top:16px;color:#555;font-size:14px;"><strong>Note on rename:</strong> No dedicated rename event is needed. When a custom subcategory is renamed, PMS fans out <code>ProductCore v1x3x0</code> events for all affected products — the same mechanism as reassignment. PMRS updates <code>subtype</code> per product via existing event processing. Rename and reassignment share this infrastructure and are built together in the fast follow.</p>
     </section>
 
     <!-- Feature Flag -->
@@ -929,7 +936,7 @@
             <ul>
               <li>Product reassignment flow from the Manage &gt; Subcategories page</li>
               <li>When creating the <strong>first</strong> custom subcategory under a global, optionally prompt to reassign products currently assigned to the bare global onto the new custom (only triggered on first custom creation)</li>
-              <li><strong>Rename custom subcategory</strong> — Edit Name in kebab, with PMRS fan-out: emits <code>CUSTOM_SUBCATEGORY_RENAMED</code> event; PMRS bulk-updates <code>subtype</code> on all assigned products in the org. Rename does not ship without the fan-out.</li>
+              <li><strong>Rename + reassignment fan-out</strong> — both use the same <code>ProductCore v1x3x0</code> per-product fan-out from PMS; scoped and built together. Rename = Edit Name in kebab, display name change only, no canonical remapping. Reassignment = modal flow on exclude/delete with products.</li>
               <li>Collection count warning in reassign modal</li>
               <li>Auto-rewrite collection rules on <code>SUBCATEGORY_REASSIGNED</code> event</li>
               <li>Collections MFE filters rule options to org-included subcategories</li>
