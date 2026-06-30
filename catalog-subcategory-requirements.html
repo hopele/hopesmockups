@@ -713,7 +713,7 @@
       </div>
 
       <h3>Collections</h3>
-      <p>Collection rules store subcategory UUIDs — custom or canonical — depending on what the operator targets. Products can be assigned to a custom UUID, to an included global's canonical UUID (when customs exist but haven't been reassigned yet), or to an excluded global's canonical UUID (exclusion does not migrate existing assignments). Operators may need to select both a global and its customs to build a complete collection rule.</p>
+      <p>Collection rules store subcategory UUIDs — custom or canonical — depending on what the operator targets. Products can be in four assignment states: on an included global with no customs (standard), on a custom subcategory, on an included global whose customs exist but the product hasn't been reassigned, or on an excluded global. Operators may need to select both a global and its customs to build a complete collection rule.</p>
 
       <div class="workflow-block">
         <div class="workflow-block-header">No Rule Impact from Include/Exclude or Custom Subcategory Creation</div>
@@ -850,7 +850,14 @@
   "subCategory": ["&lt;customSubCategoryId-A&gt;", "&lt;canonicalSubCategoryId-B&gt;"]
 }</code></pre>
 
-      <p>Product assignment is not always clean-cut. Products can be assigned to a custom subcategory UUID, to an included global's canonical UUID (when customs exist but the product hasn't been reassigned yet), or to an excluded global's canonical UUID (exclusion does not migrate existing assignments). Because of this, the rule builder must expose all three as selectable options. An operator targeting all products in a given subcategory family may need to select both the global and its customs to get full coverage.</p>
+      <p>Product assignment is not always clean-cut. Products can be assigned to any of four states:</p>
+      <ul style="font-size:14px;color:#374151;margin:8px 0 12px 0;padding-left:20px;line-height:1.7;">
+        <li><strong>Included global (no customs)</strong> — the standard case; the global is the only option and products are assigned directly to its canonical UUID</li>
+        <li><strong>Custom subcategory UUID</strong> — when the org has customs and the product was explicitly assigned to one</li>
+        <li><strong>Included global (customs exist)</strong> — the global is hidden from the product dropdown, but products assigned before customs were created remain there until explicitly reassigned</li>
+        <li><strong>Excluded global</strong> — exclusion does not migrate existing assignments; products remain on the canonical UUID</li>
+      </ul>
+      <p>Because of this, the rule builder must expose all four as selectable options. An operator targeting all products in a given subcategory family may need to select both the global and its customs to get full coverage.</p>
       <p>Because rules store IDs (not display names), renaming a custom subcategory has no effect on rule validity. Reassigning products (which changes their subcategory ID) does change which products match a collection's rule.</p>
 
       <h3>Impact Matrix</h3>

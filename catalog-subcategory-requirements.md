@@ -103,7 +103,7 @@ Custom subcategory display names surface in three Sell Treez areas at MVP. Categ
 
 ### 4. Collections
 
-Collection rules store subcategory UUIDs — custom subcategory UUIDs or canonical subcategory UUIDs depending on what the operator targets. Products can simultaneously exist in three states: assigned to a custom UUID, assigned to an included global's canonical UUID (when customs exist but the product hasn't been reassigned yet), or assigned to an excluded global's canonical UUID (exclusion does not migrate existing assignments). Operators may need to select both a global and its customs to build a complete collection rule.
+Collection rules store subcategory UUIDs — custom or canonical — depending on what the operator targets. Products can be in four assignment states: on an included global with no customs (standard case), on a custom subcategory, on an included global whose customs exist but the product hasn't been reassigned yet, or on an excluded global (exclusion does not migrate assignments). Operators may need to select both a global and its customs to build a complete collection rule.
 
 **No rule impact from include/exclude or custom subcategory creation**
 - Excluding, including, or creating a custom subcategory does not affect existing collection rules. Rules remain syntactically valid and collection membership is unchanged.
@@ -188,8 +188,10 @@ Automated collections store filter rules as a JSONB object on the collection rec
 ```
 
 Product assignment is not always clean-cut. Products can be assigned to:
+- An **included global canonical UUID (no customs)** — the standard case; the global is the only option and products are assigned directly to it
 - A **custom subcategory UUID** — when the org has customs and the product was explicitly assigned to one
-- A **canonical (global) UUID** — for products on an included global that has customs but hasn't been reassigned yet, or for products on an excluded global (exclusion does not migrate existing assignments)
+- An **included global canonical UUID (customs exist)** — the global is hidden from the product dropdown but products assigned before customs were created remain there until explicitly reassigned
+- An **excluded global canonical UUID** — exclusion does not migrate existing assignments
 
 Because of this, the rule builder must expose all three: custom subcategory options, included globals with customs (since products may still live there), and excluded globals (since products may still be assigned there too). An operator targeting all products in a given subcategory family may need to select both the global and its customs to get full coverage.
 
