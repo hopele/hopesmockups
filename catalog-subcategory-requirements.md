@@ -176,10 +176,30 @@ PMRS currently maintains a hardcoded `typeToCategorySubTypeMap` that maps catalo
 
 ---
 
+## Feature Flag
+
+Feature flag: **`Catalog Management - Custom Subcategory Management`** (managed in organization-management service). Enabled for Story first.
+
+**Gated by the flag (management surface):**
+- The Manage > Subcategories page
+- Include/exclude org activations
+- Org-initiated creation, editing, and deletion of custom subcategories
+- Product assignment to a custom subcategory via the UI/API
+
+**Not gated — runs for all orgs:**
+- The `customSubCategory` table and `customSubCategoryId` FK on product (schema is global)
+- Reconciliation: Class 1 canonical renames, Class 2 seeded default customs, Class 3 missing canonical seeds
+- PMRS fan-out for display name edits on seeded defaults
+- `ProductCore v1x3x0` additive event fields
+
+Orgs without the flag still receive seeded defaults and reconciliation output — they just cannot create new custom subcategories or manage include/exclude until the flag is enabled.
+
+---
+
 ## Phasing
 
 ### MVP
-- Manage > Subcategories page: include/exclude panel + custom subcategory CRUD
+- Manage > Subcategories page: include/exclude panel + custom subcategory CRUD (behind feature flag)
 - Block excluding a subcategory with products (no skip — user must reassign first)
 - No delete option in kebab if products assigned to a custom subcategory
 - Custom subcategory name edits do not auto-reassign products in ST

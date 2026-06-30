@@ -517,6 +517,7 @@
       <a href="#events">Event Model</a>
 
       <div class="nav-section">Planning</div>
+      <a href="#feature-flag">Feature Flag</a>
       <a href="#phasing">Phasing</a>
       <a href="#open-questions">Open Questions</a>
     </nav>
@@ -853,6 +854,38 @@
       </div>
     </section>
 
+    <!-- Feature Flag -->
+    <section class="section" id="feature-flag">
+      <h2>Feature Flag</h2>
+
+      <p>Flag: <code>Catalog Management - Custom Subcategory Management</code> (managed in organization-management service). Enabled for Story first, then rolled out org by org.</p>
+
+      <div class="concept-grid" style="margin-top:16px;">
+        <div class="concept-card" style="border-top:3px solid #8BC34A;">
+          <h3>Gated by flag — management surface</h3>
+          <ul>
+            <li>The Manage &gt; Subcategories page</li>
+            <li>Include/exclude org activations</li>
+            <li>Org-initiated creation, editing, and deletion of custom subcategories</li>
+            <li>Product assignment to a custom subcategory via UI/API</li>
+          </ul>
+        </div>
+        <div class="concept-card" style="border-top:3px solid #90CAF9;">
+          <h3>Not gated — runs for all orgs</h3>
+          <ul>
+            <li>The <code>customSubCategory</code> table and <code>customSubCategoryId</code> FK on product</li>
+            <li>Reconciliation: Class 1 renames, Class 2 seeded defaults, Class 3 missing canonicals</li>
+            <li>PMRS fan-out for display name edits on seeded defaults</li>
+            <li><code>ProductCore v1x3x0</code> additive event fields</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout" style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #4ade80;margin-top:8px;">
+        Orgs without the flag still receive seeded defaults and reconciliation output — they just cannot create new custom subcategories or manage include/exclude until the flag is enabled for their org.
+      </div>
+    </section>
+
     <!-- Phasing -->
     <section class="section" id="phasing">
       <h2>Phasing</h2>
@@ -866,7 +899,7 @@
           <div class="phase-content">
             <h3>MVP <span class="tag mvp">Now</span></h3>
             <ul>
-              <li>Manage &gt; Subcategories page: include/exclude panel + custom subcategory CRUD</li>
+              <li>Manage &gt; Subcategories page: include/exclude panel + custom subcategory CRUD <em>(behind feature flag)</em></li>
               <li>Block excluding a subcategory with products (no skip)</li>
               <li>Delete option hidden in kebab when products are assigned to a custom</li>
               <li>Custom subcategory name edits do not auto-reassign products in ST</li>
