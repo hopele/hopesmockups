@@ -613,6 +613,32 @@
   </div><!-- /page -->
 </div><!-- /layout -->
 
+<!-- First-custom reassign prompt modal -->
+<div id="firstCustomOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:white;border-radius:20px;width:100%;max-width:460px;box-shadow:0 24px 60px rgba(0,0,0,0.25);overflow:hidden;">
+    <div style="padding:24px 28px 0;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:#FFF8E1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3v6M9 13.5v.5" stroke="#E65100" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <div id="fcTitle" style="font-size:18px;font-weight:700;color:var(--gray-900);letter-spacing:-0.01em;"></div>
+        </div>
+        <button onclick="skipFirstCustomReassign()" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:22px;line-height:1;margin-left:16px;flex-shrink:0;">×</button>
+      </div>
+      <div id="fcDesc" style="font-size:14px;color:var(--gray-600);line-height:1.65;margin-bottom:20px;"></div>
+      <div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:11px 14px;font-size:13px;color:#795548;margin-bottom:20px;display:flex;gap:9px;align-items:flex-start;">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;margin-top:1px;"><circle cx="7.5" cy="7.5" r="6.5" stroke="#F57C00" stroke-width="1.3"/><path d="M7.5 4.5v3.5M7.5 10.5v.5" stroke="#F57C00" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <span>This is a fast follow feature. Products can also be reassigned later from the kebab menu.</span>
+      </div>
+    </div>
+    <div style="padding:16px 28px 24px;display:flex;justify-content:flex-end;gap:12px;">
+      <button onclick="skipFirstCustomReassign()" style="padding:0 22px;height:42px;border-radius:999px;border:2px solid var(--gray-300);background:white;font-size:14px;font-weight:600;cursor:pointer;color:var(--gray-700);font-family:var(--sans);">Skip for now</button>
+      <button onclick="confirmFirstCustomReassign()" style="padding:0 22px;height:42px;border-radius:999px;border:none;background:var(--gray-900);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--sans);">Reassign & Add</button>
+    </div>
+  </div>
+</div>
+
 <!-- Reassign modal -->
 <div id="reassignOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:24px;">
   <div style="background:white;border-radius:20px;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,0.25);overflow:hidden;">
@@ -882,10 +908,66 @@
     if (cat.customs[globalName].includes(val)) {
       showToast('That name already exists'); return;
     }
+    // First custom on a global that has products — prompt to reassign
+    const isFirst = cat.customs[globalName].length === 0;
+    const globalProductCount = cat.products[globalName] || 0;
+    if (isFirst && globalProductCount > 0) {
+      openFirstCustomModal(globalName, val);
+      return;
+    }
+    doAddCustom(globalName, val);
+  }
+
+  // State for first-custom reassign modal
+  let pendingFirstCustomGlobal = null;
+  let pendingFirstCustomName = null;
+
+  function openFirstCustomModal(globalName, newCustomName) {
+    pendingFirstCustomGlobal = globalName;
+    pendingFirstCustomName = newCustomName;
+    const cat = getCat();
+    const count = cat.products[globalName] || 0;
+    document.getElementById('fcTitle').textContent = 'Reassign existing products?';
+    document.getElementById('fcDesc').innerHTML =
+      '<strong>' + count + ' product' + (count === 1 ? '' : 's') + '</strong> ' +
+      'are currently assigned to <strong>"' + globalName + '"</strong>. ' +
+      'Now that <strong>"' + newCustomName + '"</strong> is the first custom subcategory, ' +
+      '"' + globalName + '" will no longer appear in the product dropdown. ' +
+      'You can reassign these products now or do it later.';
+    document.getElementById('firstCustomOverlay').style.display = 'flex';
+  }
+
+  function closeFirstCustomModal() {
+    document.getElementById('firstCustomOverlay').style.display = 'none';
+    pendingFirstCustomGlobal = null;
+    pendingFirstCustomName = null;
+  }
+
+  function confirmFirstCustomReassign() {
+    const g = pendingFirstCustomGlobal;
+    const c = pendingFirstCustomName;
+    const cat = getCat();
+    const count = cat.products[g] || 0;
+    cat.products[c] = (cat.products[c] || 0) + count;
+    cat.products[g] = 0;
+    closeFirstCustomModal();
+    doAddCustom(g, c, true);
+    showToast(count + ' product' + (count === 1 ? '' : 's') + ' reassigned to "' + c + '"');
+  }
+
+  function skipFirstCustomReassign() {
+    const g = pendingFirstCustomGlobal;
+    const c = pendingFirstCustomName;
+    closeFirstCustomModal();
+    doAddCustom(g, c, false);
+  }
+
+  function doAddCustom(globalName, val, suppressToast) {
+    const cat = getCat();
     cat.customs[globalName].push(val);
     openAddForm = null;
     renderIncluded(cat);
-    showToast('"' + val + '" added');
+    if (!suppressToast) showToast('"' + val + '" added');
   }
 
   // ── Kebab ──
