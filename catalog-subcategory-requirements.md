@@ -57,7 +57,7 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 **Included Subcategories panel**
 - Lists all included global subcategories for the selected category.
 - Each global row can have zero or more custom subcategories nested under it.
-- Kebab menu on each row (global and custom) offers: Delete, Reassign Products (fast follow — see below). Edit Name is not available in MVP — see below.
+- Kebab menu on custom rows: **Delete** — only shown when zero products are assigned to that custom subcategory.
 
 **Custom subcategory behavior**
 - When at least one custom subcategory exists under a global, the global name is hidden from the product assignment dropdown. Products are assigned to one of the custom names instead. The global still appears in the UI with a "Not shown in product dropdown" indicator — it remains the compliance anchor.
@@ -65,13 +65,7 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 
 **Add custom subcategory**
 - Inline form under the global row. Name is required.
-- When creating the first custom under a global that has products assigned to it, a prompt is shown offering to reassign those products to the new custom now. This is optional — the user can skip and reassign later from the kebab menu. This prompt is a fast follow; MVP adds the custom without any prompt.
-
-**Edit custom subcategory name (fast follow — not in MVP)**
-- Rename is not available in MVP. The kebab menu on custom subcategory rows does not include an Edit Name option.
-- Rationale: Sell Treez stores subcategory display name as a denormalized string (`subtype`) on each product row in the PMRS read model. Renaming without a fan-out over all assigned products leaves ST showing the old name in the POS product menu, reporting, and subcategory filter options until each product is individually saved. This inconsistency is not acceptable.
-- Rename uses the same fan-out pattern as product reassignment: PMS queries all products with that `customSubCategoryId` in the org, emits a `ProductCore v1x3x0` event for each with the updated `customSubCategoryDisplayName`, and PMRS updates `subtype` per product. No dedicated rename event is needed — the existing `ProductCore` mechanism handles it. Name change only; the canonical mapping does not change.
-- Because rename and reassignment share the same fan-out infrastructure, they are scoped and built together in the fast follow. The delete-then-reassign workaround is strictly worse UX for the common typo case and is not the intended solution.
+- Custom is added immediately — no prompts or modals in MVP.
 
 **Delete custom subcategory**
 - Only available when zero products are assigned to the custom subcategory. If products are assigned, the Delete option does not appear in the kebab.
@@ -89,29 +83,54 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 
 ---
 
-## Fast Follow — Rename & Reassignment
+## Fast Follow
 
-Rename and reassignment use the same underlying fan-out: PMS queries all products affected by the operation in the org and emits a `ProductCore v1x3x0` event per product with the updated subcategory fields. PMRS processes these events and updates the `subtype` column per product, keeping the ST read model in sync. They are scoped and built together.
+The following capabilities ship after MVP. Rename and reassignment share the same fan-out infrastructure — PMS queries all affected products in the org and emits a `ProductCore v1x3x0` event per product with updated subcategory fields; PMRS updates `subtype` per product via existing event processing. They are scoped and built together.
 
-**Rename** is triggered by an Edit Name action on a custom subcategory. PMS updates the custom subcategory name, then fans out `ProductCore` events for all products with that `customSubCategoryId`. No product reassignment occurs — only the display name changes.
+**Rename custom subcategory (Edit Name)**
+- Edit Name added to the custom subcategory kebab menu.
+- Name change only — canonical mapping does not change, no products move.
+- On save: PMS fans out `ProductCore v1x3x0` events for all products with that `customSubCategoryId`, updating `customSubCategoryDisplayName`. PMRS updates `subtype` per product. ST (POS menu, reporting, filter options) reflects the new name after fan-out completes.
+- Rename does not ship without the fan-out — ST showing the old name is not acceptable.
 
-**Reassignment** is triggered from the "Reassign Products" kebab option on a custom subcategory that has products assigned. Exclude does not trigger a reassign modal — it proceeds freely. The flow mirrors the existing brand reassignment UX.
-
-**Reassign modal**
-Triggered from "Reassign Products" on a custom subcategory kebab (the only entry point in the fast follow).
-
+**Reassign Products (custom subcategory kebab)**
+- "Reassign Products" added to the custom subcategory kebab when products are assigned (Delete remains hidden in this state).
 - Title: "Reassign [Custom Subcategory Name]"
 - Body: "{n} products will be reassigned and the subcategory will be deleted."
 - "This action cannot be undone." warning shown in red.
-- Confirm is disabled until a target is selected.
-- Dropdown lists valid reassignment targets: other custom subcategories under included globals, or globals with no customs. The source subcategory is excluded from the target list.
-- Reassignment is required — it cannot be skipped.
-- On confirm: products are moved to the target, the source custom subcategory is deleted. It does not remain as an empty shell.
+- Confirm disabled until a target is selected. Reassignment cannot be skipped.
+- Dropdown lists valid targets: other custom subcategories under included globals, or globals with no customs. Source excluded from the target list.
+- On confirm: products move to target, source custom subcategory is deleted. Does not remain as an empty shell.
+- Success toast: "[Name] deleted. {n} products reassigned to "[target]"."
 
-**Collection count warning**
+**First-custom reassign prompt**
+- When creating the **first** custom subcategory under a global that has products assigned, a prompt offers to reassign those products to the new custom now.
+- Applies only on first custom creation — subsequent customs don't change existing assignment state.
+- Skipping is allowed; products can be reassigned later via the "Reassign Products" kebab option.
+
+**Collection count warning in reassign modal**
 - When the reassign modal opens, a count of automated collections referencing the source subcategory is fetched from the product-collections service.
 - If n > 0, the modal shows: "{n} automated collection(s) reference this subcategory and will be updated to the new subcategory."
 - If the fetch fails or is still loading, the modal remains fully functional — the action is not blocked.
+
+**Auto-rewrite collection rules on reassignment**
+- When reassignment is confirmed, PMS emits a `SUBCATEGORY_REASSIGNED` event. The product-collections service finds all collections in the org whose `subCategory` rule array contains `fromSubCategoryId` and replaces it with `toSubCategoryId` using set semantics.
+- Idempotent. Republishes a Collection Updated event for each rewritten collection.
+- Standalone excludes or deletes without a replacement target do NOT trigger auto-rewrite — those collections are left for the user to clean up manually.
+- See Collections Impact section for full detail.
+
+**Collections MFE — filter rule options to org-included subcategories**
+- Today the collection rule builder fetches all global subcategories. Post include/exclude, it must fetch only the org's included subcategories (and their custom subcategories) as rule options.
+- Prevents users from accidentally building rules on excluded subcategories.
+
+**Import service — accept custom subcategory by name or ID**
+- File-based bulk imports will accept custom subcategory display name or ID — non-technical self-service path.
+- Bulk re-tagging via the catalog API is available in MVP; import adds the self-service path for non-technical users.
+
+**Catalog-to-ST reconciliation — seed & migrate**
+- Class 1 canonical renames, Class 2 seeded default customs, Class 3 missing canonicals. See Catalog Reconciliation section for class definitions.
+- Requires client communication before running — orgs need to know product subcategory assignments may change.
+- PMRS hardcoded type map removed after seed + migrate is verified.
 
 ---
 
