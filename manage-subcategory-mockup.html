@@ -560,7 +560,7 @@
       <!-- 2. Exclude / Include panel -->
       <div class="section" id="transferSection">
         <p style="font-size:13.5px;color:var(--gray-600);margin-bottom:12px;line-height:1.6;">
-          <strong style="color:var(--gray-800);">Included</strong> subcategories are active for your org. <strong style="color:var(--gray-800);">Excluding</strong> a subcategory removes it from use — any products assigned to it must be reassigned first. Click any subcategory to move it.
+          <strong style="color:var(--gray-800);">Included</strong> subcategories appear in the product dropdown. <strong style="color:var(--gray-800);">Excluding</strong> a subcategory removes it from the product dropdown — existing product assignments are unaffected. Click any subcategory to move it.
         </p>
         <div class="transfer-panel">
 
@@ -865,13 +865,6 @@
 
   function moveToExclude(name) {
     const cat = getCat();
-    // count products on this global + all its customs
-    const allNames = [name, ...(cat.customs[name] || [])];
-    const total = allNames.reduce((sum, n) => sum + (cat.products[n] || 0), 0);
-    if (total > 0) {
-      openReassign(name, 'global', null, { pendingExclude: name, total });
-      return;
-    }
     doExclude(name);
   }
 
@@ -992,36 +985,26 @@
   document.addEventListener('click', closeKebab);
 
   // ── Reassign modal ──
-  let pendingExcludeName = null;
   let pendingCustomDelete = null; // { customName, parentGlobal }
 
-  function openReassign(subName, type, parentGlobal, excludeCtx) {
+  function openReassign(subName, type, parentGlobal) {
     const cat = getCat();
-    pendingExcludeName = excludeCtx ? excludeCtx.pendingExclude : null;
-    const isExcludeFlow = !!pendingExcludeName;
-    const isCustomDeleteFlow = type === 'custom' && !isExcludeFlow;
+    const isCustomDeleteFlow = type === 'custom';
     pendingCustomDelete = isCustomDeleteFlow ? { customName: subName, parentGlobal } : null;
 
     document.getElementById('reassignTitle').textContent = 'Reassign ' + subName;
 
-    const total = excludeCtx ? excludeCtx.total : (cat.products[subName] || 0);
-    const allNames = isExcludeFlow ? [subName, ...(cat.customs[subName] || [])] : [subName];
-
-    let desc;
-    if (isCustomDeleteFlow) {
-      desc = total + ' product' + (total === 1 ? '' : 's') + ' will be reassigned and the subcategory will be deleted.';
-    } else if (isExcludeFlow) {
-      desc = total + ' product' + (total === 1 ? '' : 's') + ' are assigned to "' + subName + '" or its custom subcategories. Reassign them before excluding.';
-    } else {
-      desc = total + ' product' + (total === 1 ? '' : 's') + ' assigned to "' + subName + '" will be moved to the selected subcategory.';
-    }
+    const total = cat.products[subName] || 0;
+    const desc = isCustomDeleteFlow
+      ? total + ' product' + (total === 1 ? '' : 's') + ' will be reassigned and the subcategory will be deleted.'
+      : total + ' product' + (total === 1 ? '' : 's') + ' assigned to "' + subName + '" will be moved to the selected subcategory.';
     document.getElementById('reassignDesc').textContent = desc;
 
     const confirmBtn = document.getElementById('reassignConfirm');
-    confirmBtn.textContent = isExcludeFlow ? 'Reassign & Exclude' : 'Confirm';
+    confirmBtn.textContent = 'Confirm';
 
-    // populate options: exclude the global being excluded (and its customs) from targets
-    const excludedGlobal = isExcludeFlow ? subName : (type === 'global' ? subName : null);
+    // exclude the source from target list
+    const excludedGlobal = type === 'global' ? subName : null;
     const excludedCustomSelf = type === 'custom' ? subName : null;
 
     const sel = document.getElementById('reassignSelect');
@@ -1057,7 +1040,6 @@
   }
 
   function closeReassign() {
-    pendingExcludeName = null;
     pendingCustomDelete = null;
     document.getElementById('reassignOverlay').style.display = 'none';
   }
@@ -1066,7 +1048,6 @@
     const sel = document.getElementById('reassignSelect');
     if (!sel.value) return;
     const target = sel.value;
-    const toExclude = pendingExcludeName;
     const customToDelete = pendingCustomDelete;
     closeReassign();
 
@@ -1085,7 +1066,6 @@
     }
 
     showToast('Products reassigned to "' + target + '"');
-    if (toExclude) doExclude(toExclude);
   }
 
   function startEdit(globalName, idx) {

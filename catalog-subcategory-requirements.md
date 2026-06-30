@@ -77,13 +77,15 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 - Only available when zero products are assigned to the custom subcategory. If products are assigned, the Delete option does not appear in the kebab.
 - Deleting a custom with zero products is safe and has no downstream impact.
 
-**Exclude a subcategory with products assigned (MVP block)**
-- In MVP, excluding a subcategory that has products assigned to it is blocked. The user must first reassign those products before the exclusion can proceed. The exclusion is not allowed to be skipped.
-- The reassign modal is shown when the user attempts to exclude — but the full reassign flow is a fast follow (see below).
+**Exclude a subcategory with products assigned**
+- Excluding is always allowed in MVP — there is no block based on product count.
+- Excluding removes the subcategory from the product creation/editing dropdown. It does not touch existing product assignments; products already assigned to an excluded subcategory keep their assignment and are unaffected.
+- The excluded subcategory is no longer selectable when creating or editing products.
+- Reassigning products off an excluded subcategory is optional cleanup available in the fast follow via the "Reassign Products" kebab option on that subcategory.
 
 **Impact on product editing**
 - Excluded subcategories do not appear in the subcategory dropdown on the product edit form.
-- If a product is already assigned to a subcategory that is later excluded, that assignment persists but the subcategory is no longer selectable for new edits. Auto-reassignment is a fast follow.
+- Products already assigned to an excluded subcategory retain their assignment — no auto-migration in MVP. The subcategory is simply no longer selectable for new edits.
 
 ---
 
@@ -93,27 +95,18 @@ Rename and reassignment use the same underlying fan-out: PMS queries all product
 
 **Rename** is triggered by an Edit Name action on a custom subcategory. PMS updates the custom subcategory name, then fans out `ProductCore` events for all products with that `customSubCategoryId`. No product reassignment occurs — only the display name changes.
 
-**Reassignment** is triggered when excluding a subcategory with products, or deleting a custom subcategory with products. A reassign modal is shown. The flow mirrors the existing brand reassignment UX.
+**Reassignment** is triggered from the "Reassign Products" kebab option on a custom subcategory that has products assigned. Exclude does not trigger a reassign modal — it proceeds freely. The flow mirrors the existing brand reassignment UX.
 
 **Reassign modal**
-The modal is triggered from two entry points, with slightly different behavior:
+Triggered from "Reassign Products" on a custom subcategory kebab (the only entry point in the fast follow).
 
-_From "Reassign Products" on a custom subcategory (kebab):_
 - Title: "Reassign [Custom Subcategory Name]"
 - Body: "{n} products will be reassigned and the subcategory will be deleted."
 - "This action cannot be undone." warning shown in red.
 - Confirm is disabled until a target is selected.
-- On confirm: products are moved to the target, the source custom subcategory is deleted, a success toast is shown. The custom subcategory is gone — it does not remain as an empty shell.
-
-_From excluding a global subcategory with products (exclude flow):_
-- Title: "Reassign [Global Subcategory Name]"
-- Body: "{n} products are assigned to "[global]" or its custom subcategories. Reassign them before excluding."
-- Confirm button label: "Reassign & Exclude"
-- On confirm: products are moved to the target, exclusion proceeds.
-
-_Both flows:_
 - Dropdown lists valid reassignment targets: other custom subcategories under included globals, or globals with no customs. The source subcategory is excluded from the target list.
 - Reassignment is required — it cannot be skipped.
+- On confirm: products are moved to the target, the source custom subcategory is deleted. It does not remain as an empty shell.
 
 **Collection count warning**
 - When the reassign modal opens, a count of automated collections referencing the source subcategory is fetched from the product-collections service.
@@ -229,7 +222,7 @@ Orgs without the flag still get the schema changes and event field updates in MV
 
 ### MVP
 - Manage > Subcategories page: include/exclude panel + custom subcategory CRUD (behind feature flag)
-- Block excluding a subcategory with products (no skip — user must reassign first)
+- Excluding a subcategory is freely allowed — no block, no reassignment required. Existing product assignments are unaffected; the subcategory is simply removed from the product dropdown.
 - No delete option in kebab if products assigned to a custom subcategory
 - No rename option on custom subcategories (Edit Name is fast follow — requires PMRS fan-out)
 - No automatic collection rule rewrites
