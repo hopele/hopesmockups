@@ -759,7 +759,7 @@
       return;
     }
     container.innerHTML = [...cat.included].sort((a, b) => a.localeCompare(b)).map((name, i) => {
-      const customs = [...(cat.customs[name] || [])].sort((a, b) => a.localeCompare(b));
+      const customs = cat.customs[name] || [];
       const hasCustoms = customs.length > 0;
       const isOpen = openAddForm === name;
       return `
