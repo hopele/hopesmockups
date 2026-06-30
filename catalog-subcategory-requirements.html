@@ -713,13 +713,14 @@
       </div>
 
       <h3>Collections</h3>
-      <p>Automated collection rules store subcategory filters as arrays of canonical subcategory UUIDs — not names. This has two consequences in MVP.</p>
+      <p>Collection rules store custom subcategory UUIDs where they exist, enabling operators to build collections using the same subcategory names they see in their catalog. Where no custom exists under a global, rules store the canonical subcategory UUID. This has two consequences in MVP.</p>
 
       <div class="workflow-block">
         <div class="workflow-block-header">No Rule Impact from Include/Exclude or Custom Subcategory Creation</div>
         <div class="workflow-block-body">
           <ul>
-            <li>Excluding, including, or creating/deleting a custom subcategory does not affect collection rules. Rules remain syntactically valid and collection membership is unchanged.</li>
+            <li>Excluding, including, or creating a custom subcategory does not affect existing collection rules. Rules remain syntactically valid and collection membership is unchanged.</li>
+            <li>Deleting a custom subcategory with zero products assigned leaves any referencing rule entry inert (the deleted UUID returns no products) but does not break the collection. Users can clean up stale rule entries manually.</li>
           </ul>
         </div>
       </div>
@@ -728,8 +729,8 @@
         <div class="workflow-block-header">API Reassignment Changes Collection Membership</div>
         <div class="workflow-block-body">
           <ul>
-            <li>Product reassignment is available via the catalog API in MVP. Reassigning a product changes its canonical <code>productSubCategoryId</code>, which directly changes which automated collections it belongs to — products leave collections whose rule references the old subcategory and enter collections whose rule references the new one.</li>
-            <li>Collection rules are <strong>not</strong> auto-rewritten in MVP. If products are reassigned from subcategory A to B, any collection rule referencing A will silently lose those products. Auto-rewrite of collection rules ships as fast follow.</li>
+            <li>Product reassignment is available via the catalog API in MVP. Reassigning a product changes its <code>customSubCategoryId</code>, which directly changes which automated collections it belongs to — products leave collections whose rule references the old custom subcategory UUID and enter collections whose rule references the new one.</li>
+            <li>Collection rules are <strong>not</strong> auto-rewritten in MVP. If products are reassigned from custom A to custom B, any collection rule referencing custom A's UUID will silently lose those products. Auto-rewrite of collection rules ships as fast follow.</li>
             <li>Orgs using the API reassignment path in MVP should audit their automated collections manually after reassigning.</li>
           </ul>
         </div>
@@ -739,7 +740,7 @@
         <div class="workflow-block-header">Collection Rule Builder</div>
         <div class="workflow-block-body">
           <ul>
-            <li>The collection rule builder continues to show all global subcategories in MVP — not yet filtered to the org's included set. Filtering the rule builder to org-included subcategories is fast follow.</li>
+            <li>The collection rule builder must show custom subcategory names for orgs that have them, so operators can build rules using the names they recognize. The MFE update to show custom names and filter to org-included subcategories ships as fast follow.</li>
           </ul>
         </div>
       </div>
@@ -842,14 +843,14 @@
       <h2>Collections Impact</h2>
 
       <h3>How Collection Rules Store Subcategories</h3>
-      <p>Automated collections store filter rules as a JSONB object on the collection record. The subcategory filter uses the key <code>subCategory</code> and stores an array of canonical subcategory UUIDs — not names.</p>
+      <p>Automated collections store filter rules as a JSONB object on the collection record. The subcategory filter uses the key <code>subCategory</code> and stores an array of subcategory UUIDs. When an org has custom subcategories, operators build rules using custom subcategory names — rules store <strong>custom subcategory UUIDs</strong> for those entries. Where no custom exists under a global, rules store the canonical subcategory UUID.</p>
 
       <pre><code>{
   "category": ["&lt;categoryId&gt;"],
-  "subCategory": ["&lt;subcategoryId-A&gt;", "&lt;subcategoryId-B&gt;"]
+  "subCategory": ["&lt;customSubCategoryId-A&gt;", "&lt;canonicalSubCategoryId-B&gt;"]
 }</code></pre>
 
-      <p>Because rules store IDs, display name changes have no effect on rule validity. However, reassigning products (which changes their canonical <code>productSubCategoryId</code>) does change which products match a collection's rule.</p>
+      <p>This allows operators to express collection logic in the same terms they use in their catalog. Because rules store IDs (not display names), renaming a custom subcategory has no effect on rule validity. Reassigning products (which changes their <code>customSubCategoryId</code>) does change which products match a collection's rule.</p>
 
       <h3>Impact Matrix</h3>
       <table class="impact-table">
@@ -870,9 +871,9 @@
           </tr>
           <tr>
             <td>Delete custom subcategory (0 products)</td>
-            <td><span class="pill safe">No</span></td>
-            <td><span class="pill safe">No</span></td>
-            <td>None. Canonical ID unchanged.</td>
+            <td><span class="pill warn">Rule references stale UUID</span></td>
+            <td><span class="pill safe">No — 0 products assigned, membership already empty</span></td>
+            <td>Rule entry becomes inert until manually edited. Safe in MVP since membership impact is zero.</td>
           </tr>
           <tr>
             <td>Exclude a global subcategory</td>
@@ -887,10 +888,10 @@
             <td>Newly included subcategory becomes available in the rule builder.</td>
           </tr>
           <tr>
-            <td>Reassign products from A to B</td>
+            <td>Reassign products from custom A to custom B</td>
             <td><span class="pill safe">No</span></td>
-            <td><span class="pill warn">Yes — products leave A, enter B</span></td>
-            <td><span class="pill action">Show count warning in modal. Auto-rewrite rule A→B on SUBCATEGORY_REASSIGNED event.</span></td>
+            <td><span class="pill warn">Yes — products leave A's membership, enter B's</span></td>
+            <td><span class="pill action">Show count warning in modal. Auto-rewrite replaces custom A UUID → custom B UUID on SUBCATEGORY_REASSIGNED event.</span></td>
           </tr>
         </tbody>
       </table>
@@ -898,7 +899,7 @@
       <h3>Reassignment: Auto-Rewrite Collection Rules</h3>
       <p>When a subcategory reassignment is confirmed, PMS emits a <code>SUBCATEGORY_REASSIGNED</code> event. The product-collections service consumes it and rewrites every affected collection's rule:</p>
       <ul>
-        <li>Find all collections in the org whose <code>subCategory</code> rule array contains <code>fromSubCategoryId</code>.</li>
+        <li>Find all collections in the org whose <code>subCategory</code> rule array contains <code>fromSubCategoryId</code> (custom UUID if applicable, otherwise canonical UUID).</li>
         <li>Replace <code>fromSubCategoryId</code> with <code>toSubCategoryId</code> using set semantics (dedupe if target already present).</li>
         <li>Republish a Collection Updated event for each modified collection so Sell Treez and the bridge recompute membership.</li>
         <li>Handler is idempotent.</li>
@@ -973,11 +974,11 @@
         <div class="event-block-body">
           <div class="event-field">
             <div class="event-field-name">fromSubCategoryId</div>
-            <div class="event-field-desc">Canonical UUID being reassigned from</div>
+            <div class="event-field-desc">UUID being reassigned from — custom subcategory UUID if one exists, otherwise canonical UUID</div>
           </div>
           <div class="event-field">
             <div class="event-field-name">toSubCategoryId</div>
-            <div class="event-field-desc">Canonical UUID being reassigned to</div>
+            <div class="event-field-desc">UUID being reassigned to — custom subcategory UUID if one exists, otherwise canonical UUID</div>
           </div>
           <div class="event-field">
             <div class="event-field-name">organizationId</div>

@@ -103,18 +103,19 @@ Custom subcategory display names surface in three Sell Treez areas at MVP. Categ
 
 ### 4. Collections
 
-Automated collection rules store subcategory filters as arrays of canonical subcategory UUIDs — not names. This has two consequences in MVP:
+Collection rules store custom subcategory UUIDs where they exist, enabling operators to build collections using the same subcategory names they see in their catalog. Where no custom exists under a global, rules store the canonical subcategory UUID.
 
 **No rule impact from include/exclude or custom subcategory creation**
-- Excluding a subcategory, including one, or creating/deleting a custom subcategory does not affect collection rules. Rules remain syntactically valid and collection membership is unchanged.
+- Excluding, including, or creating a custom subcategory does not affect existing collection rules. Rules remain syntactically valid and collection membership is unchanged.
+- Deleting a custom subcategory with zero products assigned leaves any referencing rule entry inert (the deleted custom UUID returns no products) but does not break the collection. Users can clean up stale rule entries manually.
 
 **API reassignment changes collection membership**
-- Product reassignment is available via the catalog API in MVP. Reassigning a product changes its canonical `productSubCategoryId`, which directly changes which automated collections it belongs to — products leave collections whose rule references the old subcategory and enter collections whose rule references the new one.
-- Collection rules are **not** auto-rewritten in MVP. If products are reassigned from subcategory A to B, any collection rule referencing A will silently lose those products. Auto-rewrite of collection rules ships as fast follow.
+- Product reassignment is available via the catalog API in MVP. Reassigning a product changes its `customSubCategoryId`, which directly changes which automated collections it belongs to — products leave collections whose rule references the old custom subcategory UUID and enter collections whose rule references the new one.
+- Collection rules are **not** auto-rewritten in MVP. If products are reassigned from custom A to custom B, any collection rule referencing custom A will silently lose those products. Auto-rewrite of collection rules ships as fast follow.
 - Orgs using the API reassignment path in MVP should audit their automated collections manually after reassigning.
 
 **Collection rule builder**
-- The collection rule builder continues to show all global subcategories in MVP — it is not yet filtered to the org's included set. Filtering the rule builder to org-included subcategories is fast follow.
+- The collection rule builder must show custom subcategory names for orgs that have them, so operators can build rules using the names they recognize. The MFE update to show custom names and filter to org-included subcategories ships as fast follow.
 
 ---
 
@@ -177,31 +178,31 @@ _Reassign Products (custom subcategory kebab):_
 
 ### How Collection Rules Store Subcategories
 
-Automated collections store filter rules as a JSONB object on the collection record. The subcategory filter uses the key `subCategory` and stores an array of canonical subcategory UUIDs — not names. Example:
+Automated collections store filter rules as a JSONB object on the collection record. The subcategory filter uses the key `subCategory` and stores an array of subcategory UUIDs. When an org has custom subcategories, operators build rules using custom subcategory names — rules store **custom subcategory UUIDs** for those entries. Where no custom exists under a global, rules store the canonical subcategory UUID.
 
 ```json
 {
   "category": ["<categoryId>"],
-  "subCategory": ["<subcategoryId-A>", "<subcategoryId-B>"]
+  "subCategory": ["<customSubCategoryId-A>", "<canonicalSubCategoryId-B>"]
 }
 ```
 
-Because rules store IDs, display name changes have no effect on rule validity. However, reassigning products (which changes their canonical `productSubCategoryId`) does change which products match a collection's rule.
+This allows operators to express collection logic in the same terms they use in their catalog. Because rules store IDs (not display names), renaming a custom subcategory has no effect on rule validity. Reassigning products (which changes their `customSubCategoryId`) does change which products match a collection's rule.
 
 ### Impact Matrix
 
 | Operation | Collection rule breaks? | Collection membership changes? | Action required |
 |---|---|---|---|
-| Rename custom subcategory display name | No | No | Collection rules unaffected (ID unchanged). However, PMRS must fan out the new name to all assigned products so ST stays in sync — rename is therefore a fast follow. |
-| Delete custom subcategory (0 products) | No | No | None. Canonical ID unchanged. |
-| Exclude a global subcategory | No — rule remains syntactically valid | No for existing products | The excluded subcategory should not appear as an option in the collection rule builder for this org. Collections MFE must filter rule options to the org's included subcategories. |
+| Rename custom subcategory display name | No | No | Collection rules unaffected (custom UUID unchanged). PMRS must fan out the new name to assigned products so ST stays in sync — rename is therefore a fast follow. |
+| Delete custom subcategory (0 products) | Rule references a stale UUID | No — 0 products were assigned, so collection membership was already empty for that entry | Rule entry becomes inert until manually edited. Safe to allow in MVP since membership impact is zero. |
+| Exclude a global subcategory | No — rule remains syntactically valid | No for existing products | Excluded subcategory should not appear as an option in the collection rule builder. Collections MFE must filter rule options to org-included subcategories (fast follow). |
 | Include a global subcategory | No | No | Newly included subcategory becomes available in the rule builder. |
-| Reassign products from A to B | No — rule is syntactically valid | Yes — products leave A's membership, enter B's | Collection rules referencing A lose those products; rules referencing B gain them. Auto-rewrite rule A→B on reassignment. Show count warning in modal. |
+| Reassign products from custom A to custom B | No — rule is syntactically valid | Yes — products leave A's membership, enter B's | Rules referencing custom A's UUID lose those products; rules referencing custom B gain them. Auto-rewrite replaces custom A UUID → custom B UUID on reassignment. Show count warning in modal. |
 
 ### Reassignment: Auto-Rewrite Collection Rules
 
 When a subcategory reassignment is confirmed, PMS emits a `SUBCATEGORY_REASSIGNED` event. The product-collections service consumes it and rewrites every affected collection's rule:
-- Find all collections in the org whose `subCategory` rule array contains `fromSubCategoryId`.
+- Find all collections in the org whose `subCategory` rule array contains `fromSubCategoryId` (custom UUID if applicable, otherwise canonical UUID).
 - Replace `fromSubCategoryId` with `toSubCategoryId` using set semantics (dedupe if target already present).
 - Republish a Collection Updated event for each modified collection so Sell Treez and the bridge recompute membership.
 - Handler is idempotent.
@@ -246,8 +247,8 @@ The Class 2 migration (seeding default customs and re-tagging existing products 
 - `customSubCategoryUpdatedAt` — timestamp for ordering/idempotency
 
 **SUBCATEGORY_REASSIGNED** (new PMS event, consumed by product-collections):
-- `fromSubCategoryId` — canonical UUID being reassigned from
-- `toSubCategoryId` — canonical UUID being reassigned to
+- `fromSubCategoryId` — UUID being reassigned from (custom subcategory UUID if one exists, otherwise canonical UUID)
+- `toSubCategoryId` — UUID being reassigned to (custom subcategory UUID if one exists, otherwise canonical UUID)
 - `organizationId`
 
 **Note on rename:** No dedicated rename event is needed. When a custom subcategory is renamed, PMS fans out `ProductCore v1x3x0` events for all affected products (same mechanism as reassignment). PMRS updates `subtype` per product via existing event processing. Rename and reassignment share this fan-out infrastructure and are built together in the fast follow.
