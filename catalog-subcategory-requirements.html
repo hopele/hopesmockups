@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Org-Specific Subcategory Display Names — Product Requirements</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #1a1a1a;
+      background: #f7f8fa;
+    }
+
+    /* ── Layout ── */
+    .page {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid #e5e7eb;
+      padding: 32px 0 40px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #558B2F;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 16px;
+    }
+
+    .sidebar nav a {
+      display: block;
+      padding: 6px 20px;
+      font-size: 13px;
+      color: #555;
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: all .15s;
+    }
+
+    .sidebar nav a:hover {
+      color: #1a1a1a;
+      background: #f1f8e9;
+    }
+
+    .sidebar nav a.active {
+      color: #558B2F;
+      border-left-color: #8BC34A;
+      background: #f1f8e9;
+      font-weight: 600;
+    }
+
+    .sidebar nav .nav-section {
+      padding: 14px 20px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #999;
+    }
+
+    /* ── Main content ── */
+    .main {
+      flex: 1;
+      padding: 48px 56px 80px;
+      max-width: 900px;
+    }
+
+    /* ── Header ── */
+    .doc-header {
+      margin-bottom: 40px;
+      padding-bottom: 28px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .doc-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.3;
+      margin-bottom: 16px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .meta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .meta-badge.status {
+      background: #FFF8E1;
+      color: #E65100;
+      border: 1px solid #FFE0B2;
+    }
+
+    .meta-badge.client {
+      background: #E8F5E9;
+      color: #2E7D32;
+      border: 1px solid #C8E6C9;
+    }
+
+    .meta-badge.link {
+      background: #E3F2FD;
+      color: #1565C0;
+      border: 1px solid #BBDEFB;
+      text-decoration: none;
+    }
+
+    .meta-badge.link:hover { background: #BBDEFB; }
+
+    /* ── Sections ── */
+    .section {
+      margin-bottom: 48px;
+      scroll-margin-top: 24px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #333;
+      margin: 20px 0 8px;
+    }
+
+    p {
+      margin-bottom: 12px;
+      color: #374151;
+    }
+
+    ul, ol {
+      margin: 8px 0 12px 20px;
+      color: #374151;
+    }
+
+    li { margin-bottom: 4px; }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      background: #f3f4f6;
+      padding: 2px 5px;
+      border-radius: 4px;
+      color: #c2185b;
+    }
+
+    pre {
+      background: #1e2127;
+      color: #abb2bf;
+      padding: 16px 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 12px 0 16px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    /* ── Concept cards ── */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .concept-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .concept-card.global { border-top: 3px solid #8BC34A; }
+    .concept-card.custom { border-top: 3px solid #42A5F5; }
+    .concept-card.include { border-top: 3px solid #AB47BC; }
+
+    .concept-card h3 {
+      margin-top: 0;
+      font-size: 14px;
+    }
+
+    .concept-card ul { margin-left: 16px; }
+    .concept-card li { font-size: 13.5px; margin-bottom: 5px; }
+
+    /* ── Workflow blocks ── */
+    .workflow-block {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .workflow-block-header {
+      background: #f9fafb;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .workflow-block-body {
+      padding: 12px 16px;
+      font-size: 13.5px;
+      color: #374151;
+    }
+
+    .workflow-block-body ul { margin-left: 16px; }
+    .workflow-block-body li { margin-bottom: 4px; }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .tag.mvp { background: #E8F5E9; color: #2E7D32; }
+    .tag.fast-follow { background: #FFF8E1; color: #E65100; }
+    .tag.blocked { background: #FFEBEE; color: #C62828; }
+
+    /* ── Impact table ── */
+    .impact-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      margin: 16px 0;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+    }
+
+    .impact-table th {
+      background: #f9fafb;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #6b7280;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .impact-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f3f4f6;
+      vertical-align: top;
+      color: #374151;
+    }
+
+    .impact-table tr:last-child td { border-bottom: none; }
+    .impact-table tr:hover td { background: #fafafa; }
+
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .pill.safe { background: #E8F5E9; color: #2E7D32; }
+    .pill.warn { background: #FFF8E1; color: #E65100; }
+    .pill.action { background: #E3F2FD; color: #1565C0; }
+
+    /* ── Phase timeline ── */
+    .phase-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 16px 0;
+    }
+
+    .phase-item {
+      display: flex;
+      gap: 0;
+    }
+
+    .phase-line {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 32px;
+      flex-shrink: 0;
+    }
+
+    .phase-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .phase-dot.mvp { background: #8BC34A; }
+    .phase-dot.ff { background: #FFB300; }
+    .phase-dot.future { background: #90CAF9; }
+
+    .phase-connector {
+      width: 2px;
+      flex: 1;
+      background: #e5e7eb;
+      margin: 2px 0;
+      min-height: 16px;
+    }
+
+    .phase-item:last-child .phase-connector { display: none; }
+
+    .phase-content {
+      flex: 1;
+      padding: 0 0 24px 12px;
+    }
+
+    .phase-content h3 {
+      margin-top: 2px;
+      font-size: 14px;
+    }
+
+    .phase-content ul { margin-left: 16px; font-size: 13.5px; }
+    .phase-content li { margin-bottom: 4px; }
+
+    /* ── Recon classes ── */
+    .recon-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .recon-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .recon-card .class-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #999;
+      margin-bottom: 4px;
+    }
+
+    .recon-card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: #111;
+    }
+
+    .recon-card p { font-size: 13.5px; margin: 0; color: #555; }
+
+    /* ── Event model ── */
+    .event-block {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .event-block-header {
+      background: #1e2127;
+      color: #98c379;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-weight: 700;
+    }
+
+    .event-block-body {
+      padding: 12px 16px;
+    }
+
+    .event-field {
+      display: flex;
+      gap: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 13.5px;
+    }
+
+    .event-field:last-child { border-bottom: none; }
+
+    .event-field-name {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12.5px;
+      color: #c2185b;
+      width: 220px;
+      flex-shrink: 0;
+    }
+
+    .event-field-desc { color: #555; }
+
+    /* ── Open questions ── */
+    .question-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .question-item {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #FFB300;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 13.5px;
+    }
+
+    .question-item strong {
+      display: block;
+      color: #111;
+      margin-bottom: 4px;
+      font-size: 13.5px;
+    }
+
+    .question-item p { margin: 0; color: #555; }
+
+    /* ── Callout ── */
+    .callout {
+      background: #FFF8E1;
+      border: 1px solid #FFE082;
+      border-left: 4px solid #FFB300;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 13.5px;
+      color: #555;
+      margin: 12px 0;
+    }
+
+    .callout strong { color: #333; }
+
+    hr { border: none; border-top: 1px solid #e5e7eb; margin: 32px 0; }
+
+    @media (max-width: 860px) {
+      .sidebar { display: none; }
+      .main { padding: 32px 24px 60px; }
+      .concept-grid, .recon-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Treez Catalog</div>
+    <nav>
+      <div class="nav-section">Overview</div>
+      <a href="#background">Background</a>
+      <a href="#concepts">Core Concepts</a>
+
+      <div class="nav-section">Scope</div>
+      <a href="#mvp">MVP</a>
+      <a href="#fast-follow">Fast Follow</a>
+
+      <div class="nav-section">Collections</div>
+      <a href="#collections">Collections Impact</a>
+
+      <div class="nav-section">Technical</div>
+      <a href="#recon">Catalog Reconciliation</a>
+      <a href="#events">Event Model</a>
+
+      <div class="nav-section">Planning</div>
+      <a href="#phasing">Phasing</a>
+      <a href="#open-questions">Open Questions</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="doc-header">
+      <h1>Org-Specific Subcategory Display Names<br>Product Requirements</h1>
+      <div class="meta-row">
+        <span class="meta-badge status">In Progress</span>
+        <span class="meta-badge client">Story</span>
+        <span class="meta-badge client">Salve</span>
+        <a class="meta-badge link" href="https://hopele.github.io/hopesmockups/manage-subcategory-mockup.html" target="_blank">
+          View Mockup →
+        </a>
+      </div>
+    </div>
+
+    <!-- Background -->
+    <section class="section" id="background">
+      <h2>Background</h2>
+      <p>Treez maintains a global set of canonical categories and subcategories. These are Treez-owned values that drive purchase limits, tax rules, compliance reporting (Metrc), and Sell Treez subtype resolution. They cannot be freely renamed or removed without downstream consequences.</p>
+      <p>Dispensaries increasingly need catalog names that reflect how they merchandise — not how Treez internally classifies products. A dispensary selling "Rosin" doesn't want their product dropdown to say "Concentrate — Rosin"; they want "Rosin" or whatever their brand language calls it. Today there is no mechanism to do this without breaking compliance logic.</p>
+      <p>This feature introduces org-specific custom subcategories: display aliases that sit on top of the global canonical layer. Products retain their canonical subcategory assignment (and all the compliance metadata that comes with it), while the org sees the name they've chosen.</p>
+    </section>
+
+    <!-- Core Concepts -->
+    <section class="section" id="concepts">
+      <h2>Core Concepts</h2>
+
+      <div class="concept-grid">
+        <div class="concept-card global">
+          <h3>Global Canonical Subcategories</h3>
+          <p style="font-size:13px;color:#555;margin-bottom:8px;">Treez-owned. Seeded and maintained by Treez. Cannot be renamed directly by orgs.</p>
+          <ul>
+            <li>Purchase limits</li>
+            <li>Tax rule application</li>
+            <li>Metrc compliance reporting</li>
+            <li>Sell Treez subtype resolution</li>
+          </ul>
+        </div>
+
+        <div class="concept-card custom">
+          <h3>Org-Specific Custom Subcategories</h3>
+          <p style="font-size:13px;color:#555;margin-bottom:8px;">Display aliases created by an org, mapped 1:1 to a canonical parent.</p>
+          <ul>
+            <li>One canonical can have many customs</li>
+            <li>Inherits all compliance metadata from canonical</li>
+            <li>Canonical <code>productSubCategoryId</code> stays source of truth</li>
+            <li>Nullable <code>customSubCategoryId</code> added alongside it</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="concept-card include" style="margin-top:4px;">
+        <h3>Include / Exclude</h3>
+        <p style="font-size:13px;color:#555;margin-bottom:8px;">Orgs control which global subcategories are active for their catalog on a per-category basis. An excluded subcategory:</p>
+        <ul>
+          <li>Does not appear in the product editing dropdown for that org</li>
+          <li>Does not appear as a rule option in the automated collections builder for that org</li>
+          <li>Does not auto-migrate existing product assignments — that is a fast follow</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- MVP -->
+    <section class="section" id="mvp">
+      <h2>MVP Scope <span class="tag mvp">MVP</span></h2>
+
+      <h3>Manage &gt; Subcategories Page</h3>
+      <p>The starting point is a category selector. After choosing a category, the page shows two panels.</p>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Include / Exclude Panel</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>All global subcategories for the selected category are listed, split into Excluded and Included columns.</li>
+            <li>Clicking a subcategory moves it between columns.</li>
+            <li>The Global badge distinguishes canonical subcategories from org-created customs.</li>
+            <li>Helper text explains the two-layer model: including a subcategory makes it available in product dropdowns; creating custom subcategories further controls which names appear.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Included Subcategories Panel</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Lists all included global subcategories for the selected category.</li>
+            <li>Each global row can have zero or more custom subcategories nested under it.</li>
+            <li>Kebab menu on each row (global and custom) offers: Edit Name, Delete, Reassign Products <span class="tag fast-follow">Fast Follow</span>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Custom Subcategory Display Behavior</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>When at least one custom subcategory exists under a global, the global name is hidden from the product assignment dropdown. Products are assigned to one of the custom names instead.</li>
+            <li>The global still appears in the UI with a "Not shown in product dropdown" indicator — it remains the compliance anchor.</li>
+            <li>If no customs exist under a global, the global name appears directly in the product dropdown.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Add Custom Subcategory</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Inline form under the global row. Name is required.</li>
+            <li>No reassignment modal when creating the first custom for a global — products assigned to the global stay assigned until a future reassign action.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Edit Custom Subcategory Name</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Inline edit. Name change only; the canonical mapping does not change.</li>
+            <li>MVP does not auto-reassign products in Sell Treez when a name is edited — that is a fast follow.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Delete Custom Subcategory</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Only available when zero products are assigned to the custom subcategory. If products are assigned, the Delete option does not appear in the kebab.</li>
+            <li>Deleting a custom with zero products is safe and has no downstream impact.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Exclude a Subcategory with Products Assigned <span class="tag blocked">Blocked in MVP</span></div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>In MVP, excluding a subcategory with products assigned is blocked. The user must first reassign those products before the exclusion can proceed.</li>
+            <li>The reassign modal is shown when the user attempts to exclude, but the full reassign flow is a fast follow.</li>
+            <li>Skipping is not allowed — the exclusion only completes after reassignment is confirmed.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Impact on Product Editing</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Excluded subcategories do not appear in the subcategory dropdown on the product edit form.</li>
+            <li>If a product is already assigned to a subcategory that is later excluded, that assignment persists but the subcategory is no longer selectable for new edits. Auto-reassignment is a fast follow.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fast Follow -->
+    <section class="section" id="fast-follow">
+      <h2>Fast Follow — Product Reassignment <span class="tag fast-follow">Fast Follow</span></h2>
+
+      <p>When excluding a subcategory with products, or deleting a custom subcategory with products, a reassign modal is shown. The flow mirrors the existing brand reassignment UX.</p>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Reassign Modal</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Dropdown lists valid reassignment targets: other custom subcategories under included globals, or globals with no customs.</li>
+            <li>Reassignment is required — it cannot be skipped.</li>
+            <li>On confirm: products are moved to the new subcategory, exclusion/deletion proceeds, a success toast is shown.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Collection Count Warning</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>When the reassign modal opens, a count of automated collections referencing the source subcategory is fetched from the product-collections service.</li>
+            <li>If n &gt; 0, the modal shows: "<em>{n} automated collection(s) reference this subcategory and will be updated to the new subcategory.</em>"</li>
+            <li>If the fetch fails or is still loading, the modal remains fully functional — the action is not blocked.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Collections Impact -->
+    <section class="section" id="collections">
+      <h2>Collections Impact</h2>
+
+      <h3>How Collection Rules Store Subcategories</h3>
+      <p>Automated collections store filter rules as a JSONB object on the collection record. The subcategory filter uses the key <code>subCategory</code> and stores an array of canonical subcategory UUIDs — not names.</p>
+
+      <pre><code>{
+  "category": ["&lt;categoryId&gt;"],
+  "subCategory": ["&lt;subcategoryId-A&gt;", "&lt;subcategoryId-B&gt;"]
+}</code></pre>
+
+      <p>Because rules store IDs, display name changes have no effect on rule validity. However, reassigning products (which changes their canonical <code>productSubCategoryId</code>) does change which products match a collection's rule.</p>
+
+      <h3>Impact Matrix</h3>
+      <table class="impact-table">
+        <thead>
+          <tr>
+            <th>Operation</th>
+            <th>Rule breaks?</th>
+            <th>Membership changes?</th>
+            <th>Action required</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Rename custom subcategory display name</td>
+            <td><span class="pill safe">No</span></td>
+            <td><span class="pill safe">No</span></td>
+            <td>None. ID unchanged.</td>
+          </tr>
+          <tr>
+            <td>Delete custom subcategory (0 products)</td>
+            <td><span class="pill safe">No</span></td>
+            <td><span class="pill safe">No</span></td>
+            <td>None. Canonical ID unchanged.</td>
+          </tr>
+          <tr>
+            <td>Exclude a global subcategory</td>
+            <td><span class="pill safe">No</span></td>
+            <td><span class="pill safe">No — existing products unaffected</span></td>
+            <td><span class="pill action">Collections MFE must filter rule builder options to org-included subcategories.</span></td>
+          </tr>
+          <tr>
+            <td>Include a global subcategory</td>
+            <td><span class="pill safe">No</span></td>
+            <td><span class="pill safe">No</span></td>
+            <td>Newly included subcategory becomes available in the rule builder.</td>
+          </tr>
+          <tr>
+            <td>Reassign products from A to B</td>
+            <td><span class="pill safe">No</span></td>
+            <td><span class="pill warn">Yes — products leave A, enter B</span></td>
+            <td><span class="pill action">Show count warning in modal. Auto-rewrite rule A→B on SUBCATEGORY_REASSIGNED event.</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Reassignment: Auto-Rewrite Collection Rules</h3>
+      <p>When a subcategory reassignment is confirmed, PMS emits a <code>SUBCATEGORY_REASSIGNED</code> event. The product-collections service consumes it and rewrites every affected collection's rule:</p>
+      <ul>
+        <li>Find all collections in the org whose <code>subCategory</code> rule array contains <code>fromSubCategoryId</code>.</li>
+        <li>Replace <code>fromSubCategoryId</code> with <code>toSubCategoryId</code> using set semantics (dedupe if target already present).</li>
+        <li>Republish a Collection Updated event for each modified collection so Sell Treez and the bridge recompute membership.</li>
+        <li>Handler is idempotent.</li>
+      </ul>
+      <p>Standalone excludes or deletes without a replacement target do <strong>not</strong> trigger auto-rewrite. Those collections are left stale until the user edits them manually.</p>
+
+      <div class="callout">
+        <strong>Technical debt note:</strong> The collections MFE currently has a hardcoded name-based exclusion list (<code>EXCLUDED_SUB_CATEGORY_BY_CATEGORY</code>) that filters certain subcategory names from the rule builder. This is explicitly marked in the code as a temporary workaround for catalog/ST mix issues and can be removed once catalog reconciliation is complete.
+      </div>
+
+      <h3>Collections MFE: Filter by Org-Included Subcategories</h3>
+      <p>Today the collection rule builder fetches all global subcategories. Once include/exclude is live, it must fetch only the org's included subcategories (and their custom subcategories) as rule options. This prevents users from accidentally building rules on excluded subcategories.</p>
+    </section>
+
+    <!-- Catalog Reconciliation -->
+    <section class="section" id="recon">
+      <h2>Technical Debt — Catalog-to-ST Reconciliation</h2>
+      <p>The current catalog and Sell Treez subtype data have diverged over time. Three classes of reconciliation work are needed before the custom subcategory feature is fully clean.</p>
+
+      <div class="recon-grid">
+        <div class="recon-card">
+          <div class="class-label">Class 1</div>
+          <h3>Name Mismatch — Rename in Place</h3>
+          <p>A subcategory exists in both catalog and ST but the names don't match. Resolution: rename the catalog subcategory to match ST (or the canonical standard). No migration of product assignments needed.</p>
+        </div>
+        <div class="recon-card">
+          <div class="class-label">Class 2</div>
+          <h3>Catalog-Only Subcategory — Seed Default Custom</h3>
+          <p>A subcategory exists in the catalog but has no matching ST subtype. Resolution: seed a default custom subcategory for each org using these values. Products remain on the same name, now backed by the nearest canonical. The seeded default can be deleted by the org if no products are assigned.</p>
+        </div>
+        <div class="recon-card">
+          <div class="class-label">Class 3</div>
+          <h3>ST Subtype Missing in Catalog — Seed Canonical</h3>
+          <p>A subtype exists in ST but is absent from the global catalog. Resolution: seed the canonical in the catalog so the full chain is consistent.</p>
+        </div>
+        <div class="recon-card">
+          <div class="class-label">PMRS</div>
+          <h3>Remove typeToCategorySubTypeMap</h3>
+          <p>PMRS currently maintains a hardcoded map from catalog types to Sell Treez subtypes. After reconciliation, this is eliminated and Sell Treez reads subtype directly from the canonical subcategory ID — a passthrough with no translation layer.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Event Model -->
+    <section class="section" id="events">
+      <h2>Event Model</h2>
+
+      <div class="event-block">
+        <div class="event-block-header">ProductCore v1x3x0 — additive fields on existing product events</div>
+        <div class="event-block-body">
+          <div class="event-field">
+            <div class="event-field-name">customSubCategoryId</div>
+            <div class="event-field-desc">Nullable UUID of the org-specific custom subcategory</div>
+          </div>
+          <div class="event-field">
+            <div class="event-field-name">customSubCategoryDisplayName</div>
+            <div class="event-field-desc">The custom display name string</div>
+          </div>
+          <div class="event-field">
+            <div class="event-field-name">customSubCategoryUpdatedAt</div>
+            <div class="event-field-desc">Timestamp for ordering and idempotency</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="event-block">
+        <div class="event-block-header">SUBCATEGORY_REASSIGNED — new PMS event, consumed by product-collections</div>
+        <div class="event-block-body">
+          <div class="event-field">
+            <div class="event-field-name">fromSubCategoryId</div>
+            <div class="event-field-desc">Canonical UUID being reassigned from</div>
+          </div>
+          <div class="event-field">
+            <div class="event-field-name">toSubCategoryId</div>
+            <div class="event-field-desc">Canonical UUID being reassigned to</div>
+          </div>
+          <div class="event-field">
+            <div class="event-field-name">organizationId</div>
+            <div class="event-field-desc">Scopes the rule rewrite to the correct org</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Phasing -->
+    <section class="section" id="phasing">
+      <h2>Phasing</h2>
+
+      <div class="phase-list">
+        <div class="phase-item">
+          <div class="phase-line">
+            <div class="phase-dot mvp"></div>
+            <div class="phase-connector"></div>
+          </div>
+          <div class="phase-content">
+            <h3>MVP <span class="tag mvp">Now</span></h3>
+            <ul>
+              <li>Manage &gt; Subcategories page: include/exclude panel + custom subcategory CRUD</li>
+              <li>Block excluding a subcategory with products (no skip)</li>
+              <li>Delete option hidden in kebab when products are assigned to a custom</li>
+              <li>Custom subcategory name edits do not auto-reassign products in ST</li>
+              <li>No automatic collection rule rewrites</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-item">
+          <div class="phase-line">
+            <div class="phase-dot ff"></div>
+            <div class="phase-connector"></div>
+          </div>
+          <div class="phase-content">
+            <h3>Fast Follow <span class="tag fast-follow">Next</span></h3>
+            <ul>
+              <li>Product reassignment flow from the Manage &gt; Subcategories page</li>
+              <li>Collection count warning in reassign modal</li>
+              <li>Auto-rewrite collection rules on <code>SUBCATEGORY_REASSIGNED</code> event</li>
+              <li>Collections MFE filters rule options to org-included subcategories</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-item">
+          <div class="phase-line">
+            <div class="phase-dot future"></div>
+            <div class="phase-connector"></div>
+          </div>
+          <div class="phase-content">
+            <h3>Q3/Q4 — Custom Categories</h3>
+            <ul>
+              <li>Org-specific category display names (mapped to global canonical categories)</li>
+              <li>Same include/exclude and custom alias model, one layer up</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Open Questions -->
+    <section class="section" id="open-questions">
+      <h2>Open Questions</h2>
+
+      <div class="question-list">
+        <div class="question-item">
+          <strong>Subcategory filter in product search / FOH</strong>
+          <p>Today the subcategory filter in product search shows all options. Post-include/exclude, should it filter to only subcategories with products assigned in the org's catalog? Likely yes, but may depend on having auto-reassignment in place first to avoid showing empty filters.</p>
+        </div>
+        <div class="question-item">
+          <strong>Collections MFE rule builder for custom subcategories</strong>
+          <p>When an org has custom subcategories, should the rule builder show the custom name, the canonical name, or both? The rule stores the canonical ID — the display is a UX decision.</p>
+        </div>
+        <div class="question-item">
+          <strong>Org-specific display name resolution in the collection product grid</strong>
+          <p>The collection detail grid currently resolves subcategory name from the canonical <code>productSubCategory</code> table. For org-specific names to show in that grid, PMRS/FOH resolution needs to route through the custom subcategory table. Scope TBD.</p>
+        </div>
+        <div class="question-item">
+          <strong>Seeded default custom subcategories (Class 2 reconciliation)</strong>
+          <p>When seeded defaults are created for an org, should they pre-populate as custom subcategories on the Manage page, or should they appear as globals that the org can optionally customize? Needs design alignment.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // Highlight active sidebar link on scroll
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.sidebar nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
