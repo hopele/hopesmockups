@@ -101,6 +101,21 @@ Custom subcategory display names surface in three Sell Treez areas at MVP. Categ
 - The subcategory filter in Product Groups shows custom subcategory names for orgs that have them.
 - Rules can be built against any active subcategory — custom names where they exist, or the global name where no custom exists.
 
+### 4. Collections
+
+Automated collection rules store subcategory filters as arrays of canonical subcategory UUIDs — not names. This has two consequences in MVP:
+
+**No rule impact from include/exclude or custom subcategory creation**
+- Excluding a subcategory, including one, or creating/deleting a custom subcategory does not affect collection rules. Rules remain syntactically valid and collection membership is unchanged.
+
+**API reassignment changes collection membership**
+- Product reassignment is available via the catalog API in MVP. Reassigning a product changes its canonical `productSubCategoryId`, which directly changes which automated collections it belongs to — products leave collections whose rule references the old subcategory and enter collections whose rule references the new one.
+- Collection rules are **not** auto-rewritten in MVP. If products are reassigned from subcategory A to B, any collection rule referencing A will silently lose those products. Auto-rewrite of collection rules ships as fast follow.
+- Orgs using the API reassignment path in MVP should audit their automated collections manually after reassigning.
+
+**Collection rule builder**
+- The collection rule builder continues to show all global subcategories in MVP — it is not yet filtered to the org's included set. Filtering the rule builder to org-included subcategories is fast follow.
+
 ---
 
 ## Fast Follow
@@ -273,6 +288,9 @@ Orgs without the flag still get the schema changes and event field updates in MV
 - Catalog: Product list grid displays custom subcategory display name
 - Catalog: Product card subcategory dropdown shows custom names; excluded subcategories hidden
 - Catalog: Product list filters show all subcategories in MVP — scoped to included only after reassign flow ships
+- Collections: Include/exclude and custom creation have no effect on collection rules
+- Collections: API reassignment changes collection membership — rules are not auto-rewritten until fast follow
+- Collections: Rule builder shows all global subcategories in MVP — org-filtered view is fast follow
 - ST: POS product menu subcategory filter shows custom names
 - ST: All receipts display custom subcategory display name
 - ST: Product Groups subcategory filter supports custom names

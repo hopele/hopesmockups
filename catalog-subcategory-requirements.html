@@ -711,6 +711,38 @@
           </ul>
         </div>
       </div>
+
+      <h3>Collections</h3>
+      <p>Automated collection rules store subcategory filters as arrays of canonical subcategory UUIDs — not names. This has two consequences in MVP.</p>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">No Rule Impact from Include/Exclude or Custom Subcategory Creation</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Excluding, including, or creating/deleting a custom subcategory does not affect collection rules. Rules remain syntactically valid and collection membership is unchanged.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">API Reassignment Changes Collection Membership</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Product reassignment is available via the catalog API in MVP. Reassigning a product changes its canonical <code>productSubCategoryId</code>, which directly changes which automated collections it belongs to — products leave collections whose rule references the old subcategory and enter collections whose rule references the new one.</li>
+            <li>Collection rules are <strong>not</strong> auto-rewritten in MVP. If products are reassigned from subcategory A to B, any collection rule referencing A will silently lose those products. Auto-rewrite of collection rules ships as fast follow.</li>
+            <li>Orgs using the API reassignment path in MVP should audit their automated collections manually after reassigning.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Collection Rule Builder</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The collection rule builder continues to show all global subcategories in MVP — not yet filtered to the org's included set. Filtering the rule builder to org-included subcategories is fast follow.</li>
+          </ul>
+        </div>
+      </div>
     </section>
 
     <!-- Fast Follow -->
@@ -1016,6 +1048,9 @@
               <li>Catalog: Product list grid displays custom subcategory display name</li>
               <li>Catalog: Product card subcategory dropdown shows custom names; excluded subcategories hidden</li>
               <li>Catalog: Product list filters show all subcategories in MVP — scoped to included only after reassign flow ships</li>
+              <li>Collections: Include/exclude and custom creation have no effect on collection rules</li>
+              <li>Collections: API reassignment changes collection membership — collection rules are not auto-rewritten until fast follow</li>
+              <li>Collections: Rule builder shows all global subcategories in MVP — org-filtered view is fast follow</li>
               <li>ST: POS product menu subcategory filter shows custom names</li>
               <li>ST: All receipts display custom subcategory display name</li>
               <li>ST: Product Groups subcategory filter supports custom names</li>
