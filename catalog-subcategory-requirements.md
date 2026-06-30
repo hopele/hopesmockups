@@ -46,7 +46,7 @@ Orgs control which global subcategories are active for their catalog on a per-ca
 
 ### 1. Manage > Subcategories Page
 
-The starting point is a category selector. After choosing a category (e.g., Concentrate), the page shows two panels:
+The starting point is a category selector. After choosing a category (e.g., Concentrate), the page shows two panels.
 
 **Include / Exclude**
 - All global subcategories for the selected category are listed, split into Excluded and Included columns. Clicking a subcategory moves it between columns.
@@ -56,30 +56,22 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 - The Global badge distinguishes canonical subcategories from org-created customs.
 
 **Included Subcategories panel**
-- Lists all included global subcategories for the selected category.
-- Each global row can have zero or more custom subcategories nested under it.
-- Kebab menu on custom rows: **Delete** — only shown when zero products are assigned to that custom subcategory.
+- Lists all included global subcategories. Each global row can have zero or more custom subcategories nested under it.
+- Global rows have no delete or rename action — globals cannot be deleted or renamed by orgs.
 
-**Custom subcategory behavior**
-- When at least one custom subcategory exists under a global, the global name is hidden from the product create/edit dropdown — new products must be assigned to one of the custom names. Existing products already assigned to the global remain there in MVP; explicit reassignment is a fast follow. The global still appears in the UI with a "Not shown in product dropdown" indicator — it remains the compliance anchor.
+**Custom subcategories**
+- When at least one custom exists under a global, the global is hidden from the product create/edit dropdown — new products must be assigned to one of the customs. Existing products on the global remain there until explicitly reassigned (fast follow). The global still appears in the UI with a "Not shown in product dropdown" indicator — it remains the compliance anchor.
 - If no customs exist under a global, the global name appears directly in the product dropdown.
-
-**Add custom subcategory**
-- Inline form under the global row. Name is required.
-- Custom is added immediately — no prompts or modals in MVP.
-
-**Delete custom subcategory**
-- Only available when zero products are assigned to the custom subcategory. If products are assigned, the Delete option does not appear in the kebab.
-- Deleting a custom with zero products is safe and has no downstream impact.
+- **Add:** Inline form under the global row. Name is required. Custom is added immediately — no prompts or modals in MVP.
+- **Delete:** Only available when zero products are assigned. If products are assigned, Delete does not appear in the kebab.
 
 ### 2. Catalog — Product List & Product Card
 
 **Product list grid**
-- The subcategory column displays the custom subcategory display name for products assigned to a custom subcategory.
-- Products with no custom (assigned directly to a global) continue to display the global name.
+- The subcategory column shows the custom subcategory name when assigned to a custom, otherwise the global name.
 
 **Product card — create / edit**
-- The subcategory dropdown shows custom subcategory names where they exist under an included global, and the global name directly where no customs exist.
+- The subcategory dropdown shows custom subcategory names where they exist under an included global, otherwise the global name.
 
 **Product list filters**
 - Subcategory filter options in the catalog product list continue to display all subcategories (global and custom) in MVP — they are not yet restricted to the org's included set.
@@ -87,19 +79,16 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 
 ### 3. Sell Treez
 
-Custom subcategory display names surface in three Sell Treez areas at MVP. Category icons in the cart and fulfillment dashboard are not affected — they remain mapped to the global canonical category.
+Custom subcategory display names surface in three ST areas at MVP. Where no custom exists, the global name is used. Category icons are unaffected — they remain mapped to the global canonical category.
 
 **POS product menu — subcategory filter**
-- The subcategory filter in the POS product menu shows custom subcategory names for orgs that have them.
-- If no customs exist under a global, the global name appears as before.
+- The subcategory filter shows custom subcategory names for orgs that have them.
 
 **Receipts**
 - All receipt types (print, email, SMS) display the custom subcategory display name where subcategory is shown.
-- Falls back to the canonical global name if no custom subcategory exists for a product.
 
 **Product Groups (legacy ST discount management)**
-- The subcategory filter in Product Groups shows custom subcategory names for orgs that have them.
-- Rules can be built against any active subcategory — custom names where they exist, or the global name where no custom exists.
+- The subcategory filter shows custom subcategory names. Rules can be built against any active subcategory.
 
 ### 4. Collections
 
