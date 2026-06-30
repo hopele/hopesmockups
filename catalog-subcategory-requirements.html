@@ -611,7 +611,7 @@
           <ul>
             <li>Lists all included global subcategories for the selected category.</li>
             <li>Each global row can have zero or more custom subcategories nested under it.</li>
-            <li>Kebab menu on each row (global and custom) offers: Delete, Reassign Products <span class="tag fast-follow">Fast Follow</span>. Edit Name is not available in MVP — it ships as a fast follow alongside the PMRS fan-out.</li>
+            <li>Kebab menu on custom rows: <strong>Delete</strong> — only shown when zero products are assigned to that custom subcategory.</li>
           </ul>
         </div>
       </div>
@@ -632,19 +632,7 @@
         <div class="workflow-block-body">
           <ul>
             <li>Inline form under the global row. Name is required.</li>
-            <li>When creating the first custom under a global that has products, a prompt offers to reassign those products to the new custom now. Skipping is allowed — products can be reassigned later from the kebab menu. <span class="tag fast-follow">Fast Follow</span> — MVP adds the custom without a prompt.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="workflow-block" style="border-left-color:#f59e0b;">
-        <div class="workflow-block-header" style="background:#fffbeb;">Edit Custom Subcategory Name <span class="tag fast-follow">Fast Follow</span></div>
-        <div class="workflow-block-body">
-          <ul>
-            <li><strong>Not available in MVP.</strong> The kebab menu on custom subcategory rows does not include an Edit Name option.</li>
-            <li><strong>Why:</strong> Sell Treez stores the subcategory display name as a denormalized string (<code>subtype</code>) on each product row in the PMRS read model. Renaming without a fan-out would leave ST — including the POS product menu, reporting, and subcategory filter options — showing the old name until each product is individually saved. That inconsistency is not acceptable.</li>
-            <li><strong>Fast follow path:</strong> Rename uses the same fan-out as product reassignment — PMS queries all products with that <code>customSubCategoryId</code> in the org and emits a <code>ProductCore v1x3x0</code> event per product with the updated <code>customSubCategoryDisplayName</code>. PMRS updates <code>subtype</code> per product via existing event processing. No dedicated rename event is needed. Name change only; canonical mapping does not change.</li>
-            <li><strong>Scoped together:</strong> Because rename and reassignment share the same fan-out infrastructure, they are built in the same fast follow. The delete-then-reassign workaround is not the intended path for typos.</li>
+            <li>Custom is added immediately — no prompts or modals in MVP.</li>
           </ul>
         </div>
       </div>
@@ -684,36 +672,98 @@
 
     <!-- Fast Follow -->
     <section class="section" id="fast-follow">
-      <h2>Fast Follow — Rename &amp; Reassignment <span class="tag fast-follow">Fast Follow</span></h2>
+      <h2>Fast Follow <span class="tag fast-follow">Fast Follow</span></h2>
 
-      <p>Rename and reassignment use the same underlying fan-out: PMS queries all products affected by the operation in the org and emits a <code>ProductCore v1x3x0</code> event per product with the updated subcategory fields. PMRS processes these events and updates the <code>subtype</code> column per product, keeping the ST read model in sync. They are scoped and built together.</p>
-
-      <p><strong>Rename</strong> is triggered by an Edit Name action on a custom subcategory. PMS updates the custom subcategory name, then fans out <code>ProductCore</code> events for all products with that <code>customSubCategoryId</code>. No product reassignment occurs — only the display name changes.</p>
-
-      <p><strong>Reassignment</strong> is triggered from the "Reassign Products" kebab option on a custom subcategory that has products assigned. Exclude does not trigger a reassign modal — it proceeds freely. The flow mirrors the existing brand reassignment UX.</p>
+      <p>The following capabilities ship after MVP. Rename and reassignment share the same fan-out infrastructure — PMS queries all affected products in the org and emits a <code>ProductCore v1x3x0</code> event per product with updated subcategory fields; PMRS updates <code>subtype</code> per product via existing event processing. They are scoped and built together.</p>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">Reassign Modal — Custom Subcategory Kebab ("Reassign Products")</div>
+        <div class="workflow-block-header">Rename Custom Subcategory (Edit Name)</div>
         <div class="workflow-block-body">
           <ul>
+            <li>Edit Name added to the custom subcategory kebab menu.</li>
+            <li>Name change only — canonical mapping does not change, no products move.</li>
+            <li>On save: PMS fans out <code>ProductCore v1x3x0</code> events for all products with that <code>customSubCategoryId</code>, updating <code>customSubCategoryDisplayName</code>. PMRS updates <code>subtype</code> per product. ST (POS menu, reporting, filter options) reflects the new name after fan-out completes.</li>
+            <li>Rename does not ship without the fan-out — ST showing the old name is not acceptable.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Reassign Products (Custom Subcategory Kebab)</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>"Reassign Products" added to the custom subcategory kebab when products are assigned (Delete remains hidden in this state).</li>
             <li><strong>Title:</strong> "Reassign [Custom Subcategory Name]"</li>
             <li><strong>Body:</strong> "{n} products will be reassigned and the subcategory will be deleted."</li>
-            <li>"This action cannot be undone." shown in red.</li>
-            <li>Confirm button is disabled until a target is selected.</li>
-            <li>On confirm: products are moved to the target, the source custom subcategory is deleted. It does not remain as an empty shell.</li>
+            <li>"This action cannot be undone." shown in red. Confirm disabled until a target is selected. Reassignment cannot be skipped.</li>
+            <li>Dropdown: other custom subcategories under included globals, or globals with no customs. Source excluded from target list.</li>
+            <li>On confirm: products move to target, source custom subcategory is deleted. Does not remain as an empty shell.</li>
             <li>Success toast: "[Name] deleted. {n} products reassigned to "[target]"."</li>
           </ul>
         </div>
       </div>
 
+      <div class="workflow-block">
+        <div class="workflow-block-header">First-Custom Reassign Prompt</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>When creating the <strong>first</strong> custom subcategory under a global that has products assigned, a prompt offers to reassign those products to the new custom now.</li>
+            <li>Applies only on first custom creation — subsequent customs don't change existing assignment state.</li>
+            <li>Skipping is allowed; products can be reassigned later via the "Reassign Products" kebab option.</li>
+          </ul>
+        </div>
+      </div>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">Collection Count Warning</div>
+        <div class="workflow-block-header">Collection Count Warning in Reassign Modal</div>
         <div class="workflow-block-body">
           <ul>
             <li>When the reassign modal opens, a count of automated collections referencing the source subcategory is fetched from the product-collections service.</li>
             <li>If n &gt; 0, the modal shows: "<em>{n} automated collection(s) reference this subcategory and will be updated to the new subcategory.</em>"</li>
             <li>If the fetch fails or is still loading, the modal remains fully functional — the action is not blocked.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Auto-Rewrite Collection Rules on Reassignment</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>When reassignment is confirmed, PMS emits a <code>SUBCATEGORY_REASSIGNED</code> event. The product-collections service finds all collections in the org whose <code>subCategory</code> rule array contains <code>fromSubCategoryId</code> and replaces it with <code>toSubCategoryId</code> using set semantics.</li>
+            <li>Idempotent. Republishes a Collection Updated event for each rewritten collection.</li>
+            <li>Standalone excludes or deletes without a replacement do <strong>not</strong> trigger auto-rewrite — those collections are left for the user to clean up manually.</li>
+            <li>See Collections Impact section for full detail.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Collections MFE — Filter Rule Options to Org-Included Subcategories</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Today the collection rule builder fetches all global subcategories. Post include/exclude, it must fetch only the org's included subcategories (and their custom subcategories) as rule options.</li>
+            <li>Prevents users from accidentally building rules on excluded subcategories.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Import Service — Accept Custom Subcategory by Name or ID</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>File-based bulk imports will accept custom subcategory display name or ID — non-technical self-service path.</li>
+            <li>Bulk re-tagging via the catalog API is available in MVP; import adds the self-service path for non-technical users.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Catalog-to-ST Reconciliation — Seed &amp; Migrate</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Class 1 canonical renames, Class 2 seeded default customs, Class 3 missing canonicals. See Catalog Reconciliation section for class definitions.</li>
+            <li>Requires client communication before running — orgs need to know product subcategory assignments may change.</li>
+            <li>PMRS hardcoded type map removed after seed + migrate is verified.</li>
           </ul>
         </div>
       </div>
