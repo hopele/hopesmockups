@@ -149,6 +149,7 @@ _Reassign Products (custom subcategory kebab):_
 - "This action cannot be undone." warning shown in red.
 - Confirm disabled until a target is selected. Reassignment cannot be skipped.
 - Dropdown lists valid targets: other custom subcategories under included globals, or globals with no customs. Source excluded from the target list.
+- Bulk type subcategories can only be reassigned to other bulk subcategories. Non-bulk subcategories cannot be selected as a target when the source is bulk, and vice versa.
 - On confirm: products move to target, source custom subcategory is deleted. Does not remain as an empty shell.
 - Success toast: "[Name] deleted. {n} products reassigned to "[target]"."
 
