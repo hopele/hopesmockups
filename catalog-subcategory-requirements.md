@@ -65,7 +65,7 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 
 **Add custom subcategory**
 - Inline form under the global row. Name is required.
-- No reassignment modal when creating the first custom for a global — products assigned to the global stay assigned to it until a future reassign action.
+- When creating the first custom under a global that has products assigned to it, a prompt is shown offering to reassign those products to the new custom now. This is optional — the user can skip and reassign later from the kebab menu. This prompt is a fast follow; MVP adds the custom without any prompt.
 
 **Edit custom subcategory name**
 - Inline edit. Name change only; the canonical mapping does not change.
