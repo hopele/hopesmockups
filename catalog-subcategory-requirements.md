@@ -77,9 +77,9 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 - Subcategory filter options in the catalog product list continue to display all subcategories (global and custom) in MVP — they are not yet restricted to the org's included set.
 - Filtering by included/excluded state will be revisited after the reassignment flow is in place, once it is safe to hide options without stranding products in unfiltered states.
 
-### 3. Sell Treez
+### 3. Sell Treez — FOH
 
-Custom subcategory display names surface in three ST areas at MVP. Where no custom exists, the global name is used.
+Custom subcategory display names surface in three FOH areas at MVP. Where no custom exists, the global name is used.
 **POS product menu — subcategory filter**
 - The subcategory filter shows custom subcategory names for orgs that have them.
 
@@ -89,7 +89,26 @@ Custom subcategory display names surface in three ST areas at MVP. Where no cust
 **Product Groups (legacy ST discount management)**
 - The subcategory filter shows custom subcategory names. Rules can be built against any active subcategory.
 
-### 4. Collections
+### 4. Sell Treez — Other Teams
+
+Custom subcategory display names are reflected across these additional ST areas at MVP. Where no custom exists, the global name is used.
+
+**Inventory Management**
+- Subcategory shown in inventory views displays the custom name.
+
+**Count Treez**
+- Subcategory shown in count and audit workflows displays the custom name.
+
+**In-App Reporting**
+- Reports that include subcategory breakdowns or filters use custom subcategory names.
+
+**External Product and Ticket API**
+- API responses include the custom subcategory display name and ID alongside the canonical subcategory ID.
+
+**Menu Quantity Threshold**
+- Threshold rules that reference subcategory support custom subcategory names.
+
+### 5. Collections
 
 Collection rules store subcategory UUIDs — custom or canonical — depending on what the operator targets. Products can be in four assignment states: on an included global with no customs (standard case), on a custom subcategory, on an included global whose customs exist but the product hasn't been reassigned yet, or on an excluded global (exclusion does not migrate assignments). Operators may need to select both a global and its customs to build a complete collection rule.
 
@@ -288,9 +307,10 @@ Orgs without the flag still get the schema changes and event field updates in MV
 - Collections: Include/exclude and custom creation have no effect on collection rules
 - Collections: API reassignment changes collection membership — rules are not auto-rewritten until fast follow
 - Collections: Rule builder shows all global subcategories in MVP — org-filtered view is fast follow
-- ST: POS product menu subcategory filter shows custom names
-- ST: All receipts display custom subcategory display name
-- ST: Product Groups subcategory filter supports custom names
+- ST FOH: POS product menu subcategory filter shows custom names
+- ST FOH: All receipts display custom subcategory display name
+- ST FOH: Product Groups subcategory filter supports custom names
+- ST Other: Inventory Management, Count Treez, In-App Reporting, External Product and Ticket API, Menu Quantity Threshold
 
 ### Fast Follow
 Ordered by priority:

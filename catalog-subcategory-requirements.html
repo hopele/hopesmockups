@@ -658,8 +658,8 @@
         </div>
       </div>
 
-      <h3>Sell Treez</h3>
-      <p>Custom subcategory display names surface in three ST areas at MVP. Where no custom exists, the global name is used.</p>
+      <h3>Sell Treez — FOH</h3>
+      <p>Custom subcategory display names surface in three FOH areas at MVP. Where no custom exists, the global name is used.</p>
 
       <div class="workflow-block">
         <div class="workflow-block-header">POS Product Menu — Subcategory Filter</div>
@@ -684,6 +684,54 @@
         <div class="workflow-block-body">
           <ul>
             <li>The subcategory filter shows custom subcategory names. Rules can be built against any active subcategory.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Sell Treez — Other Teams</h3>
+      <p>Custom subcategory display names are reflected across these additional ST areas at MVP. Where no custom exists, the global name is used.</p>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Inventory Management</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Subcategory shown in inventory views displays the custom name.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Count Treez</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Subcategory shown in count and audit workflows displays the custom name.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">In-App Reporting</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Reports that include subcategory breakdowns or filters use custom subcategory names.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">External Product and Ticket API</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>API responses include the custom subcategory display name and ID alongside the canonical subcategory ID.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Menu Quantity Threshold</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Threshold rules that reference subcategory support custom subcategory names.</li>
           </ul>
         </div>
       </div>
@@ -1036,9 +1084,10 @@
               <li>Collections: Include/exclude and custom creation have no effect on collection rules</li>
               <li>Collections: API reassignment changes collection membership — collection rules are not auto-rewritten until fast follow</li>
               <li>Collections: Rule builder shows all global subcategories in MVP — org-filtered view is fast follow</li>
-              <li>ST: POS product menu subcategory filter shows custom names</li>
-              <li>ST: All receipts display custom subcategory display name</li>
-              <li>ST: Product Groups subcategory filter supports custom names</li>
+              <li>ST FOH: POS product menu subcategory filter shows custom names</li>
+              <li>ST FOH: All receipts display custom subcategory display name</li>
+              <li>ST FOH: Product Groups subcategory filter supports custom names</li>
+              <li>ST Other: Inventory Management, Count Treez, In-App Reporting, External Product and Ticket API, Menu Quantity Threshold</li>
             </ul>
           </div>
         </div>
