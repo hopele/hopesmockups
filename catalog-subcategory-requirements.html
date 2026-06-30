@@ -787,7 +787,7 @@
     <!-- Catalog Reconciliation -->
     <section class="section" id="recon">
       <h2>Technical Debt — Catalog-to-ST Reconciliation</h2>
-      <p>The current catalog and Sell Treez subtype data have diverged over time. Three classes of reconciliation work are needed before the custom subcategory feature is fully clean.</p>
+      <p>The current catalog and Sell Treez subtype data have diverged over time. Three classes of reconciliation work are needed before the custom subcategory feature is fully clean. Reconciliation does <strong>not</strong> block the user-defined custom subcategory feature — the PMRS hardcoded map stays as a fallback throughout. The <strong>audit is MVP</strong>; the <strong>seed + migrate is fast follow</strong>, gated on client communication.</p>
 
       <div class="recon-grid">
         <div class="recon-card">
@@ -908,6 +908,7 @@
               <li>Delete option hidden in kebab when products are assigned to a custom</li>
               <li>Custom subcategory name edits do not auto-reassign products in ST</li>
               <li>No automatic collection rule rewrites</li>
+              <li>Catalog-to-ST reconciliation audit (understand scope of mismatches across all three classes)</li>
             </ul>
           </div>
         </div>
@@ -926,6 +927,7 @@
               <li>Auto-rewrite collection rules on <code>SUBCATEGORY_REASSIGNED</code> event</li>
               <li>Collections MFE filters rule options to org-included subcategories</li>
               <li>Import service: accept custom subcategory by display name or ID in file-based bulk imports <em>(bulk re-tagging via catalog API is available in MVP; import adds a non-technical self-service path)</em></li>
+              <li>Catalog-to-ST reconciliation seed + migrate: Class 1 renames, Class 2 seeded defaults, Class 3 missing canonicals <em>(requires client communication before running; PMRS map removed after verification)</em></li>
             </ul>
           </div>
         </div>

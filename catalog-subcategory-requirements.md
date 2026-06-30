@@ -146,7 +146,8 @@ Today the collection rule builder fetches all global subcategories. Once include
 
 ## Technical Debt — Catalog-to-ST Reconciliation
 
-The current catalog and Sell Treez subtype data have diverged over time. Three classes of reconciliation work are needed before the custom subcategory feature is fully clean:
+The current catalog and Sell Treez subtype data have diverged over time. Three classes of reconciliation work are needed before the custom subcategory feature is fully clean. Reconciliation does not block the user-defined custom subcategory feature — the PMRS hardcoded map stays as a fallback and keeps working throughout. The **audit is MVP**; the **seed + migrate is fast follow**, gated on client communication.
+
 
 **Class 1 — Name mismatch (rename in place)**
 A subcategory exists in both catalog and ST but the names don't match. Resolution: rename the catalog subcategory to match ST (or the canonical standard). No migration of product assignments needed.
@@ -207,6 +208,7 @@ Orgs without the flag still receive seeded defaults and reconciliation output �
 - No delete option in kebab if products assigned to a custom subcategory
 - Custom subcategory name edits do not auto-reassign products in ST
 - No automatic collection rule rewrites
+- Catalog-to-ST reconciliation audit (understand scope of mismatches across all three classes)
 
 ### Fast Follow
 - Product reassignment flow from the Manage > Subcategories page
@@ -215,6 +217,7 @@ Orgs without the flag still receive seeded defaults and reconciliation output �
 - Auto-rewrite collection rules on `SUBCATEGORY_REASSIGNED` event
 - Collections MFE filters rule options to org-included subcategories
 - Import service: accept custom subcategory by display name or ID in file-based bulk imports (non-technical self-service path; bulk re-tagging via catalog API is available in MVP)
+- Catalog-to-ST reconciliation seed + migrate: Class 1 renames, Class 2 seeded defaults, Class 3 missing canonicals (requires client communication before running; PMRS map removed after verification)
 
 ### Q3/Q4 — Custom Categories
 - Org-specific category display names (mapped to global canonical categories)
