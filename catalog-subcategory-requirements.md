@@ -71,15 +71,10 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 - Only available when zero products are assigned to the custom subcategory. If products are assigned, the Delete option does not appear in the kebab.
 - Deleting a custom with zero products is safe and has no downstream impact.
 
-**Exclude a subcategory with products assigned**
-- Excluding is always allowed in MVP — there is no block based on product count.
-- Excluding removes the subcategory from the product creation/editing dropdown. It does not touch existing product assignments; products already assigned to an excluded subcategory keep their assignment and are unaffected.
-- The excluded subcategory is no longer selectable when creating or editing products.
-- Reassigning products off an excluded subcategory is optional cleanup available in the fast follow via the "Reassign Products" kebab option on that subcategory.
-
-**Impact on product editing**
-- Excluded subcategories do not appear in the subcategory dropdown on the product edit form.
-- Products already assigned to an excluded subcategory retain their assignment — no auto-migration in MVP. The subcategory is simply no longer selectable for new edits.
+**Exclude / Include**
+- Excluding is always allowed — no block based on product count.
+- Excluded subcategories are removed from the product create/edit dropdown. Existing product assignments are unaffected.
+- Reassigning products off an excluded subcategory is available in the fast follow via the "Reassign Products" kebab option.
 
 ### 2. Catalog — Product List & Product Card
 
