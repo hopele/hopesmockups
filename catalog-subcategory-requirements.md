@@ -160,6 +160,9 @@ A subtype exists in ST but is absent from the global catalog. Resolution: seed t
 **PMRS passthrough**
 PMRS currently maintains a hardcoded `typeToCategorySubTypeMap` that maps catalog types to Sell Treez subtypes. After reconciliation, this mapping is eliminated and Sell Treez reads subtype directly from the canonical subcategory ID on the product — a passthrough with no translation layer.
 
+**Client communication required before reconciliation runs**
+The Class 2 migration (seeding default customs and re-tagging existing products across all orgs) is the highest blast-radius action in this effort. Client communication is required before it runs — orgs need to know their product subcategory assignments may change. This gates `product-management-service#1570`.
+
 ---
 
 ## Event Model
@@ -207,6 +210,7 @@ Orgs without the flag still receive seeded defaults and reconciliation output �
 
 ### Fast Follow
 - Product reassignment flow from the Manage > Subcategories page
+- When creating the **first** custom subcategory under a global, optionally prompt the user to reassign products currently assigned to the bare global onto the new custom (only applicable on first custom creation, since subsequent customs don't change the existing assignment state)
 - Collection count warning in reassign modal
 - Auto-rewrite collection rules on `SUBCATEGORY_REASSIGNED` event
 - Collections MFE filters rule options to org-included subcategories

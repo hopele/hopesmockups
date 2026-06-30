@@ -811,6 +811,10 @@
           <p>PMRS currently maintains a hardcoded map from catalog types to Sell Treez subtypes. After reconciliation, this is eliminated and Sell Treez reads subtype directly from the canonical subcategory ID — a passthrough with no translation layer.</p>
         </div>
       </div>
+
+      <div class="callout warn" style="margin-top:16px;">
+        <b>Client communication required before reconciliation runs.</b> The Class 2 migration — seeding default customs and re-tagging existing products across all orgs — is the highest blast-radius action in this effort. Orgs need to be notified that their product subcategory assignments may change before this runs. This gates the seed + migrate fast follow ticket.
+      </div>
     </section>
 
     <!-- Event Model -->
@@ -917,6 +921,7 @@
             <h3>Fast Follow <span class="tag fast-follow">Next</span></h3>
             <ul>
               <li>Product reassignment flow from the Manage &gt; Subcategories page</li>
+              <li>When creating the <strong>first</strong> custom subcategory under a global, optionally prompt to reassign products currently assigned to the bare global onto the new custom (only triggered on first custom creation)</li>
               <li>Collection count warning in reassign modal</li>
               <li>Auto-rewrite collection rules on <code>SUBCATEGORY_REASSIGNED</code> event</li>
               <li>Collections MFE filters rule options to org-included subcategories</li>
