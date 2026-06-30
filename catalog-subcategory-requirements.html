@@ -594,13 +594,14 @@
       <p>The starting point is a category selector. After choosing a category, the page shows two panels.</p>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">Include / Exclude Panel</div>
+        <div class="workflow-block-header">Include / Exclude</div>
         <div class="workflow-block-body">
           <ul>
-            <li>All global subcategories for the selected category are listed, split into Excluded and Included columns.</li>
-            <li>Clicking a subcategory moves it between columns.</li>
+            <li>All global subcategories for the selected category are listed, split into Excluded and Included columns. Clicking a subcategory moves it between columns.</li>
+            <li>Excluding is always allowed — no block based on product count.</li>
+            <li>Excluded subcategories are removed from the product create/edit dropdown and do not appear as subcategory filter options in the POS product menu. Existing product assignments are unaffected.</li>
+            <li>Reassigning products off an excluded subcategory is available in the fast follow via the "Reassign Products" kebab option.</li>
             <li>The Global badge distinguishes canonical subcategories from org-created customs.</li>
-            <li>Helper text explains the two-layer model: including a subcategory makes it available in product dropdowns; creating custom subcategories further controls which names appear.</li>
           </ul>
         </div>
       </div>
@@ -647,17 +648,6 @@
         </div>
       </div>
 
-      <div class="workflow-block">
-        <div class="workflow-block-header">Exclude / Include</div>
-        <div class="workflow-block-body">
-          <ul>
-            <li>Excluding is always allowed — no block based on product count.</li>
-            <li>Excluded subcategories are removed from the product create/edit dropdown. Existing product assignments are unaffected.</li>
-            <li>Reassigning products off an excluded subcategory is available in the fast follow via the "Reassign Products" kebab option.</li>
-          </ul>
-        </div>
-      </div>
-
       <h3>Catalog — Product List &amp; Product Card</h3>
 
       <div class="workflow-block">
@@ -675,7 +665,6 @@
         <div class="workflow-block-body">
           <ul>
             <li>The subcategory dropdown shows custom subcategory names where they exist under an included global, and the global name directly where no customs exist.</li>
-            <li>Excluded subcategories do not appear in the dropdown.</li>
           </ul>
         </div>
       </div>
@@ -699,7 +688,6 @@
           <ul>
             <li>The subcategory filter in the POS product menu shows custom subcategory names for orgs that have them.</li>
             <li>If no customs exist under a global, the global name appears as before.</li>
-            <li>Excluded subcategories do not appear as filter options.</li>
           </ul>
         </div>
       </div>

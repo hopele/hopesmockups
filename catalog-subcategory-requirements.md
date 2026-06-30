@@ -48,11 +48,12 @@ Orgs control which global subcategories are active for their catalog on a per-ca
 
 The starting point is a category selector. After choosing a category (e.g., Concentrate), the page shows two panels:
 
-**Include / Exclude panel**
-- All global subcategories for the selected category are listed, split into Excluded and Included columns.
-- Clicking a subcategory moves it between columns.
+**Include / Exclude**
+- All global subcategories for the selected category are listed, split into Excluded and Included columns. Clicking a subcategory moves it between columns.
+- Excluding is always allowed — no block based on product count.
+- Excluded subcategories are removed from the product create/edit dropdown and do not appear as subcategory filter options in the POS product menu. Existing product assignments are unaffected.
+- Reassigning products off an excluded subcategory is available in the fast follow via the "Reassign Products" kebab option.
 - The Global badge distinguishes canonical subcategories from org-created customs.
-- Helper text explains the two-layer model upfront: including a subcategory makes it available in product dropdowns; creating custom subcategories further controls which names appear.
 
 **Included Subcategories panel**
 - Lists all included global subcategories for the selected category.
@@ -71,11 +72,6 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 - Only available when zero products are assigned to the custom subcategory. If products are assigned, the Delete option does not appear in the kebab.
 - Deleting a custom with zero products is safe and has no downstream impact.
 
-**Exclude / Include**
-- Excluding is always allowed — no block based on product count.
-- Excluded subcategories are removed from the product create/edit dropdown. Existing product assignments are unaffected.
-- Reassigning products off an excluded subcategory is available in the fast follow via the "Reassign Products" kebab option.
-
 ### 2. Catalog — Product List & Product Card
 
 **Product list grid**
@@ -84,7 +80,6 @@ The starting point is a category selector. After choosing a category (e.g., Conc
 
 **Product card — create / edit**
 - The subcategory dropdown shows custom subcategory names where they exist under an included global, and the global name directly where no customs exist.
-- Excluded subcategories do not appear in the dropdown.
 
 **Product list filters**
 - Subcategory filter options in the catalog product list continue to display all subcategories (global and custom) in MVP — they are not yet restricted to the org's included set.
@@ -97,7 +92,6 @@ Custom subcategory display names surface in three Sell Treez areas at MVP. Categ
 **POS product menu — subcategory filter**
 - The subcategory filter in the POS product menu shows custom subcategory names for orgs that have them.
 - If no customs exist under a global, the global name appears as before.
-- Excluded subcategories do not appear as filter options.
 
 **Receipts**
 - All receipt types (print, email, SMS) display the custom subcategory display name where subcategory is shown.
