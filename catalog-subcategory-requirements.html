@@ -533,7 +533,7 @@
         <span class="meta-badge status">In Progress</span>
         <span class="meta-badge client">Story</span>
         <span class="meta-badge client">Salve</span>
-        <a class="meta-badge link" href="https://hopele.github.io/hopesmockups/manage-subcategory-mockup.html" target="_blank">
+        <a class="meta-badge link" href="https://gistcdn.githack.com/hopele/32e2f1364cbb73a7a3e99e2e31d48021/raw/manage-subcategory-mockup.html" target="_blank">
           View Mockup →
         </a>
       </div>
@@ -576,12 +576,12 @@
       </div>
 
       <div class="concept-card include" style="margin-top:4px;">
-        <h3>Include / Exclude</h3>
-        <p style="font-size:13px;color:#555;margin-bottom:8px;">Orgs control which global subcategories are active for their catalog on a per-category basis. An excluded subcategory:</p>
+        <h3>Activate / Deactivate</h3>
+        <p style="font-size:13px;color:#555;margin-bottom:8px;">Orgs control which global subcategories are active for their catalog on a per-category basis. A deactivated subcategory:</p>
         <ul>
           <li>Does not appear in the product editing dropdown for that org</li>
-          <li>Does not appear as a rule option in the automated collections builder for that org</li>
-          <li>Does not auto-migrate existing product assignments — that is a fast follow</li>
+          <li>Remains selectable in the automated collections builder in MVP — existing products may still be assigned to it and need to be collectable. Filtering the rule builder to active-only subcategories is fast follow.</li>
+          <li>Does not affect existing product assignments — deactivation only controls forward assignment</li>
         </ul>
       </div>
     </section>
@@ -590,32 +590,48 @@
     <section class="section" id="mvp">
       <h2>MVP Scope <span class="tag mvp">MVP</span></h2>
 
+      <div class="callout" style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #16a34a;margin-bottom:12px;">
+        <strong>Initial rollout:</strong> Story is the first org enabled. The MVP scope below reflects the Story launch. Additional orgs are enabled org by org as the feature flag rolls out. Fast follow capabilities are required before general availability to additional orgs.
+      </div>
       <div class="callout" style="background:#fefce8;border:1px solid #fde68a;border-left:4px solid #f59e0b;margin-bottom:24px;">
-        <strong>Feature flag:</strong> <code>Catalog Management - Custom Subcategory Management</code> (managed in organization-management service). The management surface — Manage &gt; Subcategories page, include/exclude, and custom subcategory CRUD — is gated behind this flag and enabled per org. Schema changes and <code>ProductCore v1x3x0</code> event fields ship to all orgs regardless of the flag.
+        <strong>Feature flag:</strong> <code>Catalog Management - Custom Subcategory Management</code> (managed in organization-management service). The management surface — Manage &gt; Subcategories page, activate/deactivate, and custom subcategory CRUD — is gated behind this flag and enabled per org. Schema changes and <code>ProductCore v1x3x0</code> event fields ship to all orgs regardless of the flag.
       </div>
 
       <h3>Manage &gt; Subcategories Page</h3>
-      <p>The starting point is a category selector. After choosing a category, the page shows two panels.</p>
+      <p>The starting point is a category selector. After choosing a category, the page shows a single unified list of all global subcategories — both active and deactivated — with a Status filter (Active / Inactive / All) in the list toolbar. The default view is Active, which shows active globals and deactivated globals that have custom subcategories under them.</p>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">Include / Exclude</div>
+        <div class="workflow-block-header">Activate / Deactivate</div>
         <div class="workflow-block-body">
           <ul>
-            <li>All global subcategories for the selected category are listed, split into Excluded and Included columns. Clicking a subcategory moves it between columns.</li>
-            <li>Excluding is always allowed — no block based on product count.</li>
-            <li>Excluded subcategories are removed from the product create/edit dropdown and do not appear as subcategory filter options in the POS product menu. Existing product assignments are unaffected.</li>
-            <li>Reassigning products off an excluded subcategory is available in the fast follow via the "Reassign Products" kebab option.</li>
+            <li>Activate and Deactivate are actions in the kebab menu on each global row.</li>
+            <li>Deactivated globals are visually muted. A blue "Using custom subcategories" badge appears on deactivated globals that have customs — communicating implicitly that the global is not directly assignable but its customs are active.</li>
+            <li>Deactivation only controls forward assignment — existing product assignments on a deactivated global are unaffected.</li>
             <li>The Global badge distinguishes canonical subcategories from org-created customs.</li>
           </ul>
         </div>
       </div>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">Included Subcategories Panel</div>
+        <div class="workflow-block-header">Deactivation Rules for Global Subcategories</div>
         <div class="workflow-block-body">
           <ul>
-            <li>Lists all included global subcategories. Each global row can have zero or more custom subcategories nested under it.</li>
-            <li>Global rows have no delete or rename action — globals cannot be deleted or renamed by orgs.</li>
+            <li><strong>No customs, no products:</strong> deactivates immediately.</li>
+            <li><strong>No customs, products assigned:</strong> confirmation prompt warns that existing product assignments are unaffected but new assignments will be blocked. Operator confirms to proceed.</li>
+            <li><strong>Customs exist, none have products:</strong> confirmation prompt fires before cascade-deleting empty customs and deactivating the global.</li>
+            <li><strong>Customs exist with products assigned:</strong> blocked. A modal explains which custom subcategories have products assigned and instructs the operator to reassign or delete them first.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Shadowing</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Creating the first custom subcategory under a global automatically shadows it — the global row becomes visually muted and displays a blue "Using custom subcategories" badge.</li>
+            <li>A shadowed global can no longer be directly assigned to new products; products must be assigned to a custom. Existing product assignments on the global are unaffected.</li>
+            <li>Deleting the last custom subcategory under a global removes the shadow and restores the global to active.</li>
+            <li>Activate is not shown in the kebab for shadowed globals — the only path back to active is deleting all customs.</li>
           </ul>
         </div>
       </div>
@@ -624,9 +640,7 @@
         <div class="workflow-block-header">Custom Subcategories</div>
         <div class="workflow-block-body">
           <ul>
-            <li>When at least one custom exists under a global, the global is hidden from the product create/edit dropdown — new products must be assigned to one of the customs. Existing products on the global remain there until explicitly reassigned (fast follow). The global still appears in the UI with a "Not shown in product dropdown" indicator — it remains the compliance anchor.</li>
-            <li>If no customs exist under a global, the global name appears directly in the product dropdown.</li>
-            <li><strong>Add:</strong> Inline form under the global row. Name is required. Custom is added immediately — no prompts or modals in MVP.</li>
+            <li><strong>Add:</strong> Inline form under the global row. Available on active globals and shadowed globals. Name is required. A custom subcategory may share the same name as its parent global, but duplicate names among other customs under the same global are not allowed.</li>
             <li><strong>Edit Name:</strong> Rename a custom subcategory. Name change only — canonical mapping does not change, no products move. ST reflects the new name after the existing rename event fan-out completes.</li>
             <li><strong>Delete:</strong> Only available when zero products are assigned. If products are assigned, Delete does not appear in the kebab.</li>
           </ul>
@@ -648,7 +662,7 @@
         <div class="workflow-block-header">Product Card — Create / Edit</div>
         <div class="workflow-block-body">
           <ul>
-            <li>The subcategory dropdown shows custom subcategory names where they exist under an included global, otherwise the global name.</li>
+            <li>The subcategory dropdown shows custom subcategory names where they exist under an active global, otherwise the global name. Deactivated global subcategories do not appear in the dropdown.</li>
           </ul>
         </div>
       </div>
@@ -658,13 +672,44 @@
         <div class="workflow-block-body">
           <ul>
             <li>Subcategory filter options in the catalog product list continue to display all subcategories (global and custom) in MVP — not yet restricted to the org's included set.</li>
-            <li>Filtering by included/excluded state will be revisited after the reassignment flow is in place, once it is safe to hide options without stranding products in unfiltered states.</li>
+            <li>Filtering by active/deactivated state will be revisited after the reassignment flow is in place, once it is safe to hide options without stranding products in unfiltered states.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Collections</h3>
+      <p>Collection membership evaluation is not changed at MVP. Existing rules continue to evaluate against canonical subcategory assignments. When products are reassigned to a different subcategory, the reassignment flow surfaces a count of automated collections that reference the source subcategory via an inclusion or exclusion rule — informational only, so operators can audit manually. Collection rules are not rewritten automatically.</p>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">No Rule Impact from Activate/Deactivate or Custom Subcategory Creation</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Excluding, including, or creating a custom subcategory does not affect existing collection rules. Rules remain syntactically valid and collection membership is unchanged.</li>
+            <li>Deleting a custom subcategory with zero products assigned leaves any referencing rule entry inert (the deleted UUID returns no products) but does not break the collection. Users can clean up stale rule entries manually.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Product Assignment and Collection Rules</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Products are assigned to custom subcategories via the catalog product dropdown and API in MVP. When reassigning products to a different subcategory, the reassignment flow shows how many automated collections reference the source subcategory via an inclusion or exclusion rule. This count is informational — collection rules are not rewritten automatically, and operators should audit affected collections manually after reassigning.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Collection Rule Builder</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The rule builder must expose custom subcategory names, active globals with customs (products may still be assigned there), and deactivated globals (products may still be assigned there too). Showing the full option set with custom names ships as fast follow.</li>
           </ul>
         </div>
       </div>
 
       <h3>Sell Treez — FOH</h3>
-      <p>Custom subcategory display names surface in three FOH areas at MVP. Where no custom exists, the global name is used.</p>
+      <p>Custom subcategory display names surface in two FOH areas at MVP. Where no custom exists, the global name is used.</p>
 
       <div class="workflow-block">
         <div class="workflow-block-header">POS Product Menu — Subcategory Filter</div>
@@ -680,15 +725,6 @@
         <div class="workflow-block-body">
           <ul>
             <li>All receipt types (print, email, SMS) display the custom subcategory display name where subcategory is shown.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="workflow-block">
-        <div class="workflow-block-header">Product Groups (Legacy ST Discount Management)</div>
-        <div class="workflow-block-body">
-          <ul>
-            <li>The subcategory filter shows custom subcategory names. Rules can be built against any active subcategory.</li>
           </ul>
         </div>
       </div>
@@ -740,46 +776,13 @@
           </ul>
         </div>
       </div>
-
-      <h3>Collections</h3>
-      <p>Collection rules store subcategory UUIDs — custom or canonical — depending on what the operator targets. Products can be in four assignment states: on an included global with no customs (standard), on a custom subcategory, on an included global whose customs exist but the product hasn't been reassigned, or on an excluded global. Operators may need to select both a global and its customs to build a complete collection rule.</p>
-
-      <div class="workflow-block">
-        <div class="workflow-block-header">No Rule Impact from Include/Exclude or Custom Subcategory Creation</div>
-        <div class="workflow-block-body">
-          <ul>
-            <li>Excluding, including, or creating a custom subcategory does not affect existing collection rules. Rules remain syntactically valid and collection membership is unchanged.</li>
-            <li>Deleting a custom subcategory with zero products assigned leaves any referencing rule entry inert (the deleted UUID returns no products) but does not break the collection. Users can clean up stale rule entries manually.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="workflow-block">
-        <div class="workflow-block-header">API Reassignment Changes Collection Membership</div>
-        <div class="workflow-block-body">
-          <ul>
-            <li>Product reassignment is available via the catalog API in MVP. Reassigning a product changes its <code>customSubCategoryId</code>, which directly changes which automated collections it belongs to — products leave collections whose rule references the old custom subcategory UUID and enter collections whose rule references the new one.</li>
-            <li>Collection rules are <strong>not</strong> auto-rewritten in MVP. If products are reassigned from custom A to custom B, any collection rule referencing custom A's UUID will silently lose those products. Auto-rewrite of collection rules ships as fast follow.</li>
-            <li>Orgs using the API reassignment path in MVP should audit their automated collections manually after reassigning.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="workflow-block">
-        <div class="workflow-block-header">Collection Rule Builder</div>
-        <div class="workflow-block-body">
-          <ul>
-            <li>The rule builder must expose custom subcategory names, included globals with customs (products may still be assigned there), and excluded globals (products may still be assigned there too). Showing the full option set with custom names ships as fast follow.</li>
-          </ul>
-        </div>
-      </div>
     </section>
 
     <!-- Fast Follow -->
     <section class="section" id="fast-follow">
       <h2>Fast Follow <span class="tag fast-follow">Fast Follow</span></h2>
 
-      <p>The following capabilities ship after MVP, ordered by priority. Items 1–3 are tightly coupled — rename and reassignment share the same PMRS fan-out infrastructure, and the collection warning and auto-rewrite depend on the same reassignment event. They are scoped and built together.</p>
+      <p>The following capabilities ship after MVP, ordered by priority. Items 1–2 are tightly coupled — they share the same reassignment modal surface and PMRS fan-out infrastructure. They are scoped and built together.</p>
 
       <div class="workflow-block">
         <div class="workflow-block-header">1. Reassignment Fan-out <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Highest priority — coupled infrastructure</span></div>
@@ -790,7 +793,7 @@
             <li>"Reassign Products" added to the kebab when products are assigned (Delete remains hidden in this state).</li>
             <li>Title: "Reassign [Custom Subcategory Name]" — Body: "{n} products will be reassigned and the subcategory will be deleted."</li>
             <li>"This action cannot be undone." in red. Confirm disabled until target selected. Cannot be skipped.</li>
-            <li>Dropdown: other customs under included globals, or globals with no customs. Source excluded from list. Bulk type subcategories can only be reassigned to other bulk subcategories — non-bulk targets are not shown when the source is bulk, and vice versa.</li>
+            <li>Dropdown: other customs under active globals, or globals with no customs. Source excluded from list. Bulk type subcategories can only be reassigned to other bulk subcategories — non-bulk targets are not shown when the source is bulk, and vice versa.</li>
             <li>On confirm: products move to target, source custom deleted. Does not remain as an empty shell.</li>
             <li>Success toast: "[Name] deleted. {n} products reassigned to "[target]"."</li>
           </ul>
@@ -798,29 +801,30 @@
       </div>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">2. Collection Count Warning in Reassign Modal <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Ships with #1 — same modal surface</span></div>
+        <div class="workflow-block-header">2. Collection Count in Reassign Modal <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Ships with #1 — same modal surface</span></div>
         <div class="workflow-block-body">
           <ul>
-            <li>When the reassign modal opens, a count of automated collections referencing the source subcategory is fetched from the product-collections service.</li>
-            <li>If n &gt; 0: "<em>{n} automated collection(s) reference this subcategory and will be updated to the new subcategory.</em>"</li>
+            <li>When the reassign modal opens, a count of automated collections that reference the source subcategory via an inclusion or exclusion rule is fetched from the product-collections service.</li>
+            <li>If n &gt; 0: "<em>{n} automated collection(s) use this subcategory in a rule. Review these collections after reassigning.</em>"</li>
             <li>If fetch fails or is loading, modal remains fully functional — action is not blocked.</li>
+            <li>Collection rules are not rewritten automatically. Operators must audit and update affected collections manually.</li>
           </ul>
         </div>
       </div>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">3. Auto-Rewrite Collection Rules on Reassignment <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Ships with or immediately after #1</span></div>
+        <div class="workflow-block-header">4. Catalog-to-ST Reconciliation — Seed &amp; Migrate <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">End-to-end proof of concept — gated on client comms</span></div>
         <div class="workflow-block-body">
           <ul>
-            <li>On reassignment confirmed, PMS emits <code>SUBCATEGORY_REASSIGNED</code>. Product-collections service rewrites every affected collection's <code>subCategory</code> rule array: replace <code>fromSubCategoryId</code> with <code>toSubCategoryId</code> using set semantics. Idempotent. Republishes Collection Updated event per rewritten collection.</li>
-            <li>Standalone excludes or deletes without a replacement do <strong>not</strong> trigger auto-rewrite — those collections are left for manual cleanup.</li>
-            <li>See Collections Impact section for full detail.</li>
+            <li>Class 1 canonical renames, Class 2 seeded default customs, Class 3 missing canonicals. See Catalog Reconciliation section for class definitions.</li>
+            <li>Requires client communication before running — orgs need to know product subcategory assignments may change.</li>
+            <li>Validates the full custom subcategory pipeline end-to-end across all orgs: custom subcategory creation, product fan-out, and Sell Treez name display.</li>
           </ul>
         </div>
       </div>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">4. First-Custom Reassign Prompt <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Small addition once reassignment exists</span></div>
+        <div class="workflow-block-header">5. First-Custom Reassign Prompt <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Small addition once reassignment exists</span></div>
         <div class="workflow-block-body">
           <ul>
             <li>When creating the <strong>first</strong> custom under a global that has products assigned, a prompt offers to reassign those products to the new custom now.</li>
@@ -830,17 +834,27 @@
       </div>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">5. Collections MFE — Filter Rule Options to Org-Included Subcategories <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Independent work</span></div>
+        <div class="workflow-block-header">6. Collections MFE — Filter Rule Options to Org-Active Subcategories <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Independent work</span></div>
         <div class="workflow-block-body">
           <ul>
-            <li>Post include/exclude, the collection rule builder must fetch only the org's included subcategories (and their custom subcategories) as rule options.</li>
-            <li>Prevents users from building rules on excluded subcategories.</li>
+            <li>Post activate/deactivate, the collection rule builder must fetch only the org's active subcategories (and their custom subcategories) as rule options.</li>
+            <li>Prevents users from building rules on deactivated subcategories.</li>
           </ul>
         </div>
       </div>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">6. Import Service — Accept Custom Subcategory by Name or ID <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">API path available in MVP</span></div>
+        <div class="workflow-block-header">7. Product Groups — Legacy ST Discount Management <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Post-Story MVP</span></div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The subcategory filter in legacy ST discount management (Product Groups) surfaces custom subcategory names.</li>
+            <li>Rules can be built against any active custom or global subcategory.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">8. Import Service — Accept Custom Subcategory by Name or ID <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">API path available in MVP</span></div>
         <div class="workflow-block-body">
           <ul>
             <li>File-based bulk imports accept custom subcategory display name or ID — non-technical self-service path.</li>
@@ -850,12 +864,23 @@
       </div>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">7. Catalog-to-ST Reconciliation — Seed &amp; Migrate <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Separate work stream, gated on client comms</span></div>
+        <div class="workflow-block-header">9. Custom Subcategory Import Type <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Lower priority — migration from other POS systems</span></div>
         <div class="workflow-block-body">
           <ul>
-            <li>Class 1 canonical renames, Class 2 seeded default customs, Class 3 missing canonicals. See Catalog Reconciliation section for class definitions.</li>
-            <li>Requires client communication before running — orgs need to know product subcategory assignments may change.</li>
-            <li>PMRS hardcoded type map removed after seed + migrate is verified.</li>
+            <li>New import type that allows orgs to define their custom subcategory structure in bulk. Columns: <strong>Product Category</strong>, <strong>Custom Product Subcategory</strong>, <strong>Global Subcategory</strong>.</li>
+            <li>Enables orgs migrating from other POS systems to establish their full custom subcategory mapping before importing products.</li>
+            <li>On import, each row creates a custom subcategory (or matches an existing one) under the specified global subcategory for the org.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">10. Product Import — Custom Subcategory Column <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Lower priority — migration from other POS systems</span></div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Extends the existing product import to accept a custom subcategory column.</li>
+            <li>When a matching custom subcategory exists for the org, the imported product is assigned to it on create or update.</li>
+            <li>Allows orgs to migrate product catalogs from other POS systems with subcategory assignments intact in a single import pass.</li>
           </ul>
         </div>
       </div>
@@ -865,23 +890,23 @@
     <section class="section" id="collections">
       <h2>Collections Impact</h2>
 
-      <h3>How Collection Rules Store Subcategories</h3>
-      <p>Automated collections store filter rules as a JSONB object on the collection record. The subcategory filter uses the key <code>subCategory</code> and stores an array of subcategory UUIDs — custom subcategory UUIDs or canonical subcategory UUIDs, depending on what the operator selects.</p>
+      <h3>How Collection Rules Reference Subcategories</h3>
+      <p>Collection rules can reference either a custom subcategory or a global canonical subcategory, depending on what the operator selects in the rule builder. A rule targeting a custom subcategory matches only products assigned to that custom. A rule targeting a global canonical matches only products still directly assigned to that canonical — not products assigned to customs under it.</p>
 
-      <pre><code>{
-  "category": ["&lt;categoryId&gt;"],
-  "subCategory": ["&lt;customSubCategoryId-A&gt;", "&lt;canonicalSubCategoryId-B&gt;"]
-}</code></pre>
+      <p>Collection membership evaluation is not changed at MVP. Rules continue to evaluate against the canonical <code>productSubCategoryId</code>. Automatic evaluation updates were rejected because they would silently add or remove products from collections when products are reassigned to a different subcategory. Instead, the reassignment flow surfaces a collection impact count so operators can audit affected rules manually.</p>
 
-      <p>Product assignment is not always clean-cut. Products can be assigned to any of four states:</p>
+      <p>Product subcategory assignment can be in any of four states, and the rule builder must expose all of them:</p>
       <ul style="font-size:14px;color:#374151;margin:8px 0 12px 0;padding-left:20px;line-height:1.7;">
-        <li><strong>Included global (no customs)</strong> — the standard case; the global is the only option and products are assigned directly to its canonical UUID</li>
-        <li><strong>Custom subcategory UUID</strong> — when the org has customs and the product was explicitly assigned to one</li>
-        <li><strong>Included global (customs exist)</strong> — the global is hidden from the product dropdown, but products assigned before customs were created remain there until explicitly reassigned</li>
-        <li><strong>Excluded global</strong> — exclusion does not migrate existing assignments; products remain on the canonical UUID</li>
+        <li><strong>Included global (no customs)</strong> — the standard case; products are assigned directly to the global</li>
+        <li><strong>Custom subcategory</strong> — products explicitly assigned to an org custom</li>
+        <li><strong>Included global (customs exist)</strong> — products assigned before customs were created remain on the global until explicitly reassigned</li>
+        <li><strong>Deactivated global</strong> — products on an excluded global remain there; exclusion does not migrate existing assignments</li>
       </ul>
-      <p>Because of this, the rule builder must expose all four as selectable options. An operator targeting all products in a given subcategory family may need to select both the global and its customs to get full coverage.</p>
-      <p>Because rules store IDs (not display names), renaming a custom subcategory has no effect on rule validity. Reassigning products (which changes their subcategory ID) does change which products match a collection's rule.</p>
+      <p>Renaming a custom subcategory does not affect which products a rule matches — only the display name changes. Reassigning products to a different subcategory can change which collections they appear in; the reassignment flow shows a count of affected collections so operators can audit rules manually.</p>
+
+      <div class="callout" style="background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #f97316;margin-top:12px;">
+        <strong>Transitional note (MVP):</strong> In the window before bulk reassignment ships, products may be split across a global and its customs — existing products remain directly on the global until explicitly reassigned, while new products are assigned to customs. During this period, a rule targeting only CUSTOM1 will miss products still on GLOBAL1. To capture the full product set, include both in the rule. Once bulk reassignment ships and products are moved off the global, this consideration no longer applies.
+      </div>
 
       <h3>Impact Matrix</h3>
       <table class="impact-table">
@@ -895,54 +920,43 @@
         </thead>
         <tbody>
           <tr>
-            <td>Rename custom subcategory display name</td>
+            <td>Rename custom subcategory</td>
             <td><span class="pill safe">No</span></td>
             <td><span class="pill safe">No</span></td>
-            <td>Collection rules unaffected (ID unchanged). However, PMRS must fan out the new name to all assigned products so ST stays in sync — rename is therefore a fast follow, not MVP.</td>
+            <td>Only the display name changes — rules are unaffected.</td>
           </tr>
           <tr>
             <td>Delete custom subcategory (0 products)</td>
-            <td><span class="pill warn">Rule references stale UUID</span></td>
-            <td><span class="pill safe">No — 0 products assigned, membership already empty</span></td>
-            <td>Rule entry becomes inert until manually edited. Safe in MVP since membership impact is zero.</td>
+            <td><span class="pill warn">Rule entry becomes stale</span></td>
+            <td><span class="pill safe">No</span></td>
+            <td>No products were assigned, so membership was already empty for that entry. Rule entry is inert until manually removed.</td>
           </tr>
           <tr>
-            <td>Exclude a global subcategory</td>
+            <td>Deactivate a global subcategory</td>
             <td><span class="pill safe">No</span></td>
-            <td><span class="pill safe">No — existing products unaffected</span></td>
-            <td><span class="pill action">Collections MFE must filter rule builder options to org-included subcategories.</span></td>
+            <td><span class="pill safe">No</span></td>
+            <td>Existing rules remain valid. Deactivated subcategory should not appear as a rule builder option (fast follow).</td>
           </tr>
           <tr>
-            <td>Include a global subcategory</td>
+            <td>Activate a global subcategory</td>
             <td><span class="pill safe">No</span></td>
             <td><span class="pill safe">No</span></td>
-            <td>Newly included subcategory becomes available in the rule builder.</td>
+            <td>Newly activated subcategory becomes available in the rule builder.</td>
           </tr>
           <tr>
-            <td>Reassign products from custom A to custom B</td>
+            <td>Reassign products from subcategory A to B</td>
             <td><span class="pill safe">No</span></td>
-            <td><span class="pill warn">Yes — products leave A's membership, enter B's</span></td>
-            <td><span class="pill action">Show count warning in modal. Auto-rewrite replaces custom A UUID → custom B UUID on SUBCATEGORY_REASSIGNED event.</span></td>
+            <td><span class="pill warn">Yes — products move from A's membership to B's</span></td>
+            <td>Collection rules are not rewritten automatically. The reassignment modal shows a count of collections referencing the source subcategory — operators should audit and update those rules manually.</td>
           </tr>
         </tbody>
       </table>
 
-      <h3>Reassignment: Auto-Rewrite Collection Rules</h3>
-      <p>When a subcategory reassignment is confirmed, PMS emits a <code>SUBCATEGORY_REASSIGNED</code> event. The product-collections service consumes it and rewrites every affected collection's rule:</p>
-      <ul>
-        <li>Find all collections in the org whose <code>subCategory</code> rule array contains <code>fromSubCategoryId</code> (custom UUID if applicable, otherwise canonical UUID).</li>
-        <li>Replace <code>fromSubCategoryId</code> with <code>toSubCategoryId</code> using set semantics (dedupe if target already present).</li>
-        <li>Republish a Collection Updated event for each modified collection so Sell Treez and the bridge recompute membership.</li>
-        <li>Handler is idempotent.</li>
-      </ul>
-      <p>Standalone excludes or deletes without a replacement target do <strong>not</strong> trigger auto-rewrite. Those collections are left stale until the user edits them manually.</p>
+      <h3>Reassignment and Collection Impact</h3>
+      <p>When a bulk reassignment is confirmed, collection rules that reference the source subcategory are <strong>not</strong> automatically rewritten. Auto-rewriting collection rules was rejected because it would silently add or remove products from collections. Instead, the reassignment modal shows a count of collections referencing the source subcategory via an inclusion or exclusion rule, so operators can audit and update those rules manually after reassigning. Collections are not republished automatically on reassignment.</p>
 
-      <div class="callout">
-        <strong>Technical debt note:</strong> The collections MFE currently has a hardcoded name-based exclusion list (<code>EXCLUDED_SUB_CATEGORY_BY_CATEGORY</code>) that filters certain subcategory names from the rule builder. This is explicitly marked in the code as a temporary workaround for catalog/ST mix issues and can be removed once catalog reconciliation is complete.
-      </div>
-
-      <h3>Collections MFE: Filter by Org-Included Subcategories</h3>
-      <p>Today the collection rule builder fetches all global subcategories. Once include/exclude is live, it must fetch only the org's included subcategories (and their custom subcategories) as rule options. This prevents users from accidentally building rules on excluded subcategories.</p>
+      <h3>Collections Rule Builder <span class="tag fast-follow" style="font-size:11px;vertical-align:middle;margin-left:6px;">Fast Follow</span></h3>
+      <p>Today the rule builder shows all global subcategories. Once activate/deactivate is live, it must show only the org's active subcategories and their custom subcategories as options. This prevents operators from accidentally building rules on deactivated subcategories.</p>
     </section>
 
     <!-- Catalog Reconciliation -->
@@ -982,43 +996,33 @@
     <section class="section" id="events">
       <h2>Event Model</h2>
 
-      <div class="event-block">
-        <div class="event-block-header">ProductCore v1x3x0 — additive fields on existing product events</div>
-        <div class="event-block-body">
-          <div class="event-field">
-            <div class="event-field-name">customSubCategoryId</div>
-            <div class="event-field-desc">Nullable UUID of the org-specific custom subcategory</div>
-          </div>
-          <div class="event-field">
-            <div class="event-field-name">customSubCategoryDisplayName</div>
-            <div class="event-field-desc">The custom display name string</div>
-          </div>
-          <div class="event-field">
-            <div class="event-field-name">customSubCategoryUpdatedAt</div>
-            <div class="event-field-desc">Timestamp for ordering and idempotency</div>
-          </div>
+      <div class="workflow-block">
+        <div class="workflow-block-header">Product Events</div>
+        <div class="workflow-block-body">
+          <p style="margin-bottom:0;">Existing product events gain additive fields for the assigned custom subcategory name and ID. No breaking change to existing consumers. All orgs receive these fields regardless of the feature flag — the fields are simply empty for orgs without custom subcategories.</p>
         </div>
       </div>
 
-      <div class="event-block">
-        <div class="event-block-header">SUBCATEGORY_REASSIGNED — new PMS event, consumed by product-collections</div>
-        <div class="event-block-body">
-          <div class="event-field">
-            <div class="event-field-name">fromSubCategoryId</div>
-            <div class="event-field-desc">UUID being reassigned from — custom subcategory UUID if one exists, otherwise canonical UUID</div>
-          </div>
-          <div class="event-field">
-            <div class="event-field-name">toSubCategoryId</div>
-            <div class="event-field-desc">UUID being reassigned to — custom subcategory UUID if one exists, otherwise canonical UUID</div>
-          </div>
-          <div class="event-field">
-            <div class="event-field-name">organizationId</div>
-            <div class="event-field-desc">Scopes the rule rewrite to the correct org</div>
-          </div>
+      <div class="workflow-block">
+        <div class="workflow-block-header">Custom Subcategory Lifecycle — Create / Update / Delete</div>
+        <div class="workflow-block-body">
+          <p style="margin-bottom:8px;">Three new events cover the full lifecycle of a custom subcategory. Downstream read services consume these to stay in sync.</p>
+          <ul>
+            <li><strong>Created</strong> — emitted when an org creates a new custom subcategory. Read services update their records accordingly.</li>
+            <li><strong>Updated (rename)</strong> — emitted when a custom subcategory is renamed. Triggers a fan-out to all products assigned to that custom so Sell Treez and other consumers see the updated name. Uses the same fan-out pattern as brand name edits. Ships in MVP.</li>
+            <li><strong>Deleted</strong> — emitted after the product management service has already cleared product assignments. Read services remove their records.</li>
+          </ul>
         </div>
       </div>
 
-      <p style="margin-top:16px;color:#555;font-size:14px;"><strong>Note on rename:</strong> Rename ships in MVP. The existing rename event handles fan-out — no new event infrastructure needed. PMRS updates <code>subtype</code> per product via existing event processing. Reassignment uses the same <code>ProductCore v1x3x0</code> fan-out pattern but ships as fast follow.</p>
+      <div class="workflow-block">
+        <div class="workflow-block-header">Reassignment Event <span style="font-size:11px;font-weight:500;color:#6b7280;margin-left:8px;">Fast Follow</span></div>
+        <div class="workflow-block-body">
+          <p style="margin-bottom:0;">When products are bulk reassigned from one subcategory to another, a reassignment event is emitted. Collection rules are not auto-rewritten — the reassignment modal surfaces a collection impact count so operators can audit rules manually. Reassignments without an explicit replacement target do not trigger this event.</p>
+        </div>
+      </div>
+
+      <p style="margin-top:16px;color:#555;font-size:14px;"><strong>Note on rename:</strong> Rename ships in MVP. The existing fan-out infrastructure handles name propagation to all downstream consumers — no new systems required. Bulk reassignment fan-out ships as fast follow.</p>
     </section>
 
     <!-- Feature Flag -->
@@ -1032,7 +1036,7 @@
           <h3>Gated by flag — management surface</h3>
           <ul>
             <li>The Manage &gt; Subcategories page</li>
-            <li>Include/exclude org activations</li>
+            <li>Activate/deactivate of global subcategories per org</li>
             <li>Org-initiated creation, editing, and deletion of custom subcategories</li>
             <li>Product assignment to a custom subcategory via UI/API</li>
           </ul>
@@ -1040,14 +1044,14 @@
         <div class="concept-card" style="border-top:3px solid #90CAF9;">
           <h3>Not gated — runs for all orgs <span class="tag mvp">MVP</span></h3>
           <ul>
-            <li>The <code>customSubCategory</code> table and <code>customSubCategoryId</code> FK on product</li>
-            <li><code>ProductCore v1x3x0</code> additive event fields</li>
+            <li>Schema changes (custom subcategory data model)</li>
+            <li>Additive product event fields for custom subcategory name and ID</li>
           </ul>
           <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e5e7eb;">
             <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:6px;">Also not gated — ships with reconciliation fast follow</div>
             <ul>
-              <li>Class 1 renames, Class 2 seeded defaults, Class 3 missing canonicals</li>
-              <li>PMRS fan-out for display name edits on seeded defaults</li>
+              <li>Class 1/2/3 catalog reconciliation migrations</li>
+              <li>Name propagation for seeded default custom subcategories</li>
             </ul>
           </div>
         </div>
@@ -1071,21 +1075,22 @@
           <div class="phase-content">
             <h3>MVP <span class="tag mvp">Now</span></h3>
             <ul>
-              <li>Manage &gt; Subcategories page: include/exclude panel + custom subcategory CRUD <em>(behind feature flag)</em></li>
-              <li>Excluding a subcategory is freely allowed — no block. Existing product assignments are unaffected; subcategory is removed from the product dropdown only.</li>
+              <li>Manage &gt; Subcategories page: unified global list with activate/deactivate (kebab) + custom subcategory CRUD <em>(behind feature flag)</em></li>
+              <li>Deactivating a global is blocked only when customs have products assigned. Empty customs are cascade-deleted with confirmation. Deactivation only affects forward assignment — existing product assignments are unaffected.</li>
+              <li>Creating the first custom under a global shadows it (visually muted, "Using custom subcategories" badge). Deleting the last custom removes the shadow and restores the global to active.</li>
               <li>Delete option hidden in kebab when products are assigned to a custom</li>
               <li>Edit Name (rename) available on custom subcategories — existing rename event handles fan-out</li>
               <li>No automatic collection rule rewrites</li>
               <li>Catalog-to-ST reconciliation audit (understand scope of mismatches across all three classes)</li>
               <li>Catalog: Product list grid displays custom subcategory display name</li>
-              <li>Catalog: Product card subcategory dropdown shows custom names; excluded subcategories hidden</li>
+              <li>Catalog: Product card subcategory dropdown shows custom names; deactivated subcategories hidden</li>
               <li>Catalog: Product list filters show all subcategories in MVP — scoped to included only after reassign flow ships</li>
-              <li>Collections: Include/exclude and custom creation have no effect on collection rules</li>
-              <li>Collections: API reassignment changes collection membership — collection rules are not auto-rewritten until fast follow</li>
+              <li>Collections: Activate/deactivate and custom creation have no effect on collection rules</li>
+              <li>Collections: Products can be assigned to custom subcategories in MVP (via catalog UI or API) — collection membership evaluation is unchanged; operators should audit affected collections manually after reassigning</li>
+              <li>Collections: Collection rules are not auto-rewritten in MVP — auto-rewrite ships as fast follow</li>
               <li>Collections: Rule builder shows all global subcategories in MVP — org-filtered view is fast follow</li>
               <li>ST FOH: POS product menu subcategory filter shows custom names</li>
               <li>ST FOH: All receipts display custom subcategory display name</li>
-              <li>ST FOH: Product Groups subcategory filter supports custom names</li>
               <li>ST Other: Inventory Management, Count Treez, In-App Reporting, External Product and Ticket API, Menu Quantity Threshold</li>
             </ul>
           </div>
@@ -1100,12 +1105,14 @@
             <h3>Fast Follow <span class="tag fast-follow">Next</span></h3>
             <ol>
               <li><strong>Reassignment fan-out</strong> — Reassignment modal (reassign + delete source custom). PMRS <code>ProductCore v1x3x0</code> fan-out per affected product.</li>
-              <li><strong>Collection count warning</strong> — ships with #1, same modal surface.</li>
-              <li><strong>Auto-rewrite collection rules</strong> — consumes <code>SUBCATEGORY_REASSIGNED</code> event from #1; ships with or immediately after.</li>
+              <li><strong>Collection count in reassign modal</strong> — ships with #1. Shows how many collections reference the source subcategory via inclusion or exclusion rule. Informational only — operators must audit and update collection rules manually after reassigning.</li>
+              <li><strong>Catalog-to-ST reconciliation seed + migrate</strong> — end-to-end proof of concept; Class 1/2/3; gated on client comms.</li>
               <li><strong>First-custom reassign prompt</strong> — small addition once reassignment exists.</li>
-              <li><strong>Collections MFE filter</strong> — filter rule builder to org-included subcategories; independent work.</li>
+              <li><strong>Collections MFE filter</strong> — filter rule builder to org-active subcategories; independent work.</li>
+              <li><strong>Product Groups (legacy ST discount management)</strong> — subcategory filter supports custom names; post-Story MVP.</li>
               <li><strong>Import service</strong> — file-based bulk import by name or ID; API path available in MVP.</li>
-              <li><strong>Catalog-to-ST reconciliation seed + migrate</strong> — Class 1/2/3; separate work stream gated on client comms.</li>
+              <li><strong>Custom Subcategory import type</strong> — new import to define org custom subcategory structure in bulk (Product Category, Custom Product Subcategory, Global Subcategory); migration-focused.</li>
+              <li><strong>Product Import — custom subcategory column</strong> — product import accepts custom subcategory assignment; enables full catalog migration from other POS systems in a single pass.</li>
             </ol>
           </div>
         </div>
@@ -1119,7 +1126,7 @@
             <h3>Q3/Q4 — Custom Categories</h3>
             <ul>
               <li>Org-specific category display names (mapped to global canonical categories)</li>
-              <li>Same include/exclude and custom alias model, one layer up</li>
+              <li>Same activate/deactivate and custom alias model, one layer up</li>
             </ul>
           </div>
         </div>
@@ -1133,7 +1140,7 @@
       <div class="question-list">
         <div class="question-item">
           <strong>Subcategory filter in product search / FOH</strong>
-          <p>Today the subcategory filter in product search shows all options. Post-include/exclude, should it filter to only subcategories with products assigned in the org's catalog? Likely yes, but may depend on having auto-reassignment in place first to avoid showing empty filters.</p>
+          <p>Today the subcategory filter in product search shows all options. Post-activate/deactivate, should it filter to only subcategories with products assigned in the org's catalog? Likely yes, but may depend on having auto-reassignment in place first to avoid showing empty filters.</p>
         </div>
         <div class="question-item">
           <strong>Collections MFE rule builder for custom subcategories</strong>
