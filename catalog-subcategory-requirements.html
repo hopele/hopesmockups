@@ -851,7 +851,13 @@
           <p style="font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;">Reassign Products (custom subcategory kebab)</p>
           <ul>
             <li>"Reassign Products" added to the kebab when products are assigned (Delete remains hidden in this state).</li>
-            <li>Title: "Reassign [Custom Subcategory Name]" — Body: "{n} products will be reassigned and the subcategory will be deleted."</li>
+            <li>Title: "Reassign [Custom Subcategory Name]"</li>
+            <li>Modal body — two variants based on whether the target is under the same canonical subcategory:
+              <ul style="margin-top:6px;">
+                <li><strong>Same canonical:</strong> "{n} products will be reassigned and the subcategory will be deleted."</li>
+                <li><strong>Cross-canonical:</strong> "Products will move from [source canonical] to [target canonical]. This changes their subtype in Sell Treez, which may affect taxes and purchase limits."</li>
+              </ul>
+            </li>
             <li>"This action cannot be undone." in red. Confirm disabled until target selected. Cannot be skipped.</li>
             <li>Dropdown: other customs under active globals, or globals with no customs. Source excluded from list. Bulk type subcategories can only be reassigned to other bulk subcategories — non-bulk targets are not shown when the source is bulk, and vice versa.</li>
             <li>On confirm: products move to target, source custom deleted. Does not remain as an empty shell.</li>
