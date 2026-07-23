@@ -719,13 +719,14 @@
       </div>
 
       <h3>Sell Treez — FOH</h3>
-      <p>Custom subcategory display names surface in two FOH areas at MVP. Where no custom exists, the global name is used.</p>
+      <p>Custom subcategory display names surface across these FOH areas at MVP. Where no custom exists, the global name is used.</p>
 
       <div class="workflow-block">
         <div class="workflow-block-header">POS Product Menu — Subcategory Filter</div>
         <div class="workflow-block-body">
           <ul>
-            <li>The subcategory filter shows custom subcategory names for orgs that have them.</li>
+            <li>The subcategory filter chips show custom subcategory names for orgs that have them, falling back to the canonical name where no custom exists.</li>
+            <li>Filter queries use the stable custom subcategory ID rather than the display name string, so filtering is not broken by name changes.</li>
           </ul>
         </div>
       </div>
@@ -734,7 +735,26 @@
         <div class="workflow-block-header">Receipts</div>
         <div class="workflow-block-body">
           <ul>
-            <li>All receipt types (print, email, SMS) display the custom subcategory display name where subcategory is shown.</li>
+            <li>All receipt types (print, email, SMS) display the custom subcategory display name where subcategory is shown. The display name is stamped on the ticket line at sale time, so receipts reflect the name at the time of sale.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Product List and Product Drawer</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The subcategory column in the product list shows the custom display name where one exists. This applies to the read-only product list page and to the product list when receiving products in an invoice in Purchasing.</li>
+            <li>The subtype field in the product detail drawer shows the custom display name where one exists.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Inventory Drawer</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The subtype field in the product section at the top of the inventory drawer shows the custom display name where one exists.</li>
           </ul>
         </div>
       </div>
