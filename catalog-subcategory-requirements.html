@@ -708,6 +708,16 @@
         </div>
       </div>
 
+      <h3>Product Management Read Service (PMRS)</h3>
+      <div class="workflow-block">
+        <div class="workflow-block-header">Resolved Subcategory Display Name</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>PMRS exposes a resolved <code>subCategoryDisplayName</code> field on its product search API. The field falls back from the org-specific custom subcategory name to the global subtype, so a single field always carries the right label whether or not the product has a custom subcategory assigned. Downstream consumers read one field — no fallback logic required on the client side.</li>
+          </ul>
+        </div>
+      </div>
+
       <h3>Sell Treez — FOH</h3>
       <p>Custom subcategory display names surface in two FOH areas at MVP. Where no custom exists, the global name is used.</p>
 
