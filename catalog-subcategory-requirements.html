@@ -781,19 +781,10 @@
       <p>All surfaces read from the resolved <code>subCategoryDisplayName</code> field, which already carries the right label whether or not a custom subcategory exists.</p>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">Inventory Management</div>
+        <div class="workflow-block-header">Inventory and Count Treez</div>
         <div class="workflow-block-body">
           <ul>
-            <li>Subcategory shown in inventory views displays the custom name.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="workflow-block">
-        <div class="workflow-block-header">Count Treez</div>
-        <div class="workflow-block-body">
-          <ul>
-            <li>Subcategory shown in count and audit workflows displays the custom name.</li>
+            <li>Subcategory shown in inventory views and count/audit workflows displays the custom name.</li>
           </ul>
         </div>
       </div>
@@ -803,6 +794,15 @@
         <div class="workflow-block-body">
           <ul>
             <li>Reports and CSV exports that include subcategory data show the resolved display name. CSV exports include both the canonical Treez subcategory and the display name.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Label Templates</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Label templates that include a subtype field reflect the custom subcategory display name where one exists, falling back to the canonical name.</li>
           </ul>
         </div>
       </div>
@@ -819,20 +819,20 @@
       </div>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">Label Templates</div>
-        <div class="workflow-block-body">
-          <ul>
-            <li>Label templates that include a subtype field reflect the custom subcategory display name where one exists, falling back to the canonical name.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="workflow-block">
         <div class="workflow-block-header">eCommerce</div>
         <div class="workflow-block-body">
           <ul>
             <li>Custom subcategory display names are surfaced in the eCommerce product catalog — subcategory filters and product detail display the custom name where one exists, falling back to the canonical name.</li>
             <li>Legacy eCommerce is not supported.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Retail Analytics Reporting</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Reports that include subcategory data reflect the resolved display name.</li>
           </ul>
         </div>
       </div>
