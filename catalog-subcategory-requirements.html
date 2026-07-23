@@ -755,6 +755,7 @@
         <div class="workflow-block-body">
           <ul>
             <li>Reports that include subcategory breakdowns or filters use custom subcategory names.</li>
+            <li>CSV exports that include a subcategory column reflect the custom display name where one exists, falling back to the canonical name.</li>
           </ul>
         </div>
       </div>
@@ -769,10 +770,20 @@
       </div>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">Menu Quantity Threshold</div>
+        <div class="workflow-block-header">Label Templates</div>
         <div class="workflow-block-body">
           <ul>
-            <li>Threshold rules that reference subcategory support custom subcategory names.</li>
+            <li>Label templates that include a subtype field reflect the custom subcategory display name where one exists, falling back to the canonical name.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">eCommerce</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Custom subcategory display names are surfaced in the eCommerce product catalog — subcategory filters and product detail display the custom name where one exists, falling back to the canonical name.</li>
+            <li>Legacy eCommerce is not supported.</li>
           </ul>
         </div>
       </div>
@@ -1091,7 +1102,7 @@
               <li>Collections: Rule builder shows all global subcategories in MVP — org-filtered view is fast follow</li>
               <li>ST FOH: POS product menu subcategory filter shows custom names</li>
               <li>ST FOH: All receipts display custom subcategory display name</li>
-              <li>ST Other: Inventory Management, Count Treez, In-App Reporting, External Product and Ticket API, Menu Quantity Threshold</li>
+              <li>ST Other: Inventory Management, Count Treez, In-App Reporting (including CSV exports), External Product and Ticket API, Label Templates, eCommerce (legacy not supported)</li>
             </ul>
           </div>
         </div>
