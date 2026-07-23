@@ -809,10 +809,19 @@
       </div>
 
       <div class="workflow-block">
-        <div class="workflow-block-header">External Product and Ticket API</div>
+        <div class="workflow-block-header">External Product API</div>
         <div class="workflow-block-body">
           <ul>
-            <li>API responses include the custom subcategory display name and ID alongside the canonical subcategory ID.</li>
+            <li>Product API responses include <code>customSubCategoryId</code> and <code>customSubCategoryDisplayName</code> alongside the canonical subcategory ID. This is a side-effect of the IS foundational work adding these fields to the shared product model — no additional work required beyond the IS ticket.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">External Ticket API</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Ticket API responses include the custom subcategory display name on ticket line items. The display name is stamped as a line attribute at sale time — the external ticket API requires an explicit change to map and expose this attribute in the response.</li>
           </ul>
         </div>
       </div>
@@ -1150,7 +1159,7 @@
               <li>Collections: Rule builder shows all global subcategories in MVP — org-filtered view is fast follow</li>
               <li>ST FOH: POS product menu subcategory filter shows custom names</li>
               <li>ST FOH: All receipts display custom subcategory display name</li>
-              <li>ST Other: Inventory Management, Count Treez, In-App Reporting (including CSV exports), External Product and Ticket API, Label Templates, eCommerce (legacy not supported)</li>
+              <li>ST Other: Inventory Management, Count Treez, In-App Reporting (including CSV exports), External Product API (side-effect of IS work), External Ticket API (explicit change needed), Label Templates, eCommerce (legacy not supported)</li>
             </ul>
           </div>
         </div>
