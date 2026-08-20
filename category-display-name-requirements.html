@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Category Display Names — Product Requirements</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #1a1a1a;
+      background: #f7f8fa;
+    }
+
+    /* ── Layout ── */
+    .page {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid #e5e7eb;
+      padding: 32px 0 40px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #558B2F;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 16px;
+    }
+
+    .sidebar nav a {
+      display: block;
+      padding: 6px 20px;
+      font-size: 13px;
+      color: #555;
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: all .15s;
+    }
+
+    .sidebar nav a:hover {
+      color: #1a1a1a;
+      background: #f1f8e9;
+    }
+
+    .sidebar nav a.active {
+      color: #558B2F;
+      border-left-color: #8BC34A;
+      background: #f1f8e9;
+      font-weight: 600;
+    }
+
+    .sidebar nav .nav-section {
+      padding: 14px 20px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #999;
+    }
+
+    /* ── Main content ── */
+    .main {
+      flex: 1;
+      padding: 48px 56px 80px;
+      max-width: 900px;
+    }
+
+    /* ── Header ── */
+    .doc-header {
+      margin-bottom: 40px;
+      padding-bottom: 28px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .doc-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.3;
+      margin-bottom: 16px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .meta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .meta-badge.status {
+      background: #FFF8E1;
+      color: #E65100;
+      border: 1px solid #FFE0B2;
+    }
+
+    .meta-badge.client {
+      background: #E8F5E9;
+      color: #2E7D32;
+      border: 1px solid #C8E6C9;
+    }
+
+    .meta-badge.link {
+      background: #E3F2FD;
+      color: #1565C0;
+      border: 1px solid #BBDEFB;
+      text-decoration: none;
+    }
+
+    .meta-badge.link:hover { background: #BBDEFB; }
+
+    .meta-badge.link.green {
+      background: #F1F8E9;
+      color: #558B2F;
+      border: 1px solid #C5E1A5;
+    }
+
+    .meta-badge.link.green:hover { background: #DCEDC8; }
+
+    /* ── Sections ── */
+    .section {
+      margin-bottom: 48px;
+      scroll-margin-top: 24px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #333;
+      margin: 20px 0 8px;
+    }
+
+    p {
+      margin-bottom: 12px;
+      color: #374151;
+    }
+
+    ul, ol {
+      margin: 8px 0 12px 20px;
+      color: #374151;
+    }
+
+    li { margin-bottom: 4px; }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      background: #f3f4f6;
+      padding: 2px 5px;
+      border-radius: 4px;
+      color: #c2185b;
+    }
+
+    pre {
+      background: #1e2127;
+      color: #abb2bf;
+      padding: 16px 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 12px 0 16px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    /* ── Concept cards ── */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .concept-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .concept-card.global { border-top: 3px solid #8BC34A; }
+    .concept-card.display { border-top: 3px solid #42A5F5; }
+    .concept-card.resolved { border-top: 3px solid #AB47BC; }
+
+    .concept-card h3 { margin-top: 0; font-size: 14px; }
+    .concept-card ul { margin-left: 16px; }
+    .concept-card li { font-size: 13.5px; margin-bottom: 5px; }
+
+    /* ── Workflow blocks ── */
+    .workflow-block {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .workflow-block-header {
+      background: #f9fafb;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .workflow-block-body {
+      padding: 12px 16px;
+      font-size: 13.5px;
+      color: #374151;
+    }
+
+    .workflow-block-body ul { margin-left: 16px; }
+    .workflow-block-body li { margin-bottom: 4px; }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .tag.mvp { background: #E8F5E9; color: #2E7D32; }
+    .tag.out-of-scope { background: #F3F4F6; color: #6B7280; }
+    .tag.simpler { background: #EDE9FE; color: #5B21B6; }
+
+    /* ── Surface table ── */
+    .impact-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      margin: 16px 0;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+    }
+
+    .impact-table th {
+      background: #f9fafb;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #6b7280;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .impact-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f3f4f6;
+      vertical-align: top;
+      color: #374151;
+    }
+
+    .impact-table tr:last-child td { border-bottom: none; }
+    .impact-table tr:hover td { background: #fafafa; }
+
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .pill.yes { background: #E8F5E9; color: #2E7D32; }
+    .pill.no { background: #F3F4F6; color: #6B7280; }
+    .pill.note { background: #FFF8E1; color: #E65100; }
+
+    /* ── Data flow ── */
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .flow-box {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .flow-box.highlight {
+      background: #f1f8e9;
+      border-color: #C5E1A5;
+      color: #2E7D32;
+    }
+
+    .flow-arrow {
+      color: #9ca3af;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* ── Phase / ticket list ── */
+    .phase-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 16px 0;
+    }
+
+    .phase-item {
+      display: flex;
+      gap: 0;
+    }
+
+    .phase-line {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 32px;
+      flex-shrink: 0;
+    }
+
+    .phase-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .phase-dot.p1 { background: #8BC34A; }
+    .phase-dot.p2 { background: #42A5F5; }
+    .phase-dot.p3 { background: #FFB300; }
+    .phase-dot.p4 { background: #AB47BC; }
+
+    .phase-connector {
+      width: 2px;
+      flex: 1;
+      background: #e5e7eb;
+      margin: 2px 0;
+      min-height: 16px;
+    }
+
+    .phase-item:last-child .phase-connector { display: none; }
+
+    .phase-content {
+      flex: 1;
+      padding: 0 0 24px 12px;
+    }
+
+    .phase-content h3 {
+      margin-top: 2px;
+      font-size: 14px;
+    }
+
+    .phase-content ul { margin-left: 16px; font-size: 13.5px; }
+    .phase-content li { margin-bottom: 4px; }
+
+    /* ── Callout ── */
+    .callout {
+      background: #FFF8E1;
+      border: 1px solid #FFE082;
+      border-left: 4px solid #FFB300;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 13.5px;
+      color: #555;
+      margin: 12px 0;
+    }
+
+    .callout.green {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-left: 4px solid #16a34a;
+    }
+
+    .callout.blue {
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-left: 4px solid #3B82F6;
+    }
+
+    .callout strong { color: #333; }
+
+    /* ── Decision list ── */
+    .decision-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .decision-item {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #8BC34A;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 13.5px;
+    }
+
+    .decision-item strong {
+      display: block;
+      color: #111;
+      margin-bottom: 4px;
+      font-size: 13.5px;
+    }
+
+    .decision-item p { margin: 0; color: #555; }
+
+    /* ── Comparison table ── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      margin: 16px 0;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+    }
+
+    .compare-table th {
+      background: #f9fafb;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #6b7280;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .compare-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f3f4f6;
+      vertical-align: top;
+      color: #374151;
+    }
+
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table td:first-child { font-weight: 600; color: #111; width: 220px; }
+
+    hr { border: none; border-top: 1px solid #e5e7eb; margin: 32px 0; }
+
+    @media (max-width: 860px) {
+      .sidebar { display: none; }
+      .main { padding: 32px 24px 60px; }
+      .concept-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Treez Catalog</div>
+    <nav>
+      <div class="nav-section">Overview</div>
+      <a href="#background">Background</a>
+      <a href="#concepts">Core Concepts</a>
+      <a href="#decisions">Design Decisions</a>
+
+      <div class="nav-section">Scope</div>
+      <a href="#management">Management UI</a>
+      <a href="#data-model">Data Model &amp; Resolution</a>
+      <a href="#sell-treez">SellTreez — FOH</a>
+      <a href="#other-teams">SellTreez — Other Teams</a>
+      <a href="#external-apis">External APIs</a>
+      <a href="#out-of-scope">Out of Scope</a>
+
+      <div class="nav-section">Reference</div>
+      <a href="#surface-inventory">Surface Inventory</a>
+      <a href="#data-flow">Data Flow</a>
+      <a href="#comparison">vs. Custom Subcategories</a>
+
+      <div class="nav-section">Planning</div>
+      <a href="#feature-flag">Feature Flag</a>
+      <a href="#ticket-breakdown">Ticket Breakdown</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="doc-header">
+      <h1>Category Display Names<br>Product Requirements</h1>
+      <div class="meta-row">
+        <span class="meta-badge status">Draft</span>
+        <span class="meta-badge client">catalog-management-mfe</span>
+        <span class="meta-badge client">SellTreez</span>
+      </div>
+    </div>
+
+    <!-- Background -->
+    <section class="section" id="background">
+      <h2>Background</h2>
+      <p>Treez maintains a fixed set of global canonical product categories — Flower, Concentrate, Cartridge, Edible, Pre-Roll, Tincture, Topical, Accessory, and others. These canonical types are Treez-owned and drive purchase limits, tax rules, compliance reporting, and product classification throughout the platform. They cannot be renamed system-wide without downstream risk.</p>
+      <p>Operators frequently want to display different names for these categories. A dispensary may prefer "Vape" over "Cartridge", "Concentrate" over "Extract", or "Cannabis Flower" over "Flower" to better match their brand voice and how their customers talk. Today there is no mechanism to do this — category names are locked to the Treez canonical.</p>
+      <p>Category Display Names introduces a lightweight rename layer: org-specific display name overrides on top of the global canonical layer. Products retain their canonical category assignment and all the compliance metadata that comes with it. Only the label shown in the UI changes. This feature is intentionally simpler than Custom Subcategories — operators do not create new categories, reassign products, or manage a separate taxonomy. They rename only.</p>
+    </section>
+
+    <!-- Core Concepts -->
+    <section class="section" id="concepts">
+      <h2>Core Concepts</h2>
+
+      <div class="concept-grid">
+        <div class="concept-card global">
+          <h3>Global Canonical Categories</h3>
+          <p style="font-size:13px;color:#555;margin-bottom:8px;">Treez-owned. Fixed set. Cannot be renamed or removed by orgs. Drive all compliance, limits, and classification logic.</p>
+          <ul>
+            <li>Purchase limit evaluation</li>
+            <li>Tax rule application</li>
+            <li>Metrc compliance reporting</li>
+            <li>Type icon mapping</li>
+            <li>Collection rule evaluation</li>
+          </ul>
+        </div>
+
+        <div class="concept-card display">
+          <h3>Org Category Display Names</h3>
+          <p style="font-size:13px;color:#555;margin-bottom:8px;">Per-org label overrides. One row per category an org has renamed. No row = falls back to canonical name.</p>
+          <ul>
+            <li>Org-scoped — no MSO inheritance</li>
+            <li>Rename only — no new categories created</li>
+            <li>Does not affect any evaluation logic</li>
+            <li>Can be cleared to restore canonical label</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="concept-card resolved" style="margin-top: 4px;">
+        <h3>Resolved <code>categoryDisplayName</code> — Single Field, Server-Side</h3>
+        <p style="font-size:13px;color:#555;margin-bottom:8px;">All surfaces read from one resolved field. No fallback logic needed on the client.</p>
+        <ul>
+          <li><strong>Resolution:</strong> <code>categoryDisplayName = customDisplayName ?? canonicalType</code></li>
+          <li>Resolved server-side in PMS and PMRS — callers receive the final label</li>
+          <li>Stamped on ticket lines at time of sale — receipts reflect the name active when the sale occurred</li>
+          <li>Canonical <code>type</code> field is always present and unchanged alongside <code>categoryDisplayName</code></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Design Decisions -->
+    <section class="section" id="decisions">
+      <h2>Design Decisions</h2>
+
+      <div class="decision-list">
+
+        <div class="decision-item">
+          <strong>Rename only — no create, no delete of categories</strong>
+          <p>The full set of canonical categories is always present in the management UI. Operators edit display names on top of existing categories. They cannot add new categories or remove existing ones. This is intentional — category taxonomy is controlled by Treez.</p>
+        </div>
+
+        <div class="decision-item">
+          <strong>Org-scoped, no MSO inheritance</strong>
+          <p>Each location manages its own category display names independently. If an MSO wants consistent naming across locations, each location must set the same override. MSO-level inheritance is not supported and is out of scope.</p>
+        </div>
+
+        <div class="decision-item">
+          <strong>All evaluation logic stays on canonical type</strong>
+          <p>Purchase limits, discount conditions, collection rules, tax rules, compliance reporting — all evaluate against the canonical type. Display name is a label change only. There are no behavior changes to any rule or limit system.</p>
+        </div>
+
+        <div class="decision-item">
+          <strong>Type icons are unchanged</strong>
+          <p>Type icons (Flower icon, Concentrate icon, etc.) are keyed on canonical type and are not configurable by orgs. Wherever an icon appears alongside a category label, the icon stays canonical and only the text label switches to the display name.</p>
+        </div>
+
+        <div class="decision-item">
+          <strong>Search matches both canonical name and display name</strong>
+          <p>An operator who has renamed "Cartridge" to "Vape" will search by "Vape" — so search must match against <code>categoryDisplayName</code>. But staff accustomed to the old name, or third-party integrations, may still use "Cartridge" — so the canonical name must also remain searchable. Both must work.</p>
+        </div>
+
+        <div class="decision-item">
+          <strong>Ticket line stamping at time of sale</strong>
+          <p>When a sale is completed, the resolved <code>categoryDisplayName</code> active at that moment is stamped onto the ticket line. Receipts always show the name that was in effect at the time of sale. If an operator later renames a category, historical receipts are not affected.</p>
+        </div>
+
+        <div class="decision-item">
+          <strong>/onlinemenu excluded</strong>
+          <p>The legacy eCommerce online menu (/onlinemenu) is out of scope. Category display names are not surfaced there. Only the current eCommerce product surfaces are in scope.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Management UI -->
+    <section class="section" id="management">
+      <h2>Management UI <span class="tag mvp">MVP</span></h2>
+
+      <div class="callout" style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #16a34a;margin-bottom:16px;">
+        <strong>Feature flag:</strong> <code>Catalog Management - Category Display Names</code> gates all management surfaces. The underlying schema and resolved API fields ship to all orgs; the management UI and display name override behavior are flag-gated per org.
+      </div>
+
+      <p>Category Display Names lives in catalog-management-mfe, as a new section within catalog management. The management view is a fixed list — all canonical Treez categories are always present. Operators rename any of them. There is nothing to create or delete at the category level.</p>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Category Display Names List</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>All canonical Treez product categories are listed — no filtering or pagination required given the small fixed set.</li>
+            <li>Each row shows the type icon (keyed on canonical, not editable), the canonical type name (shown as a reference label), and the current custom display name if one has been set.</li>
+            <li>Rows without a display name override show a placeholder or empty state.</li>
+            <li>The list is not orderable — canonical ordering applies.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Setting a Display Name</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Each row has an inline text input for the display name. The operator types the desired name and saves.</li>
+            <li>Save feedback is visible — inline confirmation or a toast.</li>
+            <li>Display name is free text. No uniqueness constraint across rows — two categories could share the same display name if the operator intends it (though this is unlikely).</li>
+            <li>Empty string or clearing the field resets the category to its canonical name.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Resetting to Canonical</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>A clear or reset option per row removes the display name override and reverts the category to its canonical label everywhere in the app.</li>
+            <li>No confirmation required — the operator can set the name again immediately if they change their mind.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data Model & Resolution -->
+    <section class="section" id="data-model">
+      <h2>Data Model &amp; Resolution</h2>
+
+      <h3>Storage (PMS)</h3>
+      <p>A new table in PMS stores per-org overrides. Only categories that have been renamed need a row — absent rows fall back to the canonical name.</p>
+
+      <pre><code>org_category_display_name
+  org_id          UUID      -- FK to org
+  canonical_type  VARCHAR   -- e.g. "FLOWER", "CARTRIDGE", "CONCENTRATE"
+  display_name    VARCHAR   -- org's chosen label
+  PRIMARY KEY (org_id, canonical_type)</code></pre>
+
+      <h3>Resolution Pattern</h3>
+      <p>Resolution is always server-side. Clients receive one field and do no fallback logic.</p>
+
+      <pre><code>categoryDisplayName = UPPER(COALESCE(NULLIF(customDisplayName, ''), canonicalType))</code></pre>
+
+      <p>This resolved field is exposed by:</p>
+      <ul>
+        <li><strong>PMS</strong> — on Product GET and list responses alongside the existing <code>type</code> field</li>
+        <li><strong>PMRS</strong> — as a stored column (ingested from PMS events) and exposed as a virtual resolved field on <code>/st/v1/products</code></li>
+        <li><strong>IS</strong> — indexed in Elasticsearch and stamped on ticket lines at sale time</li>
+      </ul>
+
+      <h3>PMRS — Search &amp; Filter</h3>
+      <p>PMRS stores <code>categoryDisplayName</code> as a column and supports querying in two ways:</p>
+      <ul>
+        <li><strong>Filter by canonical type</strong> — used by chips and programmatic filters for stability. Chip tap sends canonical type, not display name string.</li>
+        <li><strong>Filter by display name</strong> — used by free-text search. Matching against both <code>categoryDisplayName</code> and canonical <code>type</code> ensures the old and new name both work.</li>
+        <li><strong>Distinct endpoint</strong> — returns <code>{canonical, categoryDisplayName}</code> pairs so UI can render the display label while holding the canonical value as the filter key.</li>
+        <li>An expression index on <code>categoryDisplayName</code> covers filter performance.</li>
+      </ul>
+
+      <h3>IS — Elasticsearch &amp; Ticket Line Stamping</h3>
+      <p>IS indexes <code>categoryDisplayName</code> on its Elasticsearch product document. Type-based search queries match against both canonical type and <code>categoryDisplayName</code>. The category list endpoint used by the POS to populate filter chips returns <code>{canonical, categoryDisplayName}</code> pairs.</p>
+      <p>At sale time, the resolved <code>categoryDisplayName</code> value is stamped onto the ticket line — the same pattern used for subcategory display name stamping. Historical ticket lines are not backfilled.</p>
+    </section>
+
+    <!-- SellTreez FOH -->
+    <section class="section" id="sell-treez">
+      <h2>SellTreez — Front of House</h2>
+
+      <p>All FOH surfaces read from the resolved <code>categoryDisplayName</code> field. No client-side fallback logic is required — the field always carries the right label.</p>
+
+      <div class="callout blue">
+        <strong>Note:</strong> Category (type) appears in significantly more SellTreez surfaces than subcategory. Category is a primary navigation axis in the POS — it drives the top-level filter chips and appears on product cards, line items, and throughout inventory and reporting. Each surface below requires explicit attention.
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">POS Type Filter Chips</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The type filter chips at the top of the POS product menu show <code>categoryDisplayName</code> as the text label.</li>
+            <li>Type icons are unchanged — keyed on canonical type.</li>
+            <li>The filter value sent to search remains the canonical type, not the display name string. Chip selection is stable across display name changes.</li>
+            <li>Chip options are populated from the IS category list endpoint, which returns <code>{canonical, categoryDisplayName}</code> pairs.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Free-Text Product Search</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Free-text search in the POS matches against <code>categoryDisplayName</code> in addition to canonical type.</li>
+            <li>Searching for either the old canonical name or the new display name returns matching products — backward compatibility is preserved for staff accustomed to old names.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Product Cards</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Category labels shown on product cards in the POS grid display <code>categoryDisplayName</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Product Detail Modal / Drawer</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The category/type field in the product detail modal shows <code>categoryDisplayName</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Cart and Ticket Line Items</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Category shown on cart line items displays <code>categoryDisplayName</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Receipts (Print, Email, SMS)</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>All receipt types display the <code>categoryDisplayName</code> where category is shown.</li>
+            <li>The display name is read from the value stamped on the ticket line at the time of sale — not a live lookup. Receipts reflect the name that was active when the transaction occurred.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Product List Page</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>The category column in the product list shows <code>categoryDisplayName</code>.</li>
+            <li>Applies to both the read-only product list and the product list within purchase invoices in Purchasing.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Product Groups — Legacy Discount Management</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Category type icons and labels in the Product Groups rule builder and member list show <code>categoryDisplayName</code> as the text label. Icons are unchanged.</li>
+            <li>Category filter dropdowns used when defining a Product Group rule show <code>categoryDisplayName</code> as the option label.</li>
+            <li>Rule evaluation and stored rule values remain canonical types — this is a display-only change.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">MSO Product Collections</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Category type icons and labels in MSO Product Collection rule builders and member lists show <code>categoryDisplayName</code> as the text label. Icons are unchanged.</li>
+            <li>Collection membership evaluation and stored rule values remain canonical types — display-only change.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Purchase Limits</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Wherever a category label appears in the purchase limits UI — limit configuration, limit enforcement display, and staff-facing limit summaries — show <code>categoryDisplayName</code>.</li>
+            <li>Purchase limit evaluation is unchanged — all enforcement logic operates on canonical type.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Discount Conditions</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Category type dropdowns in the discount condition builder show <code>categoryDisplayName</code> as the visible label.</li>
+            <li>Stored condition values and discount evaluation logic remain canonical types.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SellTreez Other Teams -->
+    <section class="section" id="other-teams">
+      <h2>SellTreez — Other Teams</h2>
+
+      <p>All other-team surfaces read from the resolved <code>categoryDisplayName</code> field. The canonical <code>type</code> field remains available and unchanged for any surface that needs both.</p>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Inventory Management and Count/Audit (Inventory &amp; Count Treez)</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Category shown in inventory management views and count/audit workflows displays <code>categoryDisplayName</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">In-App Reporting</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>In-app reports that display category (Product Summary, Product Log, Discount Log, Inventory Log, Inventory Valuation) show <code>categoryDisplayName</code> in the category column.</li>
+            <li>Category-based search and filter in reports matches against <code>categoryDisplayName</code> — operators filter by the name they see in the app.</li>
+            <li><strong>Sales CSV exports</strong> (Product, Discount, Tax): category/type column shows <code>categoryDisplayName</code>; a separate "Treez Global Category" column is appended at the end with the canonical type for audit and compliance. Same pattern as subcategory CSV exports.</li>
+            <li><strong>Inventory CSV exports</strong> (Log, Valuation, Invoice): category/type column shows <code>categoryDisplayName</code> only — no additional column.</li>
+            <li>Historical report data shows the canonical type name — no backfill.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">Label Templates</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>Label templates that include a category/type field reflect <code>categoryDisplayName</code> where one exists, falling back to the canonical name.</li>
+          </ul>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- External APIs -->
+    <section class="section" id="external-apis">
+      <h2>External APIs</h2>
+
+      <p>Category display name fields are additive — the existing <code>type</code> / <code>product_type</code> fields on all external APIs are unchanged. No breaking changes.</p>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">External Product API + Webhook</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>New field <code>category_display_name</code> added immediately after the existing type field in the product API response.</li>
+            <li>Same field included in the product webhook payload.</li>
+            <li>Value is the resolved display name — custom if set, canonical fallback if not.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">External Ticket API (Line Items) + Webhook</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>New field <code>product_category_display_name</code> added immediately after <code>product_type</code> on each ticket line item in the REST response.</li>
+            <li>Same field included in the ticket webhook payload.</li>
+            <li>Value is the display name stamped on the ticket line at time of sale.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="workflow-block">
+        <div class="workflow-block-header">External Stock / Inventory API</div>
+        <div class="workflow-block-body">
+          <ul>
+            <li>New field <code>category_display_name</code> added immediately after <code>product_type</code> in the stock/inventory API response.</li>
+            <li>Value is the resolved display name — custom if set, canonical fallback if not.</li>
+          </ul>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Out of Scope -->
+    <section class="section" id="out-of-scope">
+      <h2>Out of Scope <span class="tag out-of-scope">Not included</span></h2>
+
+      <ul>
+        <li><strong>/onlinemenu (legacy eCommerce)</strong> — Category display names are not surfaced in the legacy online menu.</li>
+        <li><strong>MSO category name inheritance</strong> — Each location manages its own display names independently. No parent-org override that cascades to child locations.</li>
+        <li><strong>Creating new categories</strong> — The canonical category list is fixed. Operators can only rename, not extend it.</li>
+        <li><strong>Reordering categories</strong> — The order of canonical categories in any listing is not configurable by orgs.</li>
+        <li><strong>Category icon customization</strong> — Type icons are keyed on canonical type and are not configurable.</li>
+        <li><strong>Sorting by display name</strong> — PMRS returns a 422 for sort by this field; sorting is not supported. Filtering and distinct are supported.</li>
+        <li><strong>Historical ticket line backfill</strong> — Ticket lines created before this feature ships retain only the canonical type. No backfill.</li>
+        <li><strong>Retail Analytics / Reporting team reports</strong> — Out of scope for MVP; reporting team handles their data store separately.</li>
+      </ul>
+    </section>
+
+    <!-- Surface Inventory -->
+    <section class="section" id="surface-inventory">
+      <h2>Surface Inventory</h2>
+
+      <p>Every surface in the platform where category / product type is shown as a text label. All surfaces below show <code>categoryDisplayName</code> when the feature is active.</p>
+
+      <table class="impact-table">
+        <thead>
+          <tr>
+            <th>Surface</th>
+            <th>Service / Team</th>
+            <th>Field Source</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Category management view</td>
+            <td>catalog-management-mfe</td>
+            <td>PMS management API</td>
+            <td>New surface; flag-gated</td>
+          </tr>
+          <tr>
+            <td>Product grid — category column</td>
+            <td>product-control-mfe</td>
+            <td>PMRS <code>categoryDisplayName</code></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Product grid — category filter chips</td>
+            <td>product-control-mfe</td>
+            <td>PMRS distinct pairs</td>
+            <td>Label = display name, filter key = canonical</td>
+          </tr>
+          <tr>
+            <td>POS type filter chips</td>
+            <td>SellTreez FOH</td>
+            <td>IS category list endpoint</td>
+            <td>Icon unchanged; filter key = canonical</td>
+          </tr>
+          <tr>
+            <td>POS free-text search</td>
+            <td>SellTreez FOH / IS</td>
+            <td>IS ES index</td>
+            <td>Matches both canonical and display name</td>
+          </tr>
+          <tr>
+            <td>Product cards (POS grid)</td>
+            <td>SellTreez FOH</td>
+            <td>IS / PMRS <code>categoryDisplayName</code></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Product detail modal / drawer</td>
+            <td>SellTreez FOH</td>
+            <td>IS / PMRS <code>categoryDisplayName</code></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Cart line items</td>
+            <td>SellTreez FOH</td>
+            <td>IS <code>categoryDisplayName</code></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Receipts (print, email, SMS)</td>
+            <td>SellTreez / ReceiptService</td>
+            <td>Ticket line stamped value</td>
+            <td>Point-in-time at sale; not a live lookup</td>
+          </tr>
+          <tr>
+            <td>Product list page</td>
+            <td>SellTreez FOH</td>
+            <td>PMRS <code>categoryDisplayName</code></td>
+            <td>Read-only product list and purchase invoices</td>
+          </tr>
+          <tr>
+            <td>Product Groups (rule builder + member list)</td>
+            <td>SellTreez FOH</td>
+            <td>IS <code>categoryDisplayName</code></td>
+            <td>Icon unchanged; rule eval = canonical</td>
+          </tr>
+          <tr>
+            <td>MSO Product Collections (rule builder + member list)</td>
+            <td>SellTreez FOH</td>
+            <td>IS <code>categoryDisplayName</code></td>
+            <td>Icon unchanged; rule eval = canonical</td>
+          </tr>
+          <tr>
+            <td>Purchase limits UI</td>
+            <td>SellTreez / PurchaseLimitService</td>
+            <td>IS <code>categoryDisplayName</code></td>
+            <td>Label only; limit enforcement = canonical</td>
+          </tr>
+          <tr>
+            <td>Discount conditions UI</td>
+            <td>SellTreez FOH</td>
+            <td>IS <code>categoryDisplayName</code></td>
+            <td>Label only; discount eval = canonical</td>
+          </tr>
+          <tr>
+            <td>Inventory management views</td>
+            <td>Inventory &amp; Count Treez</td>
+            <td>IS <code>categoryDisplayName</code></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Inventory count / audit</td>
+            <td>Inventory &amp; Count Treez</td>
+            <td>IS <code>categoryDisplayName</code></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>In-app reports (Product Summary, Logs, Valuation)</td>
+            <td>In-App Reporting</td>
+            <td>IS <code>categoryDisplayName</code></td>
+            <td>Filter matches display name</td>
+          </tr>
+          <tr>
+            <td>Sales CSV exports (Product, Discount, Tax)</td>
+            <td>In-App Reporting</td>
+            <td>IS <code>categoryDisplayName</code></td>
+            <td>Display name column + new "Treez Global Category" column</td>
+          </tr>
+          <tr>
+            <td>Inventory CSV exports (Log, Valuation, Invoice)</td>
+            <td>In-App Reporting</td>
+            <td>IS <code>categoryDisplayName</code></td>
+            <td>Display name column only; no additional column</td>
+          </tr>
+          <tr>
+            <td>Label templates</td>
+            <td>Label Templates team</td>
+            <td>IS <code>categoryDisplayName</code></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>External Product API + webhook</td>
+            <td>IS</td>
+            <td>Resolved at response time</td>
+            <td>New field <code>category_display_name</code>; additive</td>
+          </tr>
+          <tr>
+            <td>External Ticket API (line items) + webhook</td>
+            <td>IS</td>
+            <td>Ticket line stamped value</td>
+            <td>New field <code>product_category_display_name</code>; additive</td>
+          </tr>
+          <tr>
+            <td>External Stock / Inventory API</td>
+            <td>IS</td>
+            <td>Resolved at response time</td>
+            <td>New field <code>category_display_name</code>; additive</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Data Flow -->
+    <section class="section" id="data-flow">
+      <h2>Data Flow</h2>
+
+      <h3>Write path — operator sets a display name</h3>
+      <div class="flow-row">
+        <div class="flow-box highlight">catalog-management-mfe</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">PMS CRUD API</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">org_category_display_name table</div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-box">PMS emits ProductCore event</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">PMRS</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Pulsar msg to IS consumer</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">IS ES index updated</div>
+      </div>
+
+      <h3 style="margin-top:20px;">Read path — product data</h3>
+      <div class="flow-row">
+        <div class="flow-box">product-control-mfe / PMRS search</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">PMRS /st/v1/products</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">returns <code>categoryDisplayName</code></div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-box">SellTreez POS search</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">IS /product/search</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">returns <code>categoryDisplayName</code> from ES</div>
+      </div>
+
+      <h3 style="margin-top:20px;">Sale path — ticket line stamping</h3>
+      <div class="flow-row">
+        <div class="flow-box">Product added to cart</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box highlight">IS resolves <code>categoryDisplayName</code></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Stamped on ticket line at sale completion</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Receipts read stamped value</div>
+      </div>
+    </section>
+
+    <!-- Comparison -->
+    <section class="section" id="comparison">
+      <h2>vs. Custom Subcategories</h2>
+
+      <p>Category Display Names is intentionally simpler than the Custom Subcategories feature. It covers a narrower user need — rename only — and avoids the complexity of a full org-specific taxonomy layer.</p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>Custom Subcategories</th>
+            <th>Category Display Names</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>New entities created by org</td>
+            <td>Yes — org creates custom subcategory entries</td>
+            <td>No — rename only on fixed canonical list</td>
+          </tr>
+          <tr>
+            <td>Product assignment</td>
+            <td>Products are assigned to a custom subcategory (new FK on product)</td>
+            <td>No change — products stay assigned to canonical category</td>
+          </tr>
+          <tr>
+            <td>Reassignment flow</td>
+            <td>Yes — bulk move products between subcategories (fast follow)</td>
+            <td>Not applicable</td>
+          </tr>
+          <tr>
+            <td>Delete flow</td>
+            <td>Yes — delete custom when 0 products assigned</td>
+            <td>Not applicable — clearing a display name just resets to canonical</td>
+          </tr>
+          <tr>
+            <td>Management UI complexity</td>
+            <td>High — CRUD with activate/deactivate, shadowing, reassign modal</td>
+            <td>Low — fixed list with inline rename field, reset option</td>
+          </tr>
+          <tr>
+            <td>Product FK changes</td>
+            <td>Yes — nullable <code>customSubCategoryId</code> added to product</td>
+            <td>No FK changes on product</td>
+          </tr>
+          <tr>
+            <td>Resolved field</td>
+            <td><code>subCategoryDisplayName</code></td>
+            <td><code>categoryDisplayName</code></td>
+          </tr>
+          <tr>
+            <td>Number of canonicals affected</td>
+            <td>Subcategory level (~100+)</td>
+            <td>Category level (~10)</td>
+          </tr>
+          <tr>
+            <td>POS surface prominence</td>
+            <td>Subcategory chips (secondary filter)</td>
+            <td>Type chips (primary navigation) — higher visibility</td>
+          </tr>
+          <tr>
+            <td>Evaluation logic changes</td>
+            <td>None — evaluation stays on canonical</td>
+            <td>None — evaluation stays on canonical</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Feature Flag -->
+    <section class="section" id="feature-flag">
+      <h2>Feature Flag</h2>
+
+      <div class="callout green">
+        <strong>Flag name:</strong> <code>Catalog Management - Category Display Names</code><br>
+        Managed in org-management service, same pattern as <code>Catalog Management - Custom Subcategory Management</code>.
+      </div>
+
+      <p>The feature flag gates:</p>
+      <ul>
+        <li>The Category Display Names management view in catalog-management-mfe</li>
+        <li>The ability to set, update, or delete display name overrides via the management API</li>
+      </ul>
+
+      <p>The feature flag does <strong>not</strong> gate:</p>
+      <ul>
+        <li>The underlying schema (<code>org_category_display_name</code> table)</li>
+        <li>The <code>categoryDisplayName</code> field on PMS, PMRS, and IS responses — these resolve to canonical for all orgs until an override is set, so they are safe to ship universally</li>
+        <li>The new fields on external APIs — these are additive and always present, returning canonical name for orgs without overrides</li>
+      </ul>
+    </section>
+
+    <!-- Ticket Breakdown -->
+    <section class="section" id="ticket-breakdown">
+      <h2>Ticket Breakdown</h2>
+
+      <p>13 tickets across 7 services/teams. Arrows indicate blocking dependencies.</p>
+
+      <div class="phase-list">
+
+        <div class="phase-item">
+          <div class="phase-line">
+            <div class="phase-dot p1"></div>
+            <div class="phase-connector"></div>
+          </div>
+          <div class="phase-content">
+            <h3>Phase 1 — Data Foundation (PMS)</h3>
+            <ul>
+              <li><strong>PMS #1:</strong> Add <code>org_category_display_name</code> table + CRUD management API + feature flag</li>
+              <li><strong>PMS #2:</strong> Expose <code>categoryDisplayName</code> on Product GET and list responses <em>(depends on PMS #1)</em></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-item">
+          <div class="phase-line">
+            <div class="phase-dot p2"></div>
+            <div class="phase-connector"></div>
+          </div>
+          <div class="phase-content">
+            <h3>Phase 2 — Read Layer (PMRS + IS) <em style="font-weight:400;font-size:12px;color:#888;">parallel, unblocked by PMS #2</em></h3>
+            <ul>
+              <li><strong>PMRS:</strong> Store <code>categoryDisplayName</code> as column; virtual resolved field on <code>/st/v1/products</code>; filterable by both canonical and display name; distinct returns <code>{canonical, categoryDisplayName}</code> pairs; expression index</li>
+              <li><strong>IS:</strong> Index <code>categoryDisplayName</code> in ES; stamp on ticket line at sale; category list endpoint returns <code>{canonical, categoryDisplayName}</code> pairs; ES search matches canonical and display name</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-item">
+          <div class="phase-line">
+            <div class="phase-dot p3"></div>
+            <div class="phase-connector"></div>
+          </div>
+          <div class="phase-content">
+            <h3>Phase 3 — Frontend Foundation <em style="font-weight:400;font-size:12px;color:#888;">parallel, unblocked by PMS #1 / PMRS / IS</em></h3>
+            <ul>
+              <li><strong>catalog-management-mfe T1:</strong> Feature flag integration + API module and DTOs <em>(depends on PMS #1)</em></li>
+              <li><strong>catalog-management-mfe T2:</strong> Category Display Names management view <em>(depends on T1)</em></li>
+              <li><strong>product-control-mfe:</strong> <code>categoryDisplayName</code> in product grid category column + search filter chips <em>(depends on PMRS)</em></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-item">
+          <div class="phase-line">
+            <div class="phase-dot p4"></div>
+            <div class="phase-connector"></div>
+          </div>
+          <div class="phase-content">
+            <h3>Phase 4 — SellTreez Surfaces <em style="font-weight:400;font-size:12px;color:#888;">parallel, unblocked by IS</em></h3>
+            <ul>
+              <li><strong>ST T1:</strong> POS type filter chips (icon + display name label) + free-text search (matches canonical and display name)</li>
+              <li><strong>ST T2:</strong> Core product surfaces — product cards, detail modal, cart, receipts, product list, purchase invoice</li>
+              <li><strong>ST T3:</strong> Product Groups + MSO Collections — icon unchanged, display name as text label, canonical evaluation</li>
+              <li><strong>ST T4:</strong> Purchase limits + discount conditions — label-only change, canonical evaluation unchanged</li>
+              <li><strong>ST T5:</strong> In-app reporting (all report types) + CSV exports (Sales: display name + new canonical column; Inventory: display name column only)</li>
+              <li><strong>IS (External APIs):</strong> <code>category_display_name</code> on External Product API + webhook; <code>product_category_display_name</code> on External Ticket API + webhook; <code>category_display_name</code> on External Stock API <em>(depends on IS)</em></li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // Highlight active sidebar link on scroll
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.sidebar nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => link.classList.remove('active'));
+        const active = document.querySelector(`.sidebar nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
