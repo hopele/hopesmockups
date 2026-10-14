@@ -179,6 +179,47 @@
       padding: 7px 14px; font-size: 12px; font-weight: 600; color: #555; cursor: pointer;
     }
     .ghost-btn.disabled { color: #bbb; border-color: #eee; cursor: not-allowed; }
+
+    /* Split button (Save Sale) */
+    .split-btn-wrapper { position: relative; display: inline-flex; }
+    .split-btn { display: flex; border: 1.5px solid #e0e0e0; border-radius: 4px; overflow: hidden; }
+    .split-btn-main {
+      background: #fff; border: none; padding: 7px 12px;
+      font-size: 12px; font-weight: 600; color: #555; cursor: pointer;
+    }
+    .split-btn-main:hover { background: #fafafa; }
+    .split-btn-divider { width: 1.5px; background: #e0e0e0; flex-shrink: 0; }
+    .split-btn-chevron {
+      background: #fff; border: none; padding: 7px 8px;
+      font-size: 11px; color: #888; cursor: pointer;
+    }
+    .split-btn-chevron:hover { background: #fafafa; }
+    .split-dropdown {
+      position: absolute; bottom: calc(100% + 3px); left: 0;
+      background: #fff; border: 1.5px solid #e0e0e0; border-radius: 4px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,.1); z-index: 200; min-width: 170px; display: none;
+    }
+    .split-dropdown-item {
+      padding: 9px 14px; font-size: 12px; font-weight: 600; color: #555; cursor: pointer; white-space: nowrap;
+    }
+    .split-dropdown-item:hover { background: #f5f5f5; }
+
+    /* Current Sale dropdown */
+    .current-sale-wrapper { position: relative; display: inline-flex; }
+    .sale-dropdown {
+      position: absolute; top: calc(100% + 6px); right: 0;
+      background: #fff; border: 1.5px solid #e0e0e0; border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1); z-index: 200; min-width: 190px; display: none;
+    }
+    .sale-dropdown-item {
+      padding: 9px 14px; font-size: 12px; font-weight: 600; color: #555; cursor: pointer; white-space: nowrap;
+    }
+    .sale-dropdown-item:hover { background: #f5f5f5; }
+    .sale-dropdown-divider { border-top: 1px solid #f0f0f0; margin: 3px 0; }
+    .sale-dropdown-label {
+      padding: 6px 14px 2px; font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .5px;
+    }
+
     .request-btn {
       background: #8BC34A; color: #fff; border: none; border-radius: 4px;
       padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
@@ -413,7 +454,19 @@
     <span class="pill pill-blue">⚡ Purchase Limits</span>
     <span class="pill pill-green">✎ Customer Notes</span>
     <span class="pill pill-green">★ Suggestions</span>
-    <span class="pill pill-green-outline">↗ Current Sale (0:38)</span>
+    <div class="current-sale-wrapper">
+      <span class="pill pill-green-outline" onclick="toggleSaleDropdown(event)" style="cursor:pointer;">↗ Current Sale (0:38) ▾</span>
+      <div class="sale-dropdown" id="saleDropdown">
+        <div class="sale-dropdown-label">Save</div>
+        <div class="sale-dropdown-item" onclick="saveSale(false)">Save &amp; Exit</div>
+        <div class="sale-dropdown-item" onclick="saveSale(true)">Save &amp; Stay on Sale</div>
+        <div class="sale-dropdown-divider"></div>
+        <div class="sale-dropdown-label">Sale</div>
+        <div class="sale-dropdown-item">View Sale Details</div>
+        <div class="sale-dropdown-item">Add Order Notes</div>
+        <div class="sale-dropdown-item" style="color:#E53935;">Void Sale</div>
+      </div>
+    </div>
   </div>
 
   <!-- Tab bar -->
@@ -538,7 +591,8 @@
         </div>
         <div class="bottom-actions">
           <button class="ghost-btn">Print Label</button>
-          <button class="ghost-btn">Save Sale</button>
+          <button class="ghost-btn" onclick="saveSale(false)">Save &amp; Exit</button>
+          <button class="ghost-btn" onclick="saveSale(true)">Save &amp; Stay</button>
           <button class="ghost-btn disabled" id="printReceiptBtn">Print Receipt</button>
           <button class="request-btn" id="requestItemsBtn">Send to Fulfillment</button>
           <button class="ghost-btn" id="fallbackSimBtn" onclick="simulateFallback()" style="border-color:#FFB300;color:#E65100;font-size:11px;" title="Simulate: order was Packed &amp; Ready, new item added at POS">⚡ Fallback Scenario</button>
@@ -834,6 +888,39 @@
   let scanModalOpen = false;
 
   const checkSVG = `<svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7L5.5 10.5L12 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  function toggleSaveDropdown(e) {
+    e.stopPropagation();
+    const d = document.getElementById('saveDropdown');
+    const isOpen = d.style.display === 'block';
+    closeAllDropdowns();
+    d.style.display = isOpen ? 'none' : 'block';
+  }
+
+  function toggleSaleDropdown(e) {
+    e.stopPropagation();
+    const d = document.getElementById('saleDropdown');
+    const isOpen = d.style.display === 'block';
+    closeAllDropdowns();
+    d.style.display = isOpen ? 'none' : 'block';
+  }
+
+  function closeAllDropdowns() {
+    document.getElementById('saveDropdown').style.display = 'none';
+    document.getElementById('saleDropdown').style.display = 'none';
+  }
+
+  function saveSale(stay) {
+    closeAllDropdowns();
+    if (stay) {
+      showToast('Sale saved.');
+    } else {
+      showToast('Sale saved. Returning to queue...');
+      document.getElementById('stateLabel').textContent = 'Sale Saved — Exited';
+    }
+  }
+
+  document.addEventListener('click', closeAllDropdowns);
 
   function openOverlay(id) {
     document.querySelectorAll('.overlay').forEach(o => { o.classList.remove('visible'); });

@@ -10,14 +10,19 @@ https://gistcdn.githack.com/hopele/91f2a707d01f860f19f1575b5d191e6a/raw/pos-fulf
 
 ## Summary of What Changed
 
-The original prototype had scanning happen inline inside the cart in a persistent "Validate Mode." That approach has been replaced. Scanning now happens inside a modal overlay that opens when the budtender taps "Fulfill & Checkout." The cart itself is not locked during this flow — it simply shows visual status badges on each row after the order is sent to fulfillment.
+The original prototype had scanning happen inline inside the cart in a persistent "Validate Mode." That approach has been replaced. Scanning now happens inside a modal overlay that opens when the budtender taps Checkout — triggered automatically based on the store's config and the current fulfillment status of items on the order. The cart is not locked during this flow.
+
+"Send to Fulfillment" has been retired as a distinct button. All saved orders already appear on the fulfillment dashboard — saving the sale is how FF is notified. The bottom bar save actions have been updated to reflect this clearly.
 
 ---
 
 ## Part 1 — Remove These Elements Entirely
 
-**From Screen 1 (Build Mode):**
-- Rename the "Request Items" button to **"Send to Fulfillment"** everywhere it appears.
+**Remove the "Request Items" button:**
+- Remove it from the bottom bar entirely. It is replaced by updated save buttons — see Part 2.
+
+**Remove Screen 2 (Request Items confirmation modal):**
+- No longer needed. See Part 2 for the replacement.
 
 **Remove Screen 3 (Validate Mode) completely:**
 - Remove the amber mode banner ("Fulfillment Validation — Scan items to confirm before checkout")
@@ -30,67 +35,69 @@ The original prototype had scanning happen inline inside the cart in a persisten
 
 **Remove Screen 6 (All Items Validated banner state):**
 - Remove the green banner variant ("All items validated — ready for checkout")
-- The all-validated state is handled differently — see Part 3 below.
 
 **Remove Screen 8 (Reset Validation modal):**
 - No reset flow in the new design.
 
 **Remove "Manager Override" link from below the Checkout button:**
-- It moves into the scan modal footer — see Part 3 below.
+- It moves into the scan modal footer — see Part 4.
 
 ---
 
-## Part 2 — Update Screen 2 (Confirmation Modal)
+## Part 2 — Update the Bottom Bar Save Actions
 
-Replace the existing "Request Items" confirmation modal with the updated "Send to Fulfillment" modal.
+Replace the existing "Save Sale" button with two explicit save buttons. Remove "Request Items" entirely — it is no longer needed.
 
-**Title:** "Send to Fulfillment"
+**Bottom bar button changes:**
 
-**Body text:** "This will save the sale and send the order to the fulfillment dashboard. Items must be scanned at the register before checkout."
+Remove:
+- "Save Sale" (single button)
+- "Request Items" button
 
-**Add a checkbox below the body text:**
-- Label: "Print packing receipt"
-- Checked by default
-- Style: standard checkbox with label text in the same size as body text
+Add in their place (in this order, between Print Label and Print Receipt):
+- **"Save & Exit"** — ghost/outlined style, same as existing ghost buttons. Saves the sale and exits to the customer queue. This is the default save behavior.
+- **"Save & Stay"** — ghost/outlined style. Saves the sale and keeps the budtender on the active sale screen.
 
-**Replace the two original buttons with three actions:**
-- **"Cancel"** — outlined button, left-aligned. Dismisses modal, no action taken.
-- **"Send & Stay on Sale"** — solid green (#8BC34A), white text. Saves the ticket, shows a toast "Sent to fulfillment. Packing receipt printed." (or "Sent to fulfillment." if checkbox is unchecked), stays on the active sale screen.
-- **"Send & Exit Sale"** — solid green (#8BC34A), white text. Same as above, then exits the sale.
+**After either save action:**
+- Toast appears: "Sale saved."
+- The fulfillment status pill appears near the Receipt # label showing "⏳ Awaiting Processing" (gray pill) — FF has received the order.
+- Cart rows update to show FF item status — see Part 3.
 
-**After either Send action:**
-- The fulfillment status pill appears near the Receipt # label showing "Awaiting Processing" (gray pill).
-- Cart rows update — see Part 3.
-- The Checkout button relabels to "Fulfill & Checkout" — see Part 3.
+**Current Sale dropdown (top bar pill):**
+
+The "↗ Current Sale" pill in the top bar opens a dropdown. Add save options at the top of this dropdown:
+- **Save & Exit** — saves and exits the sale
+- **Save & Stay on Sale** — saves and stays
+- Divider, then any existing sale-level actions below (View Sale Details, Add Order Notes, Void Sale, etc.)
 
 ---
 
-## Part 3 — Add New Cart States and "Fulfill & Checkout" Button
+## Part 3 — Cart Row FF Status and Checkout Behavior
 
-### Cart Row States After "Send to Fulfillment"
+### Cart Row FF Status
 
-After either Send action, each cart row shows a small status badge below the product name. Do not disable qty controls or the trash icon — the cart remains editable.
+After the ticket is saved, cart rows show fulfillment verification status based on what FF has actually confirmed. Do not disable qty controls or the trash icon — the cart remains editable.
 
-| State | When | Left border color | Badge label |
+| State | When | Left border color | Badge |
 |---|---|---|---|
-| Awaiting Scan | Sent to fulfillment, not yet verified at POS | Amber (#FFB300) | "⏳ Awaiting scan" |
-| Verified | Scanned and confirmed in the scan modal | Green (#8BC34A) | "✓ Verified" |
-| Needs Scan | Added via + after fulfillment was already sent | Orange (#E65100) | "+ Needs scan" |
+| No badge | Ticket not yet saved, or FF has not yet confirmed this item | None | — |
+| Verified by fulfillment | FF has confirmed this item (fulfilledQuantity = quantity) | Green (#8BC34A) | "✓ Verified by fulfillment" |
 
-When an item is added via the left panel + button after the order has been sent, it appears immediately with the "Needs Scan" (orange) treatment.
+There are no invented intermediate states ("Awaiting Scan," "Needs Scan"). The badge only appears when FF has positively confirmed an item. Everything else shows no badge.
 
-### "Fulfill & Checkout" Button
+### Checkout Button Behavior
 
-After sending to fulfillment, the Checkout button label changes to **"Fulfill & Checkout"** (same green style, same position).
+The Checkout button label does **not** change. It always reads **"Checkout"**.
 
-- If all items in the cart are already Verified, the label reverts to **"Checkout"** (normal green checkout behavior).
-- Tapping "Fulfill & Checkout" opens the Scan Modal — see Part 4.
+When the budtender taps Checkout:
+- **If all items are verified by FF** (or config does not require scanning): proceed to checkout normally.
+- **If scanning is required** (based on store config and unverified items): the Scan Modal opens instead — see Part 4. A small indicator below the Checkout button reads: *"Items require scanning before checkout"* while any items remain unverified.
 
 ---
 
 ## Part 4 — Add Scan Modal (Replaces Validate Mode)
 
-This modal opens when "Fulfill & Checkout" is tapped. It is a centered overlay on top of the POS, not a full-screen mode change.
+This modal opens when Checkout is tapped and scanning is required. It is a centered overlay on top of the POS, not a full-screen mode change.
 
 **Important behavior:** Every time the modal opens, all scan state resets to zero. There is no carry-over from a previous checkout attempt. Items that were verified in a prior attempt start as pending again.
 
@@ -142,7 +149,7 @@ When every item reaches Verified:
 
 ### Closing the Modal Without Completing
 
-Tapping X closes the modal. All scan progress is discarded. Cart rows that were showing as "Verified" from this attempt revert to "Awaiting Scan." The next tap of "Fulfill & Checkout" starts fresh.
+Tapping X closes the modal. All scan progress is discarded. Cart rows continue to show only their FF-confirmed status — no POS scan progress is persisted. The next tap of Checkout starts the scan modal fresh.
 
 ---
 
@@ -179,14 +186,12 @@ Post-override: show a small red warning label below the checkout summary area: "
 
 | Trigger | Action |
 |---|---|
-| Cart empty → tap "Send to Fulfillment" | Nothing (button disabled) |
-| Cart has items → tap "Send to Fulfillment" | Open confirmation modal |
-| Tap "Cancel" in confirmation modal | Dismiss, return to cart |
-| Tap "Send & Stay on Sale" | Save ticket, show toast, update cart rows to Awaiting Scan, relabel Checkout → "Fulfill & Checkout", stay on sale |
-| Tap "Send & Exit Sale" | Same as above, then exit sale session |
-| All items already Verified → tap "Fulfill & Checkout" | Skip scan modal, proceed to checkout directly (label shows "Checkout") |
-| Some items not Verified → tap "Fulfill & Checkout" | Open scan modal, all items start as pending |
-| Tap X in scan modal | Close modal, discard all scan progress, reset Verified rows to Awaiting Scan |
+| Tap "Save & Exit" | Save sale, show toast "Sale saved.", exit to customer queue; FF status pill appears |
+| Tap "Save & Stay" | Save sale, show toast "Sale saved.", remain on active sale screen; FF status pill appears |
+| FF confirms an item | That cart row gains green "✓ Verified by fulfillment" badge |
+| All items verified by FF → tap Checkout | Proceed to checkout normally, no scan modal |
+| Some items not verified by FF → tap Checkout | Scan modal opens; all items start as pending regardless of FF status |
+| Tap X in scan modal | Close modal, discard all scan progress |
 | "Simulate: Correct Scan" | Mark next pending item as Verified, update progress bar and filter counts |
 | "Simulate: Wrong Product" | Show Wrong Product modal |
 | "Simulate: Wrong Package" | Show Package Mismatch modal |
@@ -196,7 +201,6 @@ Post-override: show a small red warning label below the checkout summary area: "
 | Tap "Verified — Checkout" | Complete checkout |
 | Tap "Manager Override" in scan modal footer | Open override modal |
 | Tap "Override & Checkout" | Close scan modal, proceed to checkout, show red warning label |
-| Add item via + after Send to Fulfillment | New cart row appears with "Needs Scan" (orange) badge; item added as pending to scan modal item list |
 
 ---
 
@@ -210,25 +214,24 @@ The order was already processed by the fulfillment team and reached Packed & Rea
 
 ### Trigger button — location and style
 
-Add a **"⚡ Fallback Scenario"** button to the **bottom bar of the cart** (same row as Send to Fulfillment), not inside the scan modal's simulate controls.
+Add a **"⚡ Fallback Scenario"** button to the **bottom bar of the cart** (same row as Save & Exit and Save & Stay), not inside the scan modal's simulate controls.
 
 - Style: ghost/outlined button with amber border (#FFB300) and orange text (#E65100), slightly smaller font than the primary buttons
 - Include a tooltip or title attribute: "Simulate: order was Packed & Ready, new item added at POS"
 - The fallback button disables itself after being tapped — the scenario is one-time setup only.
-- The "Send to Fulfillment" button remains visible and active after the fallback button is tapped. The cashier must still tap "Send to Fulfillment" to sync the updated order (with the new item) to the fulfillment dashboard.
 
 ### What happens when the fallback button is tapped (cart state)
 
-1. Original cart rows flip to green "✓ Verified" badges — same visual treatment as a verified item in the normal flow.
-2. A new cart row appears at the bottom with an orange "+ Needs scan" badge.
+1. Original cart rows flip to green "✓ Verified by fulfillment" badges — reflecting FF-confirmed status.
+2. A new cart row appears at the bottom with no badge — it has not been confirmed by FF.
 3. The fulfillment status pill switches to amber "🔄 In Process."
-4. The Checkout button label shows "Fulfill & Checkout."
-5. Show toast: "Fallback scenario: order pushed back from Packed & Ready."
-6. The fallback button disables itself (grayed out). The "Send to Fulfillment" button remains available — the cashier still needs to tap it to sync the new item to FF.
+4. Show toast: "Fallback scenario: order pushed back from Packed & Ready."
+5. The fallback button disables itself (grayed out).
+6. The cashier saves the updated order (Save & Exit or Save & Stay) to sync the new item to FF before proceeding to checkout.
 
 ### Scan modal — fallback pre-populated state
 
-When "Fulfill & Checkout" is tapped after the fallback scenario is set up, the scan modal opens in a different initial state from the standard flow:
+When Checkout is tapped after the fallback scenario is set up, the scan modal opens in a different initial state from the standard flow:
 
 **Original items (pre-validated by FF):**
 - Green filled checkmark circle — same circle-done style as a scanned item
@@ -254,17 +257,17 @@ When "Fulfill & Checkout" is tapped after the fallback scenario is set up, the s
 
 ### Closing and reopening the modal in fallback mode
 
-Tapping X closes the modal. When "Fulfill & Checkout" is tapped again:
-- Original items still show as pre-validated (green circles + "Confirmed by fulfillment") — this state is NOT reset on close because it comes from fulfillment data, not POS scan progress
+Tapping X closes the modal. When Checkout is tapped again:
+- Original items still show as pre-validated (green circles + "Confirmed by fulfillment") — this state is NOT reset on close because it comes from FF data, not POS scan progress
 - The new item resets to pending — its POS scan progress is discarded on close, same as in the standard flow
 
 ### Interaction wiring for this scenario
 
 | Trigger | Action |
 |---|---|
-| Tap "⚡ Fallback Scenario" button in bottom bar | Original cart rows → green Verified badges; new cart row → orange Needs Scan; FF pill → In Process (amber); Checkout → "Fulfill & Checkout"; toast shown; fallback button disables itself; Send to Fulfillment button remains visible |
-| Tap "Send to Fulfillment" after fallback setup | Opens confirmation modal; on confirm, syncs updated order (with new item) to FF; new item badge updates from "Needs Scan" to "Awaiting Scan"; original items stay Verified |
-| Tap "Fulfill & Checkout" in fallback state | Scan modal opens with original items pre-validated (green circles + "Confirmed by fulfillment" label); new item pending; progress pre-filled; subtitle shows pending count |
+| Tap "⚡ Fallback Scenario" button in bottom bar | Original cart rows → green "✓ Verified by fulfillment" badges; new cart row → no badge; FF pill → In Process (amber); toast shown; fallback button disables itself |
+| Tap Save & Exit or Save & Stay after fallback setup | Sale saved, new item synced to FF |
+| Tap Checkout in fallback state | Scan modal opens with original items pre-validated (green circles + "Confirmed by fulfillment" label); new item pending; progress pre-filled; subtitle shows pending count |
 | "Simulate: Correct Scan" in fallback modal | Marks the pending new item as verified; progress bar completes; subtitle → "All items verified — ready for checkout"; "Verified — Checkout" activates |
 | Tap X in fallback scan modal | Close modal; original items remain pre-validated on reopen; new item resets to pending |
 
@@ -277,4 +280,3 @@ Tapping X closes the modal. When "Fulfill & Checkout" is tapped again:
 - Modal overlay background: semi-transparent dark (#000 at 40% opacity)
 - Toast notifications: bottom-center, green background, white text, auto-dismiss after 3 seconds
 - Simulate scan controls: visually distinct from real UI — use a light gray bar with small muted text
-- The "Needs Scan" orange left border on cart rows should use #E65100
