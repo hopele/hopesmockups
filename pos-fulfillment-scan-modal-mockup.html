@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>POS — Fulfillment Scan Modal</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #e8e8e8; }
+
+    /* ── POS SHELL ── */
+    .pos {
+      width: 1280px; height: 800px; background: #f5f5f5;
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+      margin: 0 auto; box-shadow: 0 4px 32px rgba(0,0,0,.18);
+    }
+
+    /* Top bar */
+    .topbar {
+      background: #fff; border-bottom: 1px solid #e0e0e0;
+      padding: 0 16px; height: 52px;
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
+    .customer-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: #fff; border: 1.5px solid #e0e0e0; border-radius: 24px;
+      padding: 4px 12px 4px 6px; font-size: 13px; font-weight: 700; color: #222;
+    }
+    .customer-avatar {
+      width: 30px; height: 30px; border-radius: 50%; background: #8BC34A;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff;
+    }
+    .loyalty-dot { width: 8px; height: 8px; border-radius: 50%; background: #8BC34A; }
+    .close-x { color: #aaa; font-size: 18px; margin-left: 4px; cursor: pointer; }
+    .topbar-spacer { flex: 1; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .pill-blue { background: #1976D2; color: #fff; }
+    .pill-green { background: #8BC34A; color: #fff; }
+    .pill-green-outline { background: #fff; color: #558B2F; border: 1.5px solid #8BC34A; }
+
+    /* Tab bar */
+    .tabbar {
+      background: #fff; border-bottom: 1px solid #e0e0e0;
+      display: flex; flex-shrink: 0;
+    }
+    .tab {
+      padding: 10px 20px; font-size: 13px; font-weight: 600; color: #888;
+      border-bottom: 3px solid transparent; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .tab.active { color: #558B2F; border-bottom-color: #8BC34A; }
+    .tab-badge {
+      background: #8BC34A; color: #fff; border-radius: 10px;
+      font-size: 10px; font-weight: 700; padding: 1px 6px;
+    }
+
+    /* Body */
+    .pos-body { display: flex; flex: 1; overflow: hidden; }
+
+    /* Left panel */
+    .left-panel { width: 340px; background: #fff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; flex-shrink: 0; }
+    .search-bar { display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid #e0e0e0; }
+    .search-input {
+      flex: 1; border: 1px solid #e0e0e0; border-radius: 4px;
+      padding: 7px 10px; font-size: 13px; color: #999;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .search-btn {
+      background: #8BC34A; color: #fff; border: none; border-radius: 4px;
+      padding: 7px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .product-list { overflow-y: auto; flex: 1; }
+    .product-card {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer;
+    }
+    .product-card:hover { background: #fafafa; }
+    .prod-thumb {
+      width: 52px; height: 52px; border-radius: 4px; background: #e8f5e9;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 18px;
+    }
+    .prod-add { color: #8BC34A; font-size: 20px; font-weight: 700; margin-right: 2px; }
+    .prod-info { flex: 1; min-width: 0; }
+    .prod-brand { font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; }
+    .prod-name { font-size: 12px; font-weight: 700; color: #222; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prod-sku { font-size: 11px; color: #aaa; }
+    .prod-price { font-size: 11px; color: #555; }
+    .left-footer {
+      display: flex; border-top: 1px solid #e0e0e0;
+      flex-shrink: 0;
+    }
+    .left-footer-btn {
+      flex: 1; padding: 10px; text-align: center; font-size: 12px; font-weight: 600;
+      color: #558B2F; background: #fff; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .left-footer-btn.active { background: #558B2F; color: #fff; }
+
+    /* Right panel */
+    .right-panel { flex: 1; display: flex; flex-direction: column; background: #fff; }
+    .cart-header {
+      display: grid; grid-template-columns: 130px 1fr 110px 110px 90px 40px;
+      padding: 8px 16px; border-bottom: 1px solid #e0e0e0;
+      font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase;
+    }
+    .cart-header-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      border: 1px solid #8BC34A; border-radius: 12px; padding: 2px 8px;
+      font-size: 11px; color: #558B2F; font-weight: 700;
+    }
+    .cart-body { flex: 1; overflow-y: auto; }
+    .cart-row {
+      display: grid; grid-template-columns: 130px 1fr 110px 110px 90px 40px;
+      padding: 12px 16px; border-bottom: 1px solid #f0f0f0;
+      align-items: center; border-left: 3px solid transparent;
+      transition: background .2s, border-color .2s;
+    }
+    .cart-row.validated { background: #fafafa; }
+    .cart-row.pending { background: #fafafa; }
+    .cart-row.row-verified { background: #f9fdf4; border-left-color: #8BC34A; }
+    .cart-row.row-pending  { background: #fffdf5; border-left-color: #FFB300; }
+    .cart-row.row-new      { background: #fff8f0; border-left-color: #E65100; }
+    .row-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+      border-radius: 10px; padding: 2px 8px; margin-top: 4px;
+    }
+    .row-badge-verified { background: #e8f5e9; color: #2e7d32; }
+    .row-badge-pending  { background: #fff8e1; color: #E65100; }
+    .row-badge-new      { background: #fce8df; color: #bf360c; }
+    .qty-cell { display: flex; align-items: center; gap: 4px; }
+    .qty-icon { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 10px; color: #666; }
+    .qty-ctrl { display: flex; align-items: center; gap: 4px; }
+    .qty-minus { color: #E53935; font-size: 18px; font-weight: 700; cursor: pointer; line-height: 1; }
+    .qty-plus { color: #8BC34A; font-size: 18px; font-weight: 700; cursor: pointer; line-height: 1; }
+    .qty-label { font-size: 12px; color: #555; font-weight: 600; min-width: 28px; text-align: center; }
+    .prod-cell .prod-name { font-size: 13px; font-weight: 700; color: #222; }
+    .prod-cell .prod-pkg { font-size: 11px; color: #aaa; font-family: monospace; margin-top: 2px; }
+    .price-cell { font-size: 14px; font-weight: 600; color: #222; }
+    .total-cell { font-size: 14px; font-weight: 700; color: #222; }
+    .delete-cell { color: #E53935; font-size: 18px; cursor: pointer; text-align: center; }
+
+    /* Validation indicator on row */
+    .val-indicator { display: flex; align-items: center; }
+    .val-circle-pending {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid #bdbdbd; background: #fff; flex-shrink: 0;
+    }
+    .val-circle-done {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #8BC34A; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .val-circle-done svg { width: 12px; height: 12px; }
+
+    /* Bottom bar */
+    .bottom-bar {
+      border-top: 1px solid #e0e0e0; padding: 10px 16px;
+      display: flex; align-items: center; gap: 16px; flex-shrink: 0;
+      background: #fff;
+    }
+    .receipt-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .receipt-num { font-size: 13px; font-weight: 700; color: #222; }
+    .receipt-row { display: flex; align-items: center; gap: 10px; }
+    .sale-type-select {
+      border: 1px solid #e0e0e0; border-radius: 4px; padding: 4px 8px;
+      font-size: 12px; color: #555; background: #fff;
+    }
+    .order-notes { font-size: 12px; color: #aaa; }
+    .bottom-actions { display: flex; gap: 8px; align-items: center; }
+    .ghost-btn {
+      border: 1.5px solid #e0e0e0; background: #fff; border-radius: 4px;
+      padding: 7px 14px; font-size: 12px; font-weight: 600; color: #555; cursor: pointer;
+    }
+    .ghost-btn.disabled { color: #bbb; border-color: #eee; cursor: not-allowed; }
+    .request-btn {
+      background: #8BC34A; color: #fff; border: none; border-radius: 4px;
+      padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .totals { display: flex; flex-direction: column; gap: 1px; font-size: 12px; color: #555; min-width: 130px; }
+    .totals .total-line { display: flex; justify-content: space-between; }
+    .totals .grand { font-size: 14px; font-weight: 700; color: #8BC34A; }
+    .checkout-btn {
+      background: #558B2F; color: #fff; border: none; border-radius: 4px;
+      padding: 10px 28px; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap;
+    }
+    .checkout-btn.disabled { background: #bdbdbd; cursor: not-allowed; }
+
+    /* ── OVERLAY ── */
+    .overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s;
+    }
+    .overlay.visible { opacity: 1; pointer-events: all; }
+
+    /* ── SCAN MODAL ── */
+    .scan-modal {
+      background: #fff; border-radius: 10px;
+      width: 560px; max-height: 640px;
+      display: flex; flex-direction: column;
+      box-shadow: 0 8px 48px rgba(0,0,0,.28);
+      transform: translateY(12px); transition: transform .2s;
+    }
+    .overlay.visible .scan-modal { transform: translateY(0); }
+
+    .modal-header {
+      padding: 20px 24px 16px; border-bottom: 1px solid #e5e7eb;
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+    .modal-subtitle { font-size: 13px; color: #888; margin-top: 2px; }
+    .modal-close { color: #aaa; font-size: 20px; cursor: pointer; line-height: 1; padding: 2px; }
+    .modal-close:hover { color: #555; }
+
+    /* Progress bar */
+    .progress-section { padding: 14px 24px; border-bottom: 1px solid #f0f0f0; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 6px; }
+    .progress-label .progress-count { font-weight: 700; color: #558B2F; }
+    .progress-track { height: 6px; background: #e5e7eb; border-radius: 3px; }
+    .progress-fill { height: 6px; background: #8BC34A; border-radius: 3px; transition: width .3s; }
+
+    /* Scan input */
+    /* Filter tabs */
+    .modal-filter { display: flex; gap: 0; padding: 10px 24px 0; border-bottom: 1px solid #e5e7eb; }
+    .filter-tab {
+      padding: 6px 16px 10px; font-size: 13px; font-weight: 600; color: #888;
+      border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .filter-tab:hover { color: #555; }
+    .filter-tab.active { color: #558B2F; border-bottom-color: #8BC34A; }
+    .filter-count {
+      font-size: 11px; font-weight: 700; border-radius: 10px;
+      padding: 1px 7px; background: #f0f0f0; color: #888;
+    }
+    .filter-tab.active .filter-count { background: #e8f5e9; color: #558B2F; }
+
+    /* Item list */
+    .modal-items { overflow-y: auto; flex: 1; padding: 8px 0; }
+    .modal-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 24px; border-bottom: 1px solid #f5f5f5;
+      transition: background .15s;
+    }
+    .modal-item:last-child { border-bottom: none; }
+    .modal-item.item-validated { background: #f9fdf4; }
+    .modal-item.item-pending { background: #fff; }
+    .modal-item.item-prevalidated { background: #f9fdf4; }
+    .item-prevalidated-label { font-size: 11px; color: #8BC34A; font-weight: 600; margin-top: 2px; }
+
+    .item-status-icon { flex-shrink: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+    .circle-pending {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2px solid #d0d0d0; background: #fff;
+    }
+    .circle-partial {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 3px solid #FFB300; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: #E65100;
+    }
+    .circle-done {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #8BC34A; display: flex; align-items: center; justify-content: center;
+    }
+    .circle-done svg { width: 14px; height: 14px; }
+
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+    .item-pkg { font-size: 11px; color: #aaa; font-family: monospace; margin-top: 1px; }
+    .item-scan-progress { font-size: 11px; color: #E65100; font-weight: 600; margin-top: 2px; }
+
+    .item-qty-badge {
+      background: #f0f0f0; border-radius: 12px; padding: 3px 10px;
+      font-size: 12px; font-weight: 700; color: #555; flex-shrink: 0;
+    }
+    .item-qty-badge.done { background: #f1f8e9; color: #558B2F; }
+
+    /* Modal footer */
+    .modal-footer {
+      padding: 14px 24px; border-top: 1px solid #e5e7eb;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-override-link { font-size: 12px; color: #aaa; cursor: pointer; text-decoration: underline; }
+    .modal-override-link:hover { color: #555; }
+    .modal-cancel-link { font-size: 12px; color: #aaa; cursor: pointer; text-decoration: underline; }
+    .modal-done-btn {
+      background: #558B2F; color: #fff; border: none; border-radius: 6px;
+      padding: 9px 24px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .modal-done-btn.disabled { background: #bdbdbd; cursor: not-allowed; }
+
+    /* ── CONFIRM MODAL (Request Items) ── */
+    .confirm-modal {
+      background: #fff; border-radius: 10px; width: 460px;
+      padding: 28px; box-shadow: 0 8px 48px rgba(0,0,0,.28);
+      transform: translateY(12px); transition: transform .2s;
+    }
+    .overlay.visible .confirm-modal { transform: translateY(0); }
+    .confirm-title { font-size: 18px; font-weight: 700; color: #1a1a1a; margin-bottom: 10px; }
+    .confirm-body { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 16px; }
+    .confirm-checkbox-row {
+      display: flex; align-items: center; gap: 10px;
+      background: #f9fdf4; border: 1px solid #c5e1a5; border-radius: 6px;
+      padding: 10px 14px; margin-bottom: 20px; cursor: pointer;
+    }
+    .confirm-checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #8BC34A; cursor: pointer; flex-shrink: 0; }
+    .confirm-checkbox-label { font-size: 13px; font-weight: 600; color: #333; cursor: pointer; }
+    .confirm-actions { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: 4px; }
+    .confirm-cancel { border: 1.5px solid #e0e0e0; background: #fff; border-radius: 6px; padding: 9px 20px; font-size: 14px; font-weight: 600; color: #555; cursor: pointer; }
+    .confirm-send-group { display: flex; gap: 8px; }
+    .confirm-send-stay { border: 1.5px solid #8BC34A; background: #fff; color: #558B2F; border-radius: 6px; padding: 9px 20px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .confirm-send-exit { background: #8BC34A; color: #fff; border: none; border-radius: 6px; padding: 9px 20px; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+    /* ── PROMPT MODAL (wrong item / mismatch) ── */
+    .prompt-modal {
+      background: #fff; border-radius: 10px; width: 420px;
+      padding: 24px; box-shadow: 0 8px 48px rgba(0,0,0,.28);
+    }
+    .prompt-icon { font-size: 32px; margin-bottom: 12px; }
+    .prompt-title { font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+    .prompt-body { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 8px; }
+    .prompt-pkg { font-size: 12px; color: #888; font-family: monospace; background: #f5f5f5; padding: 6px 10px; border-radius: 4px; margin: 8px 0; }
+    .prompt-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .prompt-cancel { border: 1.5px solid #e0e0e0; background: #fff; border-radius: 6px; padding: 8px 18px; font-size: 13px; font-weight: 600; color: #555; cursor: pointer; }
+    .prompt-confirm { background: #8BC34A; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+    /* ── OVERRIDE MODAL ── */
+    .override-modal {
+      background: #fff; border-radius: 10px; width: 380px;
+      padding: 28px; box-shadow: 0 8px 48px rgba(0,0,0,.28);
+    }
+    .override-title { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+    .override-body { font-size: 13px; color: #888; margin-bottom: 20px; line-height: 1.5; }
+    .pin-input {
+      width: 100%; border: 2px solid #e0e0e0; border-radius: 6px;
+      padding: 10px; font-size: 22px; text-align: center; letter-spacing: 12px;
+      color: #1a1a1a; outline: none; margin-bottom: 20px;
+    }
+    .pin-input:focus { border-color: #8BC34A; }
+    .override-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .override-cancel { border: 1.5px solid #e0e0e0; background: #fff; border-radius: 6px; padding: 9px 18px; font-size: 13px; font-weight: 600; color: #555; cursor: pointer; }
+    .override-confirm { background: #E53935; color: #fff; border: none; border-radius: 6px; padding: 9px 18px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+    /* ── SIMULATE CONTROLS (prototype helper) ── */
+    .sim-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 24px; background: #f5f5f5; border-top: 1px solid #e5e7eb;
+      flex-wrap: wrap;
+    }
+    .sim-bar-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #aaa; white-space: nowrap; }
+    .sim-btn {
+      background: #333; color: #fff; border: none; border-radius: 5px;
+      padding: 5px 11px; font-size: 11px; font-weight: 600; cursor: pointer;
+      white-space: nowrap;
+    }
+    .sim-btn:hover { background: #111; }
+
+    /* Toast */
+    .toast {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #323232; color: #fff; border-radius: 6px;
+      padding: 10px 20px; font-size: 13px; font-weight: 600;
+      opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 300;
+      white-space: nowrap;
+    }
+    .toast.visible { opacity: 1; }
+
+    /* State label */
+    .state-label {
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+      background: #222; color: #fff; border-radius: 20px;
+      padding: 4px 16px; font-size: 11px; font-weight: 700; z-index: 400;
+      letter-spacing: .04em; text-transform: uppercase; opacity: .7;
+    }
+
+    /* Fulfillment status pill in cart */
+    .ff-status-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      border-radius: 12px; padding: 2px 10px;
+      font-size: 11px; font-weight: 700;
+    }
+    .ff-awaiting { background: #f5f5f5; color: #888; border: 1px solid #ddd; }
+    .ff-inprocess { background: #fff8e1; color: #E65100; border: 1px solid #FFB300; }
+    .ff-ready { background: #f1f8e9; color: #558B2F; border: 1px solid #c5e1a5; }
+  </style>
+</head>
+<body>
+
+<div class="pos" id="pos">
+  <div class="state-label" id="stateLabel">Build Mode</div>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="customer-chip">
+      <div class="customer-avatar">HC</div>
+      <div class="loyalty-dot"></div>
+      <span>HOPE CUSTOMER</span>
+      <span class="close-x">×</span>
+    </div>
+    <div class="topbar-spacer"></div>
+    <span class="pill pill-blue">Redeem AIQ Rewards</span>
+    <span class="pill pill-blue">⚡ Purchase Limits</span>
+    <span class="pill pill-green">✎ Customer Notes</span>
+    <span class="pill pill-green">★ Suggestions</span>
+    <span class="pill pill-green-outline">↗ Current Sale (0:38)</span>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tabbar">
+    <div class="tab active">🛒 NEW SALE <span class="tab-badge">3</span></div>
+    <div class="tab">🕐 PURCHASED</div>
+    <div class="tab">↩ RETURNS</div>
+    <div class="tab">💾 SAVED SALES</div>
+  </div>
+
+  <!-- Body -->
+  <div class="pos-body">
+
+    <!-- Left panel -->
+    <div class="left-panel">
+      <div class="search-bar">
+        <div class="search-input">🔍 <span style="color:#bbb">Search Products</span></div>
+        <button class="search-btn">Search</button>
+      </div>
+      <div class="product-list">
+        <div class="product-card" onclick="addProduct('🥤','ANDREW BEVERAGE - 2 PACK - SKU 001','$22.00')"><span class="prod-add">+</span><div class="prod-thumb">🌿</div><div class="prod-info"><div class="prod-brand">ANY BRAND</div><div class="prod-name">ANDREW BEVERAGE - 2 PACK - SKU 001</div><div class="prod-sku">SKU 1</div><div class="prod-price">$22.00 · 2mg · (894 units)</div></div></div>
+        <div class="product-card" onclick="addProduct('⚗️','API_EXTRACT_2024-11-14_22-09-40','$100.00')"><span class="prod-add">+</span><div class="prod-thumb">⚗️</div><div class="prod-info"><div class="prod-brand">API_AUTOMATION</div><div class="prod-name">API_EXTRACT_2024-11-14_22-09-40</div><div class="prod-sku">SKU 4vR</div><div class="prod-price">$100.00 · 1g · (73 units)</div></div></div>
+        <div class="product-card" onclick="addProduct('🌿','API_PREROLL_FLOWER_2025-03-19_11-52-39','$100.00')"><span class="prod-add">+</span><div class="prod-thumb">🌿</div><div class="prod-info"><div class="prod-brand">API_AUTOMATION</div><div class="prod-name">API_PREROLL_FLOWER_2025-03-19_11-52-39</div><div class="prod-sku">SKU I5p</div><div class="prod-price">$100.00 · 1g · (89 units)</div></div></div>
+        <div class="product-card" onclick="addProduct('🌿','API_VANILLA_54625446','$4.20')"><span class="prod-add">+</span><div class="prod-thumb">🌿</div><div class="prod-info"><div class="prod-brand">API_AUTOMATION_VANILLA</div><div class="prod-name">API_VANILLA_54625446</div><div class="prod-sku">SKU N2q</div><div class="prod-price">$4.20 · 3.5unit · (1 units)</div></div></div>
+        <div class="product-card" onclick="addProduct('🌿','AUTO_NAME17457843658','$15.50')"><span class="prod-add">+</span><div class="prod-thumb">🌿</div><div class="prod-info"><div class="prod-brand">API_AUTOMATION</div><div class="prod-name">AUTO_NAME17457843658</div><div class="prod-sku">SKU Lqp</div><div class="prod-price">$15.50 · 2.7mg · (56 units)</div></div></div>
+        <div class="product-card" onclick="addProduct('⚗️','BULK EXTRACT - 1G','$100.00')"><span class="prod-add">+</span><div class="prod-thumb">⚗️</div><div class="prod-info"><div class="prod-brand">HOPE</div><div class="prod-name">BULK EXTRACT - 1G</div><div class="prod-sku">SKU bulk</div><div class="prod-price">$100.00 · 1g · (100.3 g)</div></div></div>
+      </div>
+      <div class="left-footer">
+        <button class="left-footer-btn">⊞ Categories</button>
+        <button class="left-footer-btn active">⊕ Expand Results</button>
+      </div>
+    </div>
+
+    <!-- Right panel (cart) -->
+    <div class="right-panel">
+      <div class="cart-header">
+        <span>Type / Qty</span>
+        <span>Product Name</span>
+        <span><span class="cart-header-pill">💲 Pricing</span></span>
+        <span><span class="cart-header-pill">🏷 Discount</span></span>
+        <span>Total</span>
+        <span></span>
+      </div>
+      <div class="cart-body">
+
+        <!-- Row 1 -->
+        <div class="cart-row" id="row1">
+          <div class="qty-cell">
+            <div class="qty-icon">⚗️</div>
+            <div class="qty-ctrl">
+              <span class="qty-minus">−</span>
+              <span class="qty-label">1qty</span>
+              <span class="qty-plus">+</span>
+            </div>
+          </div>
+          <div class="prod-cell">
+            <div class="prod-name">API_EXTRACT_2024-11-14_22-09-40</div>
+            <div class="prod-pkg">6ZS0A2WAZ7I96TTWAW7CHLE6</div>
+            <div id="rowbadge1"></div>
+          </div>
+          <div class="price-cell">$100.00</div>
+          <div></div>
+          <div class="total-cell">$100.00</div>
+          <div class="delete-cell">🗑</div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="cart-row" id="row2">
+          <div class="qty-cell">
+            <div class="qty-icon">🌿</div>
+            <div class="qty-ctrl">
+              <span class="qty-minus">−</span>
+              <span class="qty-label">1qty</span>
+              <span class="qty-plus">+</span>
+            </div>
+          </div>
+          <div class="prod-cell">
+            <div class="prod-name">API_PREROLL_FLOWER_2025-03-19_11-52-39</div>
+            <div class="prod-pkg">8DXMMGMB3LXYPJ5C00E1J727</div>
+            <div id="rowbadge2"></div>
+          </div>
+          <div class="price-cell">$100.00</div>
+          <div></div>
+          <div class="total-cell">$100.00</div>
+          <div class="delete-cell">🗑</div>
+        </div>
+
+        <!-- Row 3 -->
+        <div class="cart-row" id="row3">
+          <div class="qty-cell">
+            <div class="qty-icon">🥤</div>
+            <div class="qty-ctrl">
+              <span class="qty-minus">−</span>
+              <span class="qty-label">1qty</span>
+              <span class="qty-plus">+</span>
+            </div>
+          </div>
+          <div class="prod-cell">
+            <div class="prod-name">ANDREW BEVERAGE - 2 PACK - SKU 001</div>
+            <div class="prod-pkg">IR03N9IGZ65B3RXFE0CH1L8N</div>
+            <div id="rowbadge3"></div>
+          </div>
+          <div class="price-cell">$22.00</div>
+          <div></div>
+          <div class="total-cell">$22.00</div>
+          <div class="delete-cell">🗑</div>
+        </div>
+
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="bottom-bar">
+        <div class="receipt-info">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="receipt-num">RECEIPT # Q69HDQ</span>
+            <span class="ff-status-pill ff-awaiting" id="ffStatusPill" style="display:none">⏳ Awaiting Processing</span>
+          </div>
+          <div class="receipt-row" style="margin-top:4px">
+            <select class="sale-type-select"><option>In Store</option><option>Pickup</option><option>Delivery</option></select>
+            <span class="order-notes" style="color:#bbb">Order Notes</span>
+          </div>
+        </div>
+        <div class="bottom-actions">
+          <button class="ghost-btn">Print Label</button>
+          <button class="ghost-btn">Save Sale</button>
+          <button class="ghost-btn disabled" id="printReceiptBtn">Print Receipt</button>
+          <button class="request-btn" id="requestItemsBtn">Send to Fulfillment</button>
+          <button class="ghost-btn" id="fallbackSimBtn" onclick="simulateFallback()" style="border-color:#FFB300;color:#E65100;font-size:11px;" title="Simulate: order was Packed &amp; Ready, new item added at POS">⚡ Fallback Scenario</button>
+        </div>
+        <div style="flex:1"></div>
+        <div class="totals">
+          <div class="total-line"><span>Original Price:</span><span>$222.00</span></div>
+          <div class="total-line"><span>Subtotal:</span><span>$222.00</span></div>
+          <div class="total-line"><span>Taxes:</span><span>$49.06</span></div>
+          <div class="total-line grand"><span>Total:</span><span>$271.06</span></div>
+        </div>
+        <button class="checkout-btn" id="checkoutBtn">Fulfill &amp; Checkout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OVERLAYS ── -->
+
+  <!-- 1. Request Items confirm -->
+  <div class="overlay" id="overlayConfirm">
+    <div class="confirm-modal">
+      <div class="confirm-title">Send to Fulfillment</div>
+      <div class="confirm-body">This will save the sale and surface the order in the fulfillment dashboard. When the items are ready, tap <strong>Fulfill &amp; Checkout</strong> to scan and confirm each item.</div>
+      <label class="confirm-checkbox-row">
+        <input type="checkbox" id="printReceiptCheck" checked/>
+        <span class="confirm-checkbox-label">Print packing receipt</span>
+      </label>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" onclick="closeOverlay('overlayConfirm')">Cancel</button>
+        <div class="confirm-send-group">
+          <button class="confirm-send-stay" onclick="sendToFulfillment(false)">Send &amp; Stay on Sale</button>
+          <button class="confirm-send-exit" onclick="sendToFulfillment(true)">Send &amp; Exit Sale</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Scan verification modal -->
+  <div class="overlay" id="overlayScan">
+    <div class="scan-modal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Scan Items to Verify</div>
+          <div class="modal-subtitle" id="modalSubtitle">Scan each item to confirm before checkout</div>
+        </div>
+        <span class="modal-close" onclick="closeScanModal()">×</span>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-section">
+        <div class="progress-label">
+          <span>Items verified</span>
+          <span class="progress-count" id="progressCount">0 / 3</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Scan instruction -->
+      <!-- Filter tabs -->
+      <div class="modal-filter">
+        <div class="filter-tab active" id="ftab-all" onclick="setFilter('all', this)">All <span class="filter-count" id="fcount-all">3</span></div>
+        <div class="filter-tab" id="ftab-scanned" onclick="setFilter('scanned', this)">Scanned <span class="filter-count" id="fcount-scanned">0</span></div>
+        <div class="filter-tab" id="ftab-waiting" onclick="setFilter('waiting', this)">Waiting <span class="filter-count" id="fcount-waiting">3</span></div>
+      </div>
+
+      <!-- Items -->
+      <div class="modal-items" id="modalItems">
+
+        <div class="modal-item item-pending" id="mitem1">
+          <div class="item-status-icon">
+            <div class="circle-pending" id="mstatus1"></div>
+          </div>
+          <div class="item-info">
+            <div class="item-name">API_EXTRACT_2024-11-14_22-09-40</div>
+            <div class="item-pkg">6ZS0A2WAZ7I96TTWAW7CHLE6</div>
+            <div class="item-scan-progress" id="mprogress1" style="display:none"></div>
+          </div>
+          <div class="item-qty-badge" id="mqty1">1 unit</div>
+        </div>
+
+        <div class="modal-item item-pending" id="mitem2">
+          <div class="item-status-icon">
+            <div class="circle-pending" id="mstatus2"></div>
+          </div>
+          <div class="item-info">
+            <div class="item-name">API_PREROLL_FLOWER_2025-03-19_11-52-39</div>
+            <div class="item-pkg">8DXMMGMB3LXYPJ5C00E1J727</div>
+            <div class="item-scan-progress" id="mprogress2" style="display:none"></div>
+          </div>
+          <div class="item-qty-badge" id="mqty2">1 unit</div>
+        </div>
+
+        <div class="modal-item item-pending" id="mitem3">
+          <div class="item-status-icon">
+            <div class="circle-pending" id="mstatus3"></div>
+          </div>
+          <div class="item-info">
+            <div class="item-name">ANDREW BEVERAGE - 2 PACK - SKU 001</div>
+            <div class="item-pkg">IR03N9IGZ65B3RXFE0CH1L8N</div>
+            <div class="item-scan-progress" id="mprogress3" style="display:none"></div>
+          </div>
+          <div class="item-qty-badge" id="mqty3">1 unit</div>
+        </div>
+
+      </div>
+
+      <!-- Prototype sim controls -->
+      <div class="sim-bar">
+        <span class="sim-bar-label">Simulate scan:</span>
+        <button class="sim-btn" onclick="simScanCorrect()">✓ Correct Item</button>
+        <button class="sim-btn" onclick="openOverlay('overlayWrongItem')">✗ Wrong Product</button>
+        <button class="sim-btn" onclick="openOverlay('overlayMismatch')">⚠ Wrong Package</button>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <span class="modal-override-link" onclick="openOverlay('overlayOverride')">Manager Override</span>
+          <button class="modal-done-btn disabled" id="modalDoneBtn" onclick="completeValidation()">Verified — Checkout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Wrong item -->
+  <div class="overlay" id="overlayWrongItem">
+    <div class="prompt-modal">
+      <div class="prompt-icon">⚠️</div>
+      <div class="prompt-title">Product Not on Order</div>
+      <div class="prompt-body"><strong>API_VANILLA_54625446</strong> is not on this order. Would you like to add it?</div>
+      <div class="prompt-actions">
+        <button class="prompt-cancel" onclick="closeOverlay('overlayWrongItem')">Cancel</button>
+        <button class="prompt-confirm" onclick="addWrongItem()">Add to Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Package mismatch -->
+  <div class="overlay" id="overlayMismatch">
+    <div class="prompt-modal">
+      <div class="prompt-icon">📦</div>
+      <div class="prompt-title">Different Package Scanned</div>
+      <div class="prompt-body">The scanned package is a different batch than the one on this order. Update the order to use the scanned package?</div>
+      <div class="prompt-pkg">Original: &nbsp;6ZS0A2WAZ7I96TTWAW7CHLE6<br>Scanned: &nbsp;XK9TPLR3BVN24WMQE8Z7JD05</div>
+      <div class="prompt-actions">
+        <button class="prompt-cancel" onclick="closeOverlay('overlayMismatch')">Keep Original</button>
+        <button class="prompt-confirm" onclick="confirmMismatch()">Update Package</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Manager override -->
+  <div class="overlay" id="overlayOverride">
+    <div class="override-modal">
+      <div class="override-title">Manager Override — Skip Validation</div>
+      <div class="override-body">A manager PIN is required to bypass fulfillment validation. This action will be logged with the ticket record.</div>
+      <input class="pin-input" type="password" placeholder="· · · ·" maxlength="4"/>
+      <div class="override-actions">
+        <button class="override-cancel" onclick="closeOverlay('overlayOverride')">Cancel</button>
+        <button class="override-confirm" onclick="doOverride()">Override &amp; Checkout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+  // Filter
+  let activeFilter = 'all';
+  function setFilter(f, el) {
+    activeFilter = f;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    applyFilter();
+  }
+  function applyFilter() {
+    document.querySelectorAll('.modal-item').forEach(item => {
+      const isDone = item.classList.contains('item-validated');
+      if (activeFilter === 'all') item.style.display = '';
+      else if (activeFilter === 'scanned') item.style.display = isDone ? '' : 'none';
+      else if (activeFilter === 'waiting') item.style.display = isDone ? 'none' : '';
+    });
+  }
+
+  // State
+  let validated = [false, false, false];
+  let fulfillmentSent = false;
+  let newItemCount = 0;
+  let fallbackMode = false;       // true when original items were pre-validated by FF
+  let prevalidatedCount = 0;      // number of items pre-validated by FF (never rescanned)
+  // Maps modal item index → {rowId, badgeId}
+  let rowMap = { 0: {r:'row1',b:'rowbadge1'}, 1: {r:'row2',b:'rowbadge2'}, 2: {r:'row3',b:'rowbadge3'} };
+
+  // Cart row helpers
+  function setRowState(rowId, badgeId, state) {
+    const row = document.getElementById(rowId);
+    const badge = document.getElementById(badgeId);
+    if (!row) return;
+    row.classList.remove('row-verified', 'row-pending', 'row-new');
+    if (state === 'verified') {
+      row.classList.add('row-verified');
+      badge.innerHTML = '<span class="row-badge row-badge-verified">✓ Verified</span>';
+    } else if (state === 'pending') {
+      row.classList.add('row-pending');
+      badge.innerHTML = '<span class="row-badge row-badge-pending">⏳ Awaiting scan</span>';
+    } else if (state === 'new') {
+      row.classList.add('row-new');
+      badge.innerHTML = '<span class="row-badge row-badge-new">+ Needs scan</span>';
+    } else {
+      badge.innerHTML = '';
+    }
+  }
+
+  function simulateFallback() {
+    // Simulate: order was Packed & Ready (FF confirmed all 3 items), then a new item
+    // was added at POS, pushing the order back to In Process.
+    fallbackMode = true;
+    fulfillmentSent = true;
+
+    // Mark original 3 rows as verified (FF-confirmed)
+    setRowState('row1', 'rowbadge1', 'verified');
+    setRowState('row2', 'rowbadge2', 'verified');
+    setRowState('row3', 'rowbadge3', 'verified');
+
+    // Add a new cart row for the newly added item
+    const cart = document.getElementById('cartRows');
+    const newRowId = 'row-fallback-new';
+    const newBadgeId = 'rowbadge-fallback-new';
+    if (!document.getElementById(newRowId)) {
+      const newRow = document.createElement('div');
+      newRow.className = 'cart-row row-new';
+      newRow.id = newRowId;
+      newRow.innerHTML = `
+        <div class="qty-cell">
+          <div class="qty-icon">🌿</div>
+          <div class="qty-ctrl">
+            <span class="qty-minus">−</span>
+            <span class="qty-label">1qty</span>
+            <span class="qty-plus">+</span>
+          </div>
+        </div>
+        <div class="prod-cell">
+          <div class="prod-name">API_FLOWER_NEW_ITEM_2025</div>
+          <div class="prod-pkg">NEW·ITEM·PKG·0001</div>
+          <div id="${newBadgeId}"><span class="row-badge row-badge-new">+ Needs scan</span></div>
+        </div>
+        <div class="price-cell">$45.00</div>
+        <div></div>
+        <div class="total-cell">$45.00</div>
+        <div class="delete-cell">🗑</div>
+      `;
+      cart.appendChild(newRow);
+      rowMap[3] = { r: newRowId, b: newBadgeId };
+    }
+
+    // FF status pill → In Process
+    const pill = document.getElementById('ffStatusPill');
+    pill.style.display = 'inline-flex';
+    pill.textContent = '🔄 In Process';
+    pill.className = 'ff-status-pill ff-inprocess';
+
+    // validated array: 3 pre-validated by FF + 1 pending new item
+    validated = [true, true, true, false];
+    prevalidatedCount = 3;
+
+    // Checkout button → Fulfill & Checkout
+    document.getElementById('checkoutBtn').textContent = 'Fulfill & Checkout';
+    document.getElementById('stateLabel').textContent = 'Fallback — New Item Added';
+    document.getElementById('fallbackSimBtn').disabled = true;
+    document.getElementById('fallbackSimBtn').style.opacity = '0.4';
+    showToast('Fallback scenario: order pushed back from Packed & Ready');
+  }
+
+  function updateFilterCounts() {
+    const total = validated.length;
+    const scanned = validated.filter(Boolean).length;
+    const waiting = total - scanned;
+    document.getElementById('fcount-all').textContent = total;
+    document.getElementById('fcount-scanned').textContent = scanned;
+    document.getElementById('fcount-waiting').textContent = waiting;
+  }
+
+  function updateCheckoutLabel() {
+    const btn = document.getElementById('checkoutBtn');
+    const allVerified = validated.every(Boolean);
+    btn.textContent = allVerified ? 'Checkout' : 'Fulfill & Checkout';
+  }
+  let scanModalOpen = false;
+
+  const checkSVG = `<svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7L5.5 10.5L12 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  function openOverlay(id) {
+    document.querySelectorAll('.overlay').forEach(o => { o.classList.remove('visible'); });
+    document.getElementById(id).classList.add('visible');
+  }
+  function closeOverlay(id) {
+    document.getElementById(id).classList.remove('visible');
+    if (scanModalOpen) openOverlay('overlayScan');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('visible');
+    setTimeout(() => t.classList.remove('visible'), 2500);
+  }
+
+  // Send to Fulfillment button
+  document.getElementById('requestItemsBtn').addEventListener('click', () => {
+    openOverlay('overlayConfirm');
+  });
+
+  function sendToFulfillment(exit) {
+    const printReceipt = document.getElementById('printReceiptCheck').checked;
+    closeOverlay('overlayConfirm');
+    fulfillmentSent = true;
+    if (fallbackMode) {
+      // Original items remain Verified (FF-confirmed); only the new item syncs to FF
+      setRowState('row-fallback-new', 'rowbadge-fallback-new', 'pending');
+    } else {
+      setRowState('row1', 'rowbadge1', 'pending');
+      setRowState('row2', 'rowbadge2', 'pending');
+      setRowState('row3', 'rowbadge3', 'pending');
+    }
+    document.getElementById('ffStatusPill').style.display = 'inline-flex';
+    const printMsg = printReceipt ? ' Packing receipt printed.' : '';
+    if (exit) {
+      document.getElementById('stateLabel').textContent = 'Sale Saved — Exited';
+      showToast('Sale saved.' + printMsg + ' Returning to home screen...');
+    } else {
+      document.getElementById('stateLabel').textContent = 'Sent to Fulfillment';
+      showToast('Sale saved.' + printMsg);
+    }
+  }
+
+  function openScanModal() {
+    const modalItems = document.getElementById('modalItems');
+
+    if (fallbackMode) {
+      // Fallback mode: original items are pre-validated by FF — never reset them.
+      // Only POS-scan state (the new item) resets on reopen.
+
+      // Ensure original 3 modal items show as pre-validated
+      for (let i = 1; i <= 3; i++) {
+        const item = document.getElementById(`mitem${i}`);
+        if (item) {
+          item.classList.remove('item-pending', 'item-validated');
+          item.classList.add('item-prevalidated');
+        }
+        const statusEl = document.getElementById(`mstatus${i}`);
+        if (statusEl) {
+          statusEl.outerHTML = `<div class="circle-done" id="mstatus${i}">${checkSVG}</div>`;
+        }
+        // Add/ensure "Confirmed by fulfillment" label
+        const infoEl = document.querySelector(`#mitem${i} .item-info`);
+        if (infoEl && !infoEl.querySelector('.item-prevalidated-label')) {
+          const lbl = document.createElement('div');
+          lbl.className = 'item-prevalidated-label';
+          lbl.textContent = 'Confirmed by fulfillment';
+          infoEl.appendChild(lbl);
+        }
+        const qtyEl = document.getElementById(`mqty${i}`);
+        if (qtyEl) qtyEl.classList.add('done');
+      }
+
+      // Remove any previously added fallback new-item modal rows, then re-add fresh
+      const allItems = modalItems.querySelectorAll('.modal-item');
+      allItems.forEach((el, idx) => { if (idx >= 3) el.remove(); });
+
+      // validated[3] resets to false on each open (POS scan state)
+      validated[3] = false;
+
+      // Add the new pending item to the modal
+      const mIdx = 3;
+      const mItem = document.createElement('div');
+      mItem.className = 'modal-item item-pending';
+      mItem.id = `mitem${mIdx+1}`;
+      mItem.innerHTML = `
+        <div class="item-status-icon"><div class="circle-pending" id="mstatus${mIdx+1}"></div></div>
+        <div class="item-info">
+          <div class="item-name">API_FLOWER_NEW_ITEM_2025</div>
+          <div class="item-pkg">NEW·ITEM·PKG·0001</div>
+        </div>
+        <div class="item-qty-badge" id="mqty${mIdx+1}">1 unit</div>
+      `;
+      modalItems.appendChild(mItem);
+
+      // Ensure rowMap entry for the new item
+      rowMap[3] = { r: 'row-fallback-new', b: 'rowbadge-fallback-new' };
+
+      document.getElementById('stateLabel').textContent = 'Fallback — Scan New Item';
+
+    } else {
+      // Always mode / standard flow: full reset on every open
+      validated = [false, false, false];
+      rowMap = { 0: {r:'row1',b:'rowbadge1'}, 1: {r:'row2',b:'rowbadge2'}, 2: {r:'row3',b:'rowbadge3'} };
+
+      for (let i = 1; i <= 3; i++) {
+        const item = document.getElementById(`mitem${i}`);
+        if (item) {
+          item.classList.remove('item-validated', 'item-prevalidated');
+          item.classList.add('item-pending');
+          // Remove any pre-validated label
+          const lbl = item.querySelector('.item-prevalidated-label');
+          if (lbl) lbl.remove();
+        }
+        const statusEl = document.getElementById(`mstatus${i}`);
+        if (statusEl) statusEl.outerHTML = `<div class="circle-pending" id="mstatus${i}"></div>`;
+        const qtyEl = document.getElementById(`mqty${i}`);
+        if (qtyEl) qtyEl.classList.remove('done');
+      }
+
+      const allItems = modalItems.querySelectorAll('.modal-item');
+      allItems.forEach((el, idx) => { if (idx >= 3) el.remove(); });
+
+      ['row1','row2','row3'].forEach((rowId, i) => {
+        const row = document.getElementById(rowId);
+        if (row && row.classList.contains('row-verified')) {
+          setRowState(rowId, `rowbadge${i+1}`, 'pending');
+        }
+      });
+
+      document.getElementById('stateLabel').textContent = 'Scanning Verification';
+    }
+
+    updateProgress();
+    updateFilterCounts();
+    updateCheckoutLabel();
+    document.getElementById('modalDoneBtn').classList.add('disabled');
+
+    scanModalOpen = true;
+    openOverlay('overlayScan');
+  }
+
+  function closeScanModal() {
+    document.getElementById('overlayScan').classList.remove('visible');
+    scanModalOpen = false;
+    document.getElementById('stateLabel').textContent = fallbackMode ? 'Fallback — New Item Added' : 'Saved — Awaiting Pickup';
+  }
+
+  function updateProgress() {
+    const count = validated.filter(Boolean).length;
+    const total = validated.length;
+    document.getElementById('progressCount').textContent = `${count} / ${total}`;
+    document.getElementById('progressFill').style.width = `${(count/total)*100}%`;
+    const allDone = count === total;
+    const doneBtn = document.getElementById('modalDoneBtn');
+    doneBtn.classList.toggle('disabled', !allDone);
+    if (allDone) {
+      document.getElementById('modalSubtitle').textContent = 'All items verified — ready for checkout';
+      document.getElementById('progressFill').style.background = '#558B2F';
+    } else if (fallbackMode) {
+      const pending = total - count;
+      document.getElementById('modalSubtitle').textContent = `${pending} new item${pending !== 1 ? 's' : ''} need scanning — ${count} confirmed by fulfillment`;
+    } else {
+      document.getElementById('modalSubtitle').textContent = 'Scan each item to confirm before checkout';
+    }
+  }
+
+  function markValidated(idx) {
+    validated[idx] = true;
+    const item = document.getElementById(`mitem${idx+1}`);
+    item.classList.remove('item-pending');
+    item.classList.add('item-validated');
+    const statusEl = document.getElementById(`mstatus${idx+1}`);
+    statusEl.outerHTML = `<div class="circle-done" id="mstatus${idx+1}">${checkSVG}</div>`;
+    const qtyEl = document.getElementById(`mqty${idx+1}`);
+    if (qtyEl) qtyEl.classList.add('done');
+    // Update corresponding cart row
+    if (rowMap[idx]) setRowState(rowMap[idx].r, rowMap[idx].b, 'verified');
+    updateProgress();
+    updateCheckoutLabel();
+    updateFilterCounts();
+    applyFilter();
+  }
+
+  function simScanCorrect() {
+    const next = validated.indexOf(false);
+    if (next === -1) { showToast('All items already verified'); return; }
+    markValidated(next);
+  }
+
+  function addWrongItem() {
+    closeOverlay('overlayWrongItem');
+    // Add as new verified item in modal
+    const items = document.getElementById('modalItems');
+    const newItem = document.createElement('div');
+    newItem.className = 'modal-item item-validated';
+    newItem.innerHTML = `
+      <div class="item-status-icon"><div class="circle-done">${checkSVG}</div></div>
+      <div class="item-info">
+        <div class="item-name">API_VANILLA_54625446</div>
+        <div class="item-pkg">SKU N2q — added mid-validation</div>
+      </div>
+      <div class="item-qty-badge done">1 unit</div>
+    `;
+    items.appendChild(newItem);
+    // Extend validated array
+    validated.push(true);
+    const total = validated.length;
+    const count = validated.filter(Boolean).length;
+    document.getElementById('progressCount').textContent = `${count} / ${total}`;
+    document.getElementById('progressFill').style.width = `${(count/total)*100}%`;
+    updateProgress();
+    showToast('API_VANILLA_54625446 added and verified');
+    if (scanModalOpen) openOverlay('overlayScan');
+  }
+
+  function confirmMismatch() {
+    closeOverlay('overlayMismatch');
+    // Update pkg on item 1 if not yet validated
+    if (!validated[0]) {
+      document.querySelector('#mitem1 .item-pkg').textContent = 'XK9TPLR3BVN24WMQE8Z7JD05';
+      markValidated(0);
+      showToast('Package updated and verified');
+    } else {
+      showToast('Package updated');
+    }
+    if (scanModalOpen) openOverlay('overlayScan');
+  }
+
+  function completeValidation() {
+    if (!validated.every(Boolean)) return;
+    document.getElementById('overlayScan').classList.remove('visible');
+    scanModalOpen = false;
+    document.getElementById('stateLabel').textContent = 'All Verified — Checkout';
+    document.getElementById('ffStatusPill').textContent = '✓ Packed & Ready';
+    document.getElementById('ffStatusPill').className = 'ff-status-pill ff-ready';
+    updateCheckoutLabel();
+    showToast('All items verified — proceeding to checkout');
+  }
+
+  // Add product from left panel
+  function addProduct(icon, name, price) {
+    const cartBody = document.querySelector('.cart-body');
+    newItemCount++;
+    const rowId   = `row-new-${newItemCount}`;
+    const badgeId = `rowbadge-new-${newItemCount}`;
+    const row = document.createElement('div');
+    row.className = 'cart-row';
+    row.id = rowId;
+    row.innerHTML = `
+      <div class="qty-cell">
+        <div class="qty-icon">${icon}</div>
+        <div class="qty-ctrl">
+          <span class="qty-minus">−</span>
+          <span class="qty-label">1qty</span>
+          <span class="qty-plus">+</span>
+        </div>
+      </div>
+      <div class="prod-cell">
+        <div class="prod-name">${name}</div>
+        <div class="prod-pkg">—</div>
+        <div id="${badgeId}"></div>
+      </div>
+      <div class="price-cell">${price}</div>
+      <div></div>
+      <div class="total-cell">${price}</div>
+      <div class="delete-cell">🗑</div>
+    `;
+    cartBody.appendChild(row);
+
+    if (fulfillmentSent) {
+      // Mark as needing scan; add to modal and validated array
+      setRowState(rowId, badgeId, 'new');
+      validated.push(false);
+      const mIdx = validated.length - 1;
+      const modalItems = document.getElementById('modalItems');
+      const mItem = document.createElement('div');
+      mItem.className = 'modal-item item-pending';
+      mItem.id = `mitem${mIdx+1}`;
+      mItem.innerHTML = `
+        <div class="item-status-icon"><div class="circle-pending" id="mstatus${mIdx+1}"></div></div>
+        <div class="item-info">
+          <div class="item-name">${name}</div>
+          <div class="item-pkg">New — added after fulfillment sent</div>
+        </div>
+        <div class="item-qty-badge" id="mqty${mIdx+1}">1 unit</div>
+      `;
+      modalItems.appendChild(mItem);
+      // Register cart row so markValidated can update it
+      rowMap[mIdx] = { r: rowId, b: badgeId };
+      updateProgress();
+      updateCheckoutLabel();
+      updateFilterCounts();
+      showToast(`${name} added — needs scan before checkout`);
+    }
+  }
+
+  function doOverride() {
+    document.getElementById('overlayOverride').classList.remove('visible');
+    document.getElementById('overlayScan').classList.remove('visible');
+    scanModalOpen = false;
+    document.getElementById('stateLabel').textContent = 'Override — Proceeding to Checkout';
+    showToast('Override logged — proceeding to checkout');
+  }
+
+  // Checkout button opens scan modal
+  document.getElementById('checkoutBtn').addEventListener('click', function() {
+    if (this.classList.contains('disabled')) return;
+    openScanModal();
+  });
+</script>
+</body>
+</html>
