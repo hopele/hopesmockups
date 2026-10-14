@@ -172,13 +172,40 @@ Post-override: show a small red warning label below the checkout summary area: "
 
 ---
 
-## Part 6 — Keep These Screens Unchanged
+## Part 6 — Update Print Receipt Button
+
+The "Print Receipt" button in the bottom bar now opens a modal instead of printing immediately.
+
+**Modal title:** "Print Receipt"
+
+**Body text:** "Select which receipts to print."
+
+**Two checkbox options:**
+- **Customer Receipt** — checked by default. Subtitle: "Itemized receipt for the customer."
+- **Packing Receipt** — unchecked by default. Subtitle: "Back-of-house receipt for fulfillment."
+
+**Actions:**
+- **"Cancel"** — outlined button, dismisses modal, no print action taken.
+- **"Print"** — solid green (#8BC34A). Prints whichever options are checked. Shows toast confirming what was printed:
+  - Both checked: "Customer receipt and packing receipt printed."
+  - Customer only: "Customer receipt printed."
+  - Packing only: "Packing receipt printed."
+
+The Print Receipt button is always enabled (not gated on fulfillment state).
+
+---
+
+## Part 7 — Keep These Screens Unchanged
 
 **Screen 4 — Wrong Product Scanned modal:** Keep exactly as built. Triggered by "Simulate: Wrong Product" in the scan modal controls instead of inline scan input.
 
 **Screen 5 — Package Mismatch modal:** Keep exactly as built. Triggered by "Simulate: Wrong Package" in the scan modal controls.
 
 **Fulfillment status pill** (near Receipt # in the bottom bar): Keep as built. Still shows Awaiting Processing / In Process / Packed & Ready.
+
+---
+
+## Part 8 — Fallback Mode: New Item Added to a Previously Packed Order
 
 ---
 
@@ -201,10 +228,12 @@ Post-override: show a small red warning label below the checkout summary area: "
 | Tap "Verified — Checkout" | Complete checkout |
 | Tap "Manager Override" in scan modal footer | Open override modal |
 | Tap "Override & Checkout" | Close scan modal, proceed to checkout, show red warning label |
+| Tap "Print Receipt" | Open Print Receipt modal with Customer Receipt (checked) and Packing Receipt (unchecked) options |
+| Tap "Print" in Print Receipt modal | Print selected receipts, show toast confirming what was printed, dismiss modal |
 
 ---
 
-## Part 7 — Fallback Mode: New Item Added to a Previously Packed Order
+## Part 8 — Fallback Mode: New Item Added to a Previously Packed Order
 
 This is a distinct scenario prototyped as a separate entry point. It applies only to Fallback mode config and represents the most common real-world case for that mode.
 

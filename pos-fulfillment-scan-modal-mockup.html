@@ -593,7 +593,7 @@
           <button class="ghost-btn">Print Label</button>
           <button class="ghost-btn" onclick="saveSale(false)">Save &amp; Exit</button>
           <button class="ghost-btn" onclick="saveSale(true)">Save &amp; Stay</button>
-          <button class="ghost-btn disabled" id="printReceiptBtn">Print Receipt</button>
+          <button class="ghost-btn" id="printReceiptBtn" onclick="openOverlay('overlayPrintReceipt')">Print Receipt</button>
           <button class="request-btn" id="requestItemsBtn">Send to Fulfillment</button>
           <button class="ghost-btn" id="fallbackSimBtn" onclick="simulateFallback()" style="border-color:#FFB300;color:#E65100;font-size:11px;" title="Simulate: order was Packed &amp; Ready, new item added at POS">⚡ Fallback Scenario</button>
         </div>
@@ -610,6 +610,32 @@
   </div>
 
   <!-- ── OVERLAYS ── -->
+
+  <!-- Print Receipt modal -->
+  <div class="overlay" id="overlayPrintReceipt">
+    <div class="confirm-modal" style="width:400px;">
+      <div class="confirm-title">Print Receipt</div>
+      <div class="confirm-body" style="margin-bottom:20px;">Select which receipts to print.</div>
+      <label class="confirm-checkbox-row" style="margin-bottom:12px;">
+        <input type="checkbox" id="printCustomerReceiptCheck" checked/>
+        <span class="confirm-checkbox-label">
+          <strong>Customer Receipt</strong>
+          <span style="display:block;font-size:12px;color:#888;font-weight:400;">Itemized receipt for the customer</span>
+        </span>
+      </label>
+      <label class="confirm-checkbox-row" style="margin-bottom:24px;">
+        <input type="checkbox" id="printPackingReceiptCheck"/>
+        <span class="confirm-checkbox-label">
+          <strong>Packing Receipt</strong>
+          <span style="display:block;font-size:12px;color:#888;font-weight:400;">Back-of-house receipt for fulfillment</span>
+        </span>
+      </label>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" onclick="closeOverlay('overlayPrintReceipt')">Cancel</button>
+        <button class="confirm-send-stay" onclick="printReceipts()" style="min-width:90px;">Print</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 1. Request Items confirm -->
   <div class="overlay" id="overlayConfirm">
@@ -888,6 +914,21 @@
   let scanModalOpen = false;
 
   const checkSVG = `<svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7L5.5 10.5L12 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  function printReceipts() {
+    const customer = document.getElementById('printCustomerReceiptCheck').checked;
+    const packing = document.getElementById('printPackingReceiptCheck').checked;
+    closeOverlay('overlayPrintReceipt');
+    if (customer && packing) {
+      showToast('Customer receipt and packing receipt printed.');
+    } else if (customer) {
+      showToast('Customer receipt printed.');
+    } else if (packing) {
+      showToast('Packing receipt printed.');
+    } else {
+      showToast('No receipts selected.');
+    }
+  }
 
   function toggleSaveDropdown(e) {
     e.stopPropagation();
