@@ -81,10 +81,9 @@ Cart rows show verification status from two sources. Do not disable qty controls
 | State | When | Left border color | Badge |
 |---|---|---|---|
 | No badge | Item not yet verified by any means | None | — |
-| Verified | Item scanned and confirmed in the POS scan modal | Green (#8BC34A) | "✓ Verified" |
-| Verified by fulfillment | FF has confirmed this item (fulfilledQuantity = quantity) | Green (#8BC34A) | "✓ Verified by fulfillment" |
+| Verified | Item confirmed via POS scan modal or by the fulfillment team | Green (#8BC34A) | "✓ Verified" |
 
-Both states use the same green visual treatment — they carry the same level of certainty. There are no invented intermediate states ("Awaiting Scan," "Needs Scan"). Cart rows update in real time as items are scanned in the modal.
+There are no invented intermediate states ("Awaiting Scan," "Needs Scan"). The source of verification (POS scan vs. FF) is not distinguished — both show the same badge. Cart rows update in real time as items are scanned in the modal.
 
 ### Checkout Button Behavior
 

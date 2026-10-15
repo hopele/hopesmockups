@@ -197,6 +197,7 @@
       <a href="#override">Manager Override</a>
       <a href="#dependencies">Dependencies</a>
       <a href="#nfr">Non-Functional</a>
+      <a href="#limitations">Known Limitations</a>
     </nav>
   </aside>
 
@@ -411,9 +412,8 @@
       </ul>
 
       <h3>Scan Barcode Type — Design Constraint</h3>
-      <p>The scan verification modal accepts any barcode input and marks the item as verified on a match. The system does not distinguish between a product SKU barcode and a package/lot label barcode. This is consistent with the existing fulfillment dashboard scan behavior, which also does not enforce barcode type.</p>
-      <p>This means verification confirms "a barcode matching this product was scanned" — not "the exact FIFO-assigned package is physically in hand." This is a known limitation of the current scanning infrastructure, not a gap introduced by this feature.</p>
-      <p><strong>Scan-to-add is not treated as verification.</strong> The existing POS supports scanning a barcode to add a product to the cart. This action cannot be credited as a verification scan — the intent is different (add vs. confirm), and there is no reliable signal that the physical package was present rather than a shelf tag or display item. Verification always happens explicitly in the scan modal. POS scan progress is not reflected on cart rows — the cart only surfaces what fulfillment has confirmed via FF-confirmed status.</p>
+      <p>The scan verification modal and the FF dashboard both accept any barcode input and mark the item as verified on a match. Neither distinguishes between a product SKU barcode and a package/lot label barcode. Verification confirms "a barcode matching this product was scanned" — not "the exact FIFO-assigned package is physically in hand." This is a known system-wide limitation, not a gap introduced by this feature. See <a href="#limitations">Known Limitations</a>.</p>
+      <p><strong>Scan-to-add is not treated as verification.</strong> The existing POS supports scanning a barcode to add a product to the cart. This is a distinct action from verification — the intent is to add, not confirm, and there is no reliable signal that the physical package was present rather than a shelf tag or display item. Verification always happens explicitly in the scan modal. See <a href="#limitations">Known Limitations</a> for fast-follow recommendation.</p>
 
       <h3>Cart Row Visual States</h3>
       <table>
@@ -421,18 +421,17 @@
         <tbody>
           <tr>
             <td>No badge</td>
-            <td>Ticket not yet saved, or FF has not yet confirmed this item</td>
+            <td>Ticket not yet saved, or item not yet verified by any means</td>
             <td>No border accent; no badge</td>
           </tr>
           <tr>
-            <td><span class="badge badge-green">✓ Verified by fulfillment</span></td>
-            <td>FF has confirmed this item (<code>fulfilledQuantity = quantity</code>)</td>
-            <td>Green left border (#8BC34A); "✓ Verified by fulfillment" badge below product name</td>
+            <td><span class="badge badge-green">✓ Verified</span></td>
+            <td>Item confirmed via POS scan modal or by the fulfillment team</td>
+            <td>Green left border (#8BC34A); "✓ Verified" badge below product name</td>
           </tr>
         </tbody>
       </table>
-      <p>There are no invented intermediate states ("Awaiting Scan," "Needs Scan"). The badge appears only when FF has positively confirmed an item. Everything else shows no badge.</p>
-      <p><strong>POS scan progress is not reflected on cart rows.</strong> Scan state from the verification modal lives exclusively in the modal (persisted in Redux for the session). The cart only surfaces what the fulfillment team has confirmed. Showing a POS scan badge alongside FF-confirmed status would imply a level of certainty the system does not have — the scan modal accepts any matching barcode without distinguishing product SKU from package label. Cart rows are not updated mid-session based on modal scan activity. Qty controls and the trash icon remain enabled at all times — the cart is never locked.</p>
+      <p>There are no invented intermediate states ("Awaiting Scan," "Needs Scan"). The source of verification — POS scan modal or FF team — is not distinguished in the cart. Both carry the same level of certainty and show the same badge. Cart rows update in real time as items are scanned in the modal. Qty controls and the trash icon remain enabled at all times — the cart is never locked.</p>
 
       <h3>Fulfillment Status in Open Ticket</h3>
       <p>Fulfillment status is currently only visible in the saved sale view. This feature requires it to be surfaced in the active open ticket (edit mode) as a status pill alongside the receipt number at all times — including before the ticket is saved. This is a net-new UI change and a prerequisite for Fallback mode.</p>
@@ -698,6 +697,22 @@
           </tr>
         </tbody>
       </table>
+    </section>
+
+    <!-- Known Limitations -->
+    <section id="limitations">
+      <h2>Known Limitations</h2>
+
+      <h3>Scan barcode type is not enforced</h3>
+      <p>Neither the POS scan modal nor the FF dashboard distinguishes between a product SKU barcode (identifying the product type) and a package/lot label barcode (identifying the specific physical package assigned to this order via FIFO). Both accept any matching barcode. Verification confirms "a barcode matching this product was scanned" — not "the exact FIFO-assigned package is physically in hand." This is a system-wide limitation that applies equally to both verification sources. Enforcing package-label-only scanning would require barcode type detection infrastructure that does not currently exist.</p>
+      <p>This limitation is distinct from the scan-to-add concern below. Scanning within the POS scan modal or the FF dashboard is a deliberate verification action — the intent is unambiguous. The barcode type limitation applies to both and does not affect how verification results are surfaced in the cart.</p>
+
+      <h3>Scan-to-add is not credited as verification (MVP)</h3>
+      <p>The POS supports two ways to add an item to the cart: scanning a barcode (scan-to-add) and tapping the + button on a product card. In MVP, neither method credits the item as pre-verified in the scan modal — all items require an explicit scan at checkout regardless of how they were added.</p>
+      <p>This creates a redundant double-scan for FOH (front-of-house) stores where budtenders pick items directly from the sales floor and scan them to add to the cart. In this workflow, the budtender physically handled and scanned the item at add time — scanning it again in the verification modal is genuinely redundant.</p>
+      <p><strong>Why this is not solved in MVP:</strong> The POS does not currently track how each item was added. Both scan-to-add (<code>fetchInventoryByBarcode</code> → <code>addTicketline</code>) and + button add (<code>addTicketline</code>) produce identical ticketline records in Redux and on the server — there is no <code>addedByBarcode</code> flag anywhere in the data model. Crediting scan-to-add as pre-verified would require new in-memory Redux tracking keyed by ticketline ID at the moment of add.</p>
+      <p><strong>Operational context:</strong> The double-scan friction is specific to FOH stores running Always mode. BOH stores (where a fulfillment team picks and packs items before handing off to the budtender) benefit from explicit verification at checkout because the budtender did not physically handle the items when adding them to the cart. FOH stores using Off config are unaffected. The affected population is FOH stores running Always mode — a real but narrower scenario.</p>
+      <p><strong>Fast-follow recommendation:</strong> Track <code>addedByBarcode: true</code> in Redux at the moment a barcode scan resolves to an add (in-memory only, no DB change required). In the scan modal, items flagged <code>addedByBarcode</code> open as pre-verified with a distinct label ("Added by scan") — same visual treatment as auto-fulfilled items. "Simulate: Correct Scan" skips these items. This should be gated on a store-level config option so BOH stores are not affected.</p>
     </section>
 
     <!-- Non-Functional -->
