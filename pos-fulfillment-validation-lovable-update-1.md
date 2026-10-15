@@ -74,16 +74,17 @@ The "↗ Current Sale" pill in the top bar opens a dropdown. Add save options at
 
 ## Part 3 — Cart Row FF Status and Checkout Behavior
 
-### Cart Row FF Status
+### Cart Row Verification Status
 
-After the ticket is saved, cart rows show fulfillment verification status based on what FF has actually confirmed. Do not disable qty controls or the trash icon — the cart remains editable.
+Cart rows show verification status from two sources. Do not disable qty controls or the trash icon — the cart remains editable at all times.
 
 | State | When | Left border color | Badge |
 |---|---|---|---|
-| No badge | Ticket not yet saved, or FF has not yet confirmed this item | None | — |
+| No badge | Item not yet verified by any means | None | — |
+| Verified | Item scanned and confirmed in the POS scan modal | Green (#8BC34A) | "✓ Verified" |
 | Verified by fulfillment | FF has confirmed this item (fulfilledQuantity = quantity) | Green (#8BC34A) | "✓ Verified by fulfillment" |
 
-There are no invented intermediate states ("Awaiting Scan," "Needs Scan"). The badge only appears when FF has positively confirmed an item. Everything else shows no badge.
+Both states use the same green visual treatment — they carry the same level of certainty. There are no invented intermediate states ("Awaiting Scan," "Needs Scan"). Cart rows update in real time as items are scanned in the modal.
 
 ### Checkout Button Behavior
 
@@ -151,7 +152,7 @@ When every item reaches Verified:
 
 ### Closing the Modal Without Completing
 
-Tapping X closes the modal. Scan progress is **preserved** — items already verified remain verified. Cart rows update to show "✓ Verified" for any items scanned so far. The next tap of Checkout reopens the modal showing current state, with remaining unverified items still pending.
+Tapping X closes the modal. Scan progress is **preserved** — items already verified remain verified. Cart rows show "✓ Verified" for any items scanned so far. The next tap of Checkout reopens the modal showing current state, with remaining unverified items still pending.
 
 ---
 
