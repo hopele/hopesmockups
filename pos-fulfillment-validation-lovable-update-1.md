@@ -99,7 +99,7 @@ When the budtender taps Checkout:
 
 This modal opens when Checkout is tapped and scanning is required. It is a centered overlay on top of the POS, not a full-screen mode change.
 
-**Important behavior:** Every time the modal opens, all scan state resets to zero. There is no carry-over from a previous checkout attempt. Items that were verified in a prior attempt start as pending again.
+**Important behavior:** Scan state is persisted on the order for the session. If the cashier partially or fully scans items, closes the modal, and reopens it (e.g., after returning from the payment screen), items that were already scanned remain verified. Scan state resets only if items are added or quantities change on the order.
 
 ### Modal Structure
 
@@ -149,7 +149,7 @@ When every item reaches Verified:
 
 ### Closing the Modal Without Completing
 
-Tapping X closes the modal. All scan progress is discarded. Cart rows continue to show only their FF-confirmed status — no POS scan progress is persisted. The next tap of Checkout starts the scan modal fresh.
+Tapping X closes the modal. Scan progress is **preserved** — items already verified remain verified. Cart rows update to show "✓ Verified" for any items scanned so far. The next tap of Checkout reopens the modal showing current state, with remaining unverified items still pending.
 
 ---
 
@@ -218,7 +218,7 @@ The Print Receipt button is always enabled (not gated on fulfillment state).
 | FF confirms an item | That cart row gains green "✓ Verified by fulfillment" badge |
 | All items verified by FF → tap Checkout | Proceed to checkout normally, no scan modal |
 | Some items not verified by FF → tap Checkout | Scan modal opens; all items start as pending regardless of FF status |
-| Tap X in scan modal | Close modal, discard all scan progress |
+| Tap X in scan modal | Close modal, preserve scan progress; verified items stay verified on cart rows |
 | "Simulate: Correct Scan" | Mark next pending item as Verified, update progress bar and filter counts |
 | "Simulate: Wrong Product" | Show Wrong Product modal |
 | "Simulate: Wrong Package" | Show Package Mismatch modal |
@@ -287,8 +287,8 @@ When Checkout is tapped after the fallback scenario is set up, the scan modal op
 ### Closing and reopening the modal in fallback mode
 
 Tapping X closes the modal. When Checkout is tapped again:
-- Original items still show as pre-validated (green circles + "Confirmed by fulfillment") — this state is NOT reset on close because it comes from FF data, not POS scan progress
-- The new item resets to pending — its POS scan progress is discarded on close, same as in the standard flow
+- Original items still show as pre-validated (green circles + "Confirmed by fulfillment") — comes from FF data, never resets
+- The new item retains whatever POS scan progress was made — same persistence behavior as the standard flow
 
 ### Interaction wiring for this scenario
 
@@ -298,7 +298,7 @@ Tapping X closes the modal. When Checkout is tapped again:
 | Tap Save & Exit or Save & Stay after fallback setup | Sale saved, new item synced to FF |
 | Tap Checkout in fallback state | Scan modal opens with original items pre-validated (green circles + "Confirmed by fulfillment" label); new item pending; progress pre-filled; subtitle shows pending count |
 | "Simulate: Correct Scan" in fallback modal | Marks the pending new item as verified; progress bar completes; subtitle → "All items verified — ready for checkout"; "Verified — Checkout" activates |
-| Tap X in fallback scan modal | Close modal; original items remain pre-validated on reopen; new item resets to pending |
+| Tap X in fallback scan modal | Close modal; original items remain pre-validated on reopen; new item retains its POS scan progress |
 
 ---
 
