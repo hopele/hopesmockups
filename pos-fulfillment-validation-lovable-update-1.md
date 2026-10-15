@@ -155,7 +155,44 @@ Tapping X closes the modal. Scan progress is **preserved** — items already ver
 
 ---
 
-## Part 5 — Update Manager Override (Screen 7)
+## Part 5 — Auto-Fulfilled Items in the Scan Modal
+
+Some items are automatically marked as fulfilled by a store config that exempts certain product types or subtypes from cashier scanning. The most common cases are non-cannabis items (merch, non-inventory) and deli/bulk cannabis (e.g., flower that is weighed at the scale rather than scanned by barcode).
+
+When the scan modal opens, auto-fulfilled items appear pre-checked. No cashier action is required on them.
+
+### Visual treatment
+
+Auto-fulfilled items in the modal item list:
+- **Circle:** filled green checkmark — same as a scanned item
+- **Row background:** light blue tint (#f3f6fd) — visually distinct from FF-confirmed items (light green) and cashier-scanned items (light green)
+- **Label below package number:** small blue text — **"Auto-fulfilled · Non-cannabis"** (or "Auto-fulfilled · Deli/Bulk" depending on the reason). Color: #1565C0.
+- No cashier action required — these rows are inert
+
+The blue label color distinguishes the source from FF-confirmed items (green label "Confirmed by fulfillment").
+
+### Progress bar and subtitle
+
+Auto-fulfilled items count toward the progress bar from the moment the modal opens. The subtitle reflects how many items still need cashier scanning:
+
+- While pending items remain: **"X items need scanning · Y auto-fulfilled"**
+- When all items are done: **"All items verified — ready for checkout"**
+
+### Filter tabs
+
+Auto-fulfilled items appear in the **Scanned** tab count alongside cashier-scanned and FF-confirmed items. They appear in the **All** tab. They do not appear in the **Waiting** tab.
+
+### Simulate behavior
+
+"Simulate: Correct Scan" skips auto-fulfilled items — they are already counted as done. It targets only the next pending item that requires cashier scanning.
+
+### Prototype setup
+
+For the prototype, designate one item in the cart as non-cannabis (e.g., a beverage or merchandise item). That item opens in the scan modal as auto-fulfilled from the start. The remaining items require cashier scanning as normal.
+
+---
+
+## Part 6 — Update Manager Override
 
 Keep the existing override modal content. The only change is the trigger location:
 
@@ -174,7 +211,7 @@ Post-override: show a small red warning label below the checkout summary area: "
 
 ---
 
-## Part 6 — Update Print Receipt Button
+## Part 7 — Update Print Receipt Button
 
 The "Print Receipt" button in the bottom bar now opens a modal instead of printing immediately.
 
@@ -197,7 +234,7 @@ The Print Receipt button is always enabled (not gated on fulfillment state).
 
 ---
 
-## Part 7 — Keep These Screens Unchanged
+## Part 8 — Keep These Screens Unchanged
 
 **Screen 4 — Wrong Product Scanned modal:** Keep exactly as built. Triggered by "Simulate: Wrong Product" in the scan modal controls instead of inline scan input.
 
@@ -231,7 +268,7 @@ The Print Receipt button is always enabled (not gated on fulfillment state).
 
 ---
 
-## Part 8 — Fallback Mode: New Item Added to a Previously Packed Order
+## Part 9 — Fallback Mode: New Item Added to a Previously Packed Order
 
 This is a distinct scenario prototyped as a separate entry point. It applies only to Fallback mode config and represents the most common real-world case for that mode.
 
