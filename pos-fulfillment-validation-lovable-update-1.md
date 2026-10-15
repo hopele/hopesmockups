@@ -101,6 +101,8 @@ This modal opens when Checkout is tapped and scanning is required. It is a cente
 
 **Important behavior:** Scan state is persisted on the order for the session. If the cashier partially or fully scans items, closes the modal, and reopens it (e.g., after returning from the payment screen), items that were already scanned remain verified. Scan state resets only if items are added or quantities change on the order.
 
+**Why no backend persistence is needed:** The POS payment screen is not a separate page or route — it is a Redux tab toggle (`paymentTabShowing`) within the same SPA. Navigating to payment and back does not destroy the Redux store. Storing scan state in Redux (keyed by ticket ID) is sufficient for the core use case. `sessionStorage` keyed by ticket ID can serve as a lightweight fallback for edge cases like browser refresh or device switch, but no new DB column or API endpoint is required for MVP.
+
 ### Modal Structure
 
 **Header:**
