@@ -207,10 +207,6 @@ The Print Receipt button is always enabled (not gated on fulfillment state).
 
 ---
 
-## Part 8 — Fallback Mode: New Item Added to a Previously Packed Order
-
----
-
 ## Updated Interaction Wiring
 
 | Trigger | Action |
