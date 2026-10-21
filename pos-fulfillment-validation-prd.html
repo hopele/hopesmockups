@@ -225,7 +225,7 @@
     <section id="overview">
       <h2>Overview</h2>
       <p>In-POS Fulfillment Validation brings package scanning and confirmation into the SellTreez POS so budtenders never have to leave their screen to complete a sale. When enabled, a sale cannot proceed to checkout until the items on the order have been physically scanned and verified at the register — either by the budtender themselves or as a second confirmation after back-of-house fulfillment processing.</p>
-      <p>The feature introduces two new POS actions: <strong>Send to Fulfillment</strong>, which saves the ticket, surfaces the order in the fulfillment dashboard, and optionally prints a packing receipt at POS; and <strong>Fulfill &amp; Checkout</strong>, which opens a scan verification modal at the register before completing the sale. Together these replace the current two-tab workflow and ensure checkout cannot occur without physical product confirmation at the register.</p>
+      <p>Saving the order is how the fulfillment team is notified — saved orders surface on the FF dashboard automatically, and auto-print config on the FF side determines whether a packing receipt prints in the back. The POS bottom bar provides <strong>Save &amp; Exit</strong> and <strong>Save &amp; Stay</strong> actions in place of the old "Save Sale" button. When Checkout is tapped and scanning is required, a scan verification modal opens as a centered overlay — the cart is never locked. Once all items are verified, checkout completes normally.</p>
       <p>This flow is familiar to operators converting from Dutchie's swimlane model and is designed specifically for lean and multi-role store operations across Illinois, New Jersey, New York, and Ohio.</p>
     </section>
 
@@ -241,7 +241,7 @@
 
       <div class="callout warning">
         <div class="callout-title">Key bypass gap</div>
-        Budtenders can build an order entirely with the + button and check out without any physical product confirmation. The new flow closes this gap: printing a packing receipt and proceeding to checkout both require going through the Send to Fulfillment and scan verification steps.
+        Budtenders can build an order entirely with the + button and check out without any physical product confirmation. This feature closes that gap: when enabled, checkout triggers a scan verification modal that hard-blocks completion until every item has been scanned, with manager override as the only bypass path.
       </div>
 
       <h3>Affected Operators</h3>
@@ -284,7 +284,7 @@
         <tbody>
           <tr>
             <td><strong>Budtender / Cashier</strong></td>
-            <td>Builds the order, taps "Send to Fulfillment" to save and send a packing receipt, then taps "Fulfill &amp; Checkout" when ready to scan items and complete the sale.</td>
+            <td>Builds the order, saves via Save &amp; Exit or Save &amp; Stay (which notifies FF), then taps Checkout when ready. If scanning is required, a scan modal opens and the budtender scans each item before completing checkout.</td>
           </tr>
           <tr>
             <td><strong>BOH Staff</strong></td>
@@ -309,20 +309,22 @@
         <div class="scope-box scope-in">
           <h4>In Scope — MVP</h4>
           <ul>
-            <li>"Send to Fulfillment" button with 3-option confirmation modal</li>
-            <li>"Fulfill &amp; Checkout" button opening scan verification modal</li>
-            <li>Scan modal: per-item verification states, All/Scanned/Waiting filter with counts</li>
-            <li>Per-unit barcode scanning (one scan per unit)</li>
+            <li>Save &amp; Exit and Save &amp; Stay bottom bar actions (replace "Save Sale")</li>
+            <li>Order status pill always visible next to Receipt # (Draft → Awaiting Processing → In Process → Packed &amp; Ready)</li>
+            <li>Checkout button triggers scan modal when scanning is required; indicator text shown below button while items remain unverified</li>
+            <li>Scan modal: per-item verification states, All/Scanned/Waiting filter tabs with live counts, progress bar</li>
+            <li>Scan state preserved across modal opens within session (Redux, no new DB column)</li>
+            <li>Auto-fulfilled items pre-checked in modal by product type/subtype config (non-cannabis, deli/bulk)</li>
+            <li>Per-unit barcode scanning (one scan per unit for qty &gt; 1)</li>
             <li>Wrong product prompt + one-scan add and auto-verify</li>
             <li>Package mismatch handling (reuse existing config)</li>
-            <li>Cart row visual distinction (pending / verified / needs scan)</li>
-            <li>Always mode: full rescan of all items at every checkout attempt</li>
+            <li>Cart row "✓ Verified" badge (same badge for POS scan and FF confirmation; no intermediate states)</li>
+            <li>Print Receipt modal (Customer Receipt + Packing Receipt checkboxes; always accessible)</li>
+            <li>Always mode: POS scan required at every checkout</li>
             <li>Fallback mode: reuses existing Packed &amp; Ready block + revert-on-edit configs</li>
             <li>Config per order type (6 types × Off / Always / Fallback); default Off</li>
             <li>Manager override (PIN, logged)</li>
-            <li>Optional packing receipt print from POS on "Send to Fulfillment" (net-new; reuses existing format + routing)</li>
-            <li>Full receipt reprint on re-send (when print option is selected)</li>
-            <li>Fulfillment status surfaced in open POS ticket</li>
+            <li>Packing receipt print from POS (net-new; reuses existing format + routing)</li>
           </ul>
         </div>
         <div class="scope-box scope-out">
@@ -344,28 +346,28 @@
       <p><strong>Config: Always.</strong> No BOH involvement. Budtender is responsible for building, picking, and verifying the order entirely.</p>
       <div class="flow">
         <div class="flow-step"><div class="flow-dot">1</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Build order at POS</div><div class="flow-desc">Budtender searches and adds products.</div></div></div>
-        <div class="flow-step"><div class="flow-dot">2</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Tap "Send to Fulfillment"</div><div class="flow-desc">Saves ticket, prints packing receipt. Budtender walks to back with the receipt. Fulfillment dashboard ticket is created but may not be acted on by BOH.</div></div></div>
+        <div class="flow-step"><div class="flow-dot">2</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Save the order</div><div class="flow-desc">Budtender taps Save &amp; Exit or Save &amp; Stay. Ticket surfaces on the FF dashboard. Budtender prints a packing receipt via Print Receipt if needed as a pick list.</div></div></div>
         <div class="flow-step"><div class="flow-dot">3</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Budtender picks product</div><div class="flow-desc">FIFO assigns the oldest eligible package. Budtender grabs items and returns to register.</div></div></div>
-        <div class="flow-step"><div class="flow-dot">4</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Tap "Fulfill &amp; Checkout"</div><div class="flow-desc">Scan verification modal opens. Budtender scans all items. Every unit must be scanned fresh — no carry-over from prior sessions.</div></div></div>
-        <div class="flow-step"><div class="flow-dot">5</div><div class="flow-body"><div class="flow-label">Checkout</div><div class="flow-desc">All items verified — checkout completes normally.</div></div></div>
+        <div class="flow-step"><div class="flow-dot">4</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Tap Checkout</div><div class="flow-desc">Scan modal opens. Budtender scans all items. Scan state is preserved if the modal is closed and reopened.</div></div></div>
+        <div class="flow-step"><div class="flow-dot">5</div><div class="flow-body"><div class="flow-label">Checkout</div><div class="flow-desc">All items verified — "Verified — Checkout" completes the sale.</div></div></div>
       </div>
 
       <h3>Flow 2 — BOH Picks, Cashier Verifies (Lean Fulfillment Team)</h3>
-      <p><strong>Config: Fallback.</strong> BOH normally processes orders. If an order is Packed &amp; Ready, checkout proceeds without POS scan. If not, cashier must scan before checkout.</p>
+      <p><strong>Config: Fallback.</strong> BOH normally processes orders. If Packed &amp; Ready, checkout proceeds without POS scan. If not, cashier must scan before checkout.</p>
       <div class="flow">
         <div class="flow-step"><div class="flow-dot">1</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Build order at POS</div><div class="flow-desc">Cashier builds the order with the customer.</div></div></div>
-        <div class="flow-step"><div class="flow-dot">2</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Tap "Send to Fulfillment"</div><div class="flow-desc">Saves ticket, prints packing receipt to BOH printer, ticket surfaces on fulfillment dashboard.</div></div></div>
-        <div class="flow-step"><div class="flow-dot">3</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">BOH picks and processes</div><div class="flow-desc">BOH uses packing receipt, FIFO assigns lot, scans in fulfillment dashboard. Order moves to Packed &amp; Ready.</div></div></div>
-        <div class="flow-step"><div class="flow-dot">4</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Checkout</div><div class="flow-desc">Order is Packed &amp; Ready — existing block config is satisfied. Checkout button shows as "Checkout" (no POS scan required). If order was not processed by BOH, button shows "Fulfill &amp; Checkout" — scan modal opens and pre-validates any items FF already confirmed, so cashier only scans items FF has not yet processed.</div></div></div>
+        <div class="flow-step"><div class="flow-dot">2</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Save the order</div><div class="flow-desc">Cashier taps Save &amp; Exit or Save &amp; Stay. Ticket surfaces on the FF dashboard; BOH auto-print config determines whether a packing receipt prints in the back.</div></div></div>
+        <div class="flow-step"><div class="flow-dot">3</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">BOH picks and processes</div><div class="flow-desc">BOH uses packing receipt or FF dashboard, FIFO assigns lot, scans in fulfillment dashboard. Order moves to Packed &amp; Ready.</div></div></div>
+        <div class="flow-step"><div class="flow-dot">4</div><div class="flow-body"><div class="flow-label">Checkout</div><div class="flow-desc">Order is Packed &amp; Ready — no POS scan required, checkout proceeds. If BOH did not process the order, scan modal opens and pre-validates any FF-confirmed items; cashier only scans the rest.</div></div></div>
       </div>
 
       <h3>Flow 3 — Double Validation (BOH + Cashier Both Scan)</h3>
       <p><strong>Config: Always.</strong> BOH processes through the fulfillment dashboard AND cashier rescans at POS right before checkout. Both are required independently.</p>
       <div class="flow">
-        <div class="flow-step"><div class="flow-dot">1</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Build order + "Send to Fulfillment"</div><div class="flow-desc">Same as Flow 2 — ticket saved, packing receipt sent, fulfillment dashboard ticket created.</div></div></div>
+        <div class="flow-step"><div class="flow-dot">1</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Build and save order</div><div class="flow-desc">Same as Flow 2 — ticket saved, FF dashboard notified, packing receipt printed if configured.</div></div></div>
         <div class="flow-step"><div class="flow-dot">2</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">BOH processes in fulfillment dashboard</div><div class="flow-desc">BOH scans and processes order. FIFO assigns lot. Order moves to Packed &amp; Ready.</div></div></div>
-        <div class="flow-step"><div class="flow-dot">3</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Cashier taps "Fulfill &amp; Checkout"</div><div class="flow-desc">Scan modal opens regardless of Packed &amp; Ready status. Cashier rescans all items as a final confirmation. Always mode does not check FF status.</div></div></div>
-        <div class="flow-step"><div class="flow-dot">4</div><div class="flow-body"><div class="flow-label">Checkout</div><div class="flow-desc">All items scanned — checkout completes.</div></div></div>
+        <div class="flow-step"><div class="flow-dot">3</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Cashier taps Checkout</div><div class="flow-desc">Scan modal opens regardless of Packed &amp; Ready status. Always mode does not check FF status — cashier rescans all items as a final confirmation.</div></div></div>
+        <div class="flow-step"><div class="flow-dot">4</div><div class="flow-body"><div class="flow-label">Checkout</div><div class="flow-desc">All items verified — checkout completes.</div></div></div>
       </div>
     </section>
 
@@ -373,31 +375,25 @@
     <section id="functional">
       <h2>Functional Requirements</h2>
 
-      <h3>"Send to Fulfillment" Button</h3>
+      <h3>Save Actions</h3>
       <ul>
-        <li>Visible in the POS bottom bar when the feature config is enabled (Always or Fallback) for the active order type.</li>
-        <li>Disabled when the cart has zero items; enabled when the cart has at least one item.</li>
-        <li>Tapping opens a confirmation modal with:
-          <ul>
-            <li>A <strong>"Print packing receipt"</strong> checkbox — checked by default. Allows budtender-picks stores to print at POS; BOH-heavy stores can uncheck since their receipt comes from FF dashboard auto-print.</li>
-            <li><strong>Cancel</strong> — dismisses modal, no action taken.</li>
-            <li><strong>Send &amp; Stay on Sale</strong> — saves the ticket, surfaces order in FF dashboard, optionally prints packing receipt, remains on the active sale screen.</li>
-            <li><strong>Send &amp; Exit Sale</strong> — same as above, then exits the sale session.</li>
-          </ul>
-        </li>
-        <li>On confirmation, the ticket is saved and surfaces on the fulfillment dashboard. The fulfillment status pill on the open ticket updates to Awaiting Processing.</li>
-        <li>Does <strong>not</strong> open a scan modal — scanning happens separately at checkout via "Fulfill &amp; Checkout."</li>
-        <li>Can be tapped again after new items are added. Re-tapping presents the same modal — if the budtender checks "Print packing receipt," the full updated receipt is reprinted. The FF dashboard order is always updated with new items regardless of whether a receipt is printed.</li>
-        <li>The "Print Receipt" (customer receipt) button remains disabled until checkout is complete — it cannot be triggered from the POS bottom bar at any point before checkout.</li>
+        <li>The bottom bar provides two save buttons in place of the old "Save Sale" button: <strong>Save &amp; Exit</strong> (saves and exits to the customer queue) and <strong>Save &amp; Stay</strong> (saves and remains on the active sale screen). Both are ghost/outlined style.</li>
+        <li>Saving is how the fulfillment team is notified — the saved ticket surfaces on the FF dashboard automatically. Auto-print config on the FF side determines whether a packing receipt prints in the back. No separate "Send to Fulfillment" action is needed.</li>
+        <li>After either save action: toast appears ("Sale saved."), and the order status pill updates to Awaiting Processing.</li>
+        <li>The same save options (Save &amp; Exit / Save &amp; Stay on Sale) are available in the Current Sale dropdown in the top bar.</li>
       </ul>
 
-      <h3>"Fulfill &amp; Checkout" Button</h3>
+      <h3>Checkout Button</h3>
       <ul>
-        <li>Replaces the standard "Checkout" button label when the feature config is enabled and a POS scan is required.</li>
-        <li>In <strong>Always mode</strong>: always labeled "Fulfill &amp; Checkout." Tapping opens the scan verification modal every time, regardless of fulfillment dashboard status.</li>
-        <li>In <strong>Fallback mode</strong>: labeled "Checkout" when the order is Packed &amp; Ready (no scan required); labeled "Fulfill &amp; Checkout" when it is not (scan required before checkout).</li>
-        <li>Tapping "Fulfill &amp; Checkout" opens the scan verification modal. The modal presents all current cart items as pending — state is always fresh at the start of each checkout attempt.</li>
-        <li>Once all items in the modal are verified, the modal offers a "Verified — Checkout" action that completes the sale.</li>
+        <li>Always labeled <strong>"Checkout"</strong> — the label never changes based on fulfillment state.</li>
+        <li>When items remain unverified and scanning is required, a small indicator appears below the button: <em>"Items require scanning before checkout."</em></li>
+        <li>When tapped:
+          <ul>
+            <li><strong>All items verified</strong> (or config does not require scanning): proceed to checkout normally.</li>
+            <li><strong>Scanning required and items unverified</strong>: scan modal opens instead.</li>
+          </ul>
+        </li>
+        <li>Once all items in the modal are verified, "Verified — Checkout" completes the sale.</li>
       </ul>
 
       <h3>Scan Verification Modal</h3>
@@ -406,8 +402,9 @@
         <li>Displays a progress bar (items verified / total) and filter tabs: <strong>All</strong> / <strong>Scanned</strong> / <strong>Waiting</strong>, each with a live item count.</li>
         <li>Each line shows: product name, package number, quantity, and a validation state indicator (pending circle → checkmark on scan).</li>
         <li>For qty &gt; 1 lines: each unit requires a separate scan. Progress shown inline ("X of Y scanned").</li>
+        <li><strong>Auto-fulfilled items</strong> — store config can exempt certain product types or subtypes from cashier scanning (most commonly non-cannabis items and deli/bulk cannabis weighed at a scale). These items open pre-checked in the modal. Visual treatment: green checkmark, light blue row background (#f3f6fd), blue "Auto-fulfilled · Non-cannabis" or "Auto-fulfilled · Deli/Bulk" label. They count toward progress from open, appear in Scanned and All filter tabs, and never appear in Waiting.</li>
         <li>Closing the modal (X button) preserves all scan progress for the session. Items already verified remain verified when the modal is reopened. Scan state resets only if items are added or quantities change on the order.</li>
-        <li><strong>Persistence implementation:</strong> The POS payment screen is a Redux tab toggle (<code>paymentTabShowing</code>), not a separate page or route — navigating to payment and back does not destroy the Redux store. Scan state is stored in Redux keyed by ticket ID. <code>sessionStorage</code> keyed by ticket ID serves as a lightweight fallback for edge cases (browser refresh, device switch). No new DB column or API endpoint is required for MVP.</li>
+        <li><strong>Persistence:</strong> The POS payment screen is a Redux tab toggle (<code>paymentTabShowing</code>), not a separate page — navigating to payment and back does not destroy the Redux store. Scan state is stored in Redux keyed by ticket ID. <code>sessionStorage</code> keyed by ticket ID is a lightweight fallback for edge cases (browser refresh, device switch). No new DB column or API endpoint required for MVP.</li>
         <li>"Manager Override" link available for incomplete validation — see <a href="#override">Manager Override</a>.</li>
       </ul>
 
@@ -432,6 +429,14 @@
         </tbody>
       </table>
       <p>There are no invented intermediate states ("Awaiting Scan," "Needs Scan"). The source of verification — POS scan modal or FF team — is not distinguished in the cart. Both carry the same level of certainty and show the same badge. Cart rows update in real time as items are scanned in the modal. Qty controls and the trash icon remain enabled at all times — the cart is never locked.</p>
+
+      <h3>Print Receipt Modal</h3>
+      <ul>
+        <li>Tapping "Print Receipt" in the bottom bar opens a modal instead of printing immediately.</li>
+        <li>Two checkbox options: <strong>Customer Receipt</strong> (checked by default — itemized receipt for the customer) and <strong>Packing Receipt</strong> (unchecked by default — back-of-house receipt for fulfillment).</li>
+        <li>Print button shows a toast confirming what was printed; Cancel dismisses with no action.</li>
+        <li>Always accessible — not gated on fulfillment state or whether the ticket has been saved.</li>
+      </ul>
 
       <h3>Fulfillment Status in Open Ticket</h3>
       <p>Fulfillment status is currently only visible in the saved sale view. This feature requires it to be surfaced in the active open ticket (edit mode) as a status pill alongside the receipt number at all times — including before the ticket is saved. This is a net-new UI change and a prerequisite for Fallback mode.</p>
@@ -463,7 +468,7 @@
           </tr>
           <tr>
             <td><strong>Always</strong></td>
-            <td>POS scan required at every checkout attempt. All items rescanned fresh — no carry-over, no FF status check. "Fulfill &amp; Checkout" button always shown.</td>
+            <td>POS scan required at every checkout attempt. Scan modal always opens when Checkout is tapped — no FF status check, no carry-over from prior attempts.</td>
             <td>No</td>
             <td>No fulfillment team (budtender picks and scans themselves) <em>or</em> always scan twice (BOH processes AND cashier rescans). Both use cases share this config — the operational difference is managed by the store.</td>
           </tr>
@@ -555,11 +560,11 @@
 
     <!-- New Items After Send -->
     <section id="newitems">
-      <h2>New Items Added After Send to Fulfillment</h2>
-      <p>When a new item is added via the + button after "Send to Fulfillment" has already been tapped, behavior differs by config mode.</p>
+      <h2>New Items Added After the Order Is Saved</h2>
+      <p>When a new item is added to an order that has already been saved (and is therefore visible on the FF dashboard), behavior differs by config mode.</p>
 
       <h3>Always Mode</h3>
-      <p>The new item appears in the cart with a "Needs scan" badge. Because Always mode always rescans <em>all</em> items fresh at checkout, the new item requires no special handling — it is simply part of the full rescan when "Fulfill &amp; Checkout" is tapped. Re-tapping "Send to Fulfillment" updates the packing receipt so BOH (if present) knows about the new item.</p>
+      <p>The new item appears in the cart with no badge. Because Always mode rescans all items fresh at checkout, the new item requires no special handling — it is simply part of the full rescan when Checkout is tapped. Saving the order again (Save &amp; Exit or Save &amp; Stay) updates the ticket on the FF dashboard so BOH (if present) sees the new item.</p>
 
       <h3>Fallback Mode</h3>
       <p>Two existing configs handle the happy path:</p>
@@ -589,31 +594,22 @@
     <section id="receipt">
       <h2>Packing Receipt</h2>
 
-      <h3>Net-New Capability: Printing from POS</h3>
-      <p>Today, packing receipts can only be printed from the fulfillment dashboard. This feature introduces the ability to print a packing receipt directly from the POS — required for the budtender-picks flow (no FF team) where the printed receipt is the primary pick list for the back of house.</p>
-      <p>For BOH flows (lean team, always scan twice), the packing receipt is supplementary. BOH always consults the live FF dashboard order before processing — the screen is the authoritative source. A new item added after the original receipt prints is visible to BOH when they open the order. The receipt gap in BOH flows is therefore lower risk than it initially appears.</p>
+      <h3>Printing from POS (Net-New)</h3>
+      <p>Today, packing receipts can only be printed from the fulfillment dashboard. This feature introduces packing receipt printing directly from the POS via the Print Receipt modal — available at any time from the bottom bar, not gated on save or fulfillment state.</p>
+      <p>For BOH flows, the live FF dashboard order is always the authoritative source — BOH consults the screen, not the receipt. The packing receipt from POS is supplementary and most useful for budtender-picks stores where the receipt serves as a pick list.</p>
 
-      <h3>Print Option in "Send to Fulfillment" Modal</h3>
-      <p>The "Send to Fulfillment" confirmation modal includes a <strong>"Print packing receipt"</strong> checkbox. This allows each store type to control print behavior:</p>
-      <ul>
-        <li><strong>Budtender-picks stores:</strong> Leave checked by default — the receipt is their pick list.</li>
-        <li><strong>BOH-heavy stores:</strong> Can leave unchecked — their packing receipt comes from the FF dashboard auto-print.</li>
-      </ul>
-      <p>The checkbox state is not persisted between sends — it defaults to checked on every open of the modal.</p>
-
-      <h3>Re-send and New Items</h3>
-      <p>Re-tapping "Send to Fulfillment" after new items are added presents the same modal. If the budtender checks "Print packing receipt," the full updated order is reprinted. For budtender-picks flows this is the correct resolution — reprint and re-pick. For BOH flows, BOH sees the updated item on screen regardless of whether a receipt is reprinted.</p>
-      <p>Delta receipt (new items only) remains a fast-follow. The operational need is lower than initially scoped because BOH flows do not depend on the printed receipt as an authoritative source.</p>
-
-      <h3>FF Dashboard Badge Gap</h3>
-      <p>When a new item is added to an In Process or Awaiting Processing order, BOH can see the new item on screen but has no visual indicator distinguishing it from original items (the badge only appears on revert from Packed &amp; Ready). This is a FF dashboard gap, adjacent to this feature but out of scope — flagged for the FF team as a follow-up.</p>
+      <h3>Print Receipt Modal</h3>
+      <p>Tapping "Print Receipt" opens a modal with two options: <strong>Customer Receipt</strong> (checked by default) and <strong>Packing Receipt</strong> (unchecked by default). Budtender selects which to print and taps Print. A toast confirms what was printed.</p>
+      <p>When a new item is added after the order is saved, budtenders can reprint the packing receipt from the Print Receipt modal at any time without affecting fulfillment or verification state.</p>
 
       <h3>Format &amp; Routing</h3>
       <ul>
         <li><strong>Format:</strong> Reuses the existing fulfillment dashboard packing receipt — no new template.</li>
         <li><strong>Printer routing:</strong> Routes to any hardware location configurable in the fulfillment dashboard — no new printer config.</li>
-        <li><strong>Reprint:</strong> Budtenders can reprint from an open saved ticket without re-triggering "Send to Fulfillment" and without affecting verification state.</li>
       </ul>
+
+      <h3>FF Dashboard Badge Gap</h3>
+      <p>When a new item is added to an In Process or Awaiting Processing order, BOH can see it on screen but there is no visual indicator distinguishing it from original items. Out of scope — flagged for the FF team as a follow-up.</p>
     </section>
 
     <!-- Override -->
@@ -673,7 +669,7 @@
           <tr>
             <td>Fulfillment status in open POS ticket (edit mode)</td>
             <td><span class="badge badge-red">New</span></td>
-            <td>Currently only visible in saved sale view. Required for Fallback mode checkout button label and enforcement. Net-new UI change.</td>
+            <td>Currently only visible in saved sale view. Required for Fallback mode enforcement (determines whether scan modal opens on Checkout) and for the Draft → Awaiting Processing → In Process → Packed &amp; Ready pill always visible next to Receipt #. Net-new UI change.</td>
           </tr>
           <tr>
             <td><code>fulfilledQuantity</code> per line exposed to POS ticket endpoint</td>
