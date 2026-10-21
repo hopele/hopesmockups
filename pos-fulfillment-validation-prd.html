@@ -353,7 +353,7 @@
       </div>
 
       <h3>Flow 2 — BOH Picks, Cashier Verifies (Lean Fulfillment Team)</h3>
-      <p><strong>Config: Fulfillment First.</strong> BOH normally processes orders. If Packed &amp; Ready, checkout proceeds without POS scan. If not, cashier must scan before checkout.</p>
+      <p><strong>Config: Fulfillment First.</strong> BOH normally processes orders. If the order is currently Packed &amp; Ready, checkout proceeds without a POS scan. If not — either because BOH didn't finish, or because new items were added after packing — the scan modal opens and cashier scans only unconfirmed items.</p>
       <div class="flow">
         <div class="flow-step"><div class="flow-dot">1</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Build order at POS</div><div class="flow-desc">Cashier builds the order with the customer.</div></div></div>
         <div class="flow-step"><div class="flow-dot">2</div><div class="flow-connector"></div><div class="flow-body"><div class="flow-label">Save the order</div><div class="flow-desc">Cashier taps Save &amp; Exit or Save &amp; Stay. Ticket surfaces on the FF dashboard; BOH auto-print config determines whether a packing receipt prints in the back.</div></div></div>
@@ -474,7 +474,7 @@
           </tr>
           <tr>
             <td><strong>Fulfillment First</strong></td>
-            <td>POS scan required only when the order is not Packed &amp; Ready. If Packed &amp; Ready, checkout button shows "Checkout" and no scan is required. If not, scan modal opens and pre-validates any items FF already confirmed — cashier only scans items with <code>fulfilledQuantity = 0</code>.</td>
+            <td>POS scan required when the order is not currently Packed &amp; Ready. If Packed &amp; Ready, checkout proceeds without scanning. If new items are added after the order reaches Packed &amp; Ready, the order reverts to In Process and the scan modal opens — items previously confirmed by FF are pre-verified, cashier only scans the new items (<code>fulfilledQuantity = 0</code>).</td>
             <td>Yes</td>
             <td>Lean fulfillment team. BOH normally processes orders; POS scan is the safety net when they don't.</td>
           </tr>
